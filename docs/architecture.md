@@ -16,6 +16,9 @@ src/
 ├── routes/
 │   ├── index.js
 │   └── healthRoutes.js
+├── utils/
+│   ├── AppError.js
+│   └── asyncHandler.js
 
 ## API Structure
 
