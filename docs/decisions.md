@@ -14,3 +14,9 @@ MongoDB with Mongoose.
 
 ## Module Style
 Use CommonJS.
+
+## Error Handling Strategy
+Use centralized Express middleware.
+
+Reason:
+Consistent API responses and easier debugging.

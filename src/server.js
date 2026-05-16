@@ -11,7 +11,7 @@ const startServer = async () => {
       console.log(`Server listening on port ${env.PORT}`);
     });
   } catch (error) {
-    console.error(err.message);
+    console.error(error.message);
     process.exit(1);
   }
 };

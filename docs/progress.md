@@ -8,9 +8,9 @@
 - MongoDB local connection verified
 
 ## IN PROGRESS
-- Centralized error handling design
+- Centralized error handling implementation
 
 ## NEXT
-- Express error middleware
 - 404 route handling
+- Global error middleware
 - Async error handling
