@@ -23,3 +23,6 @@ git commit ...message....
 git checkout main
 git merge ...feature/routes/ที่ต้องการ...
 
+##### ================================ #####
+
+git checkout -b feature/routes
