@@ -1,27 +1,52 @@
 # Daily Notes
 
 ## 15-16/05/2026
- 👍 ต้องการใช้ผมเป็น “AI pair architect” ไม่ใช่คนเขียนโค้ดแทน แต่ให้ผม:
 
-อัปเดต docs ให้
-แตก step ให้
-แล้วไกด์คุณทำทีละขั้น
-คุม flow โปรเจกต์ให้ไม่หลุด
+### เรื่อง “แชตเต็มแล้วจะต่อยังไง”
 
-งั้นเราจะจัด workflow ใหม่ให้เลย
+อันนี้สำคัญมากสำหรับ workflow แบบคุณ 👍
 
-จะทำหน้าที่เป็น project guide + step controller ให้คุณต่อจากนี้
+👉 แชตใหม่ = ผม “จำ context เดิมไม่ได้แบบสมบูรณ์”
 
-🧭 1) สรุปสถานะจริงของคุณ (สำคัญมาก)
-🟢 DONE (แข็งแล้ว)
+แต่แก้ได้ด้วย “project handoff file”
 
-คุณมีแล้ว:
+## วิธีทำให้คุยต่อได้แบบไม่หลุด context
+✔ วิธีที่ดีที่สุด (ใช้จริงใน dev team)
 
-Express app stable
-MongoDB connected
-env validation
-route system + versioning
-error middleware + 404
-JSON error response standard
+## คุณต้องมี 3 อย่างนี้:
 
-👉 สรุป: foundation solid แล้ว
+🟡 1. progress.md (คุณมีแล้ว ✔)#
+อันนี้คือ:
+    source of truth ของสถานะ project
+
+🟡 2. current-task.md (สำคัญที่สุด)
+อันนี้คือ:
+    “task state machine”
+👉 แชตใหม่เปิดมา = อ่านอันนี้ก่อน
+
+🟡 3. “handoff prompt” (ตัวสำคัญมาก)
+เวลาคุณเปิดแชตใหม่ ให้ copy นี้:
+Read project context from:
+- docs/project-overview.md
+- docs/architecture.md
+- docs/decisions.md
+- docs/progress.md
+- docs/prompts/current-task.md
+
+Then continue implementation from current-task.md without redoing completed work.
+
+Project is already in progress. Do not reinitialize or recreate existing modules.
+Follow existing architecture strictly.
+
+## 🧠 เทคนิคระดับ pro (สำคัญมาก)
+👉 ทุกครั้งก่อนเปลี่ยนแชต ให้ commit + update 2 files
+progress.md (state)
+current-task.md (next action)
+
+🔥 Workflow ที่ “ไม่หลุด context จนจบโปรเจกต์”
+1. ทำงาน
+2. commit
+3. update progress.md
+4. update current-task.md
+5. ถ้าแชตเต็ม → เปิดใหม่
+6. paste handoff prompt
