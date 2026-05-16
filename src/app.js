@@ -1,13 +1,12 @@
 const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
+const registerRoutes = require('./routes');
 
 const app = express();
 
 app.use(express.json());
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+registerRoutes(app);
 
 // 404 handler for unknown routes
 app.use((req, res) => {

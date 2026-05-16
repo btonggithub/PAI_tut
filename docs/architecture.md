@@ -5,12 +5,21 @@
 src/
 ├── app.js
 ├── server.js
+│
 ├── config/
 │   ├── env.js
 │   └── db.js
 │
 ├── middleware/
 │   └── errorHandler.js
+│
+├── routes/
+│   ├── index.js
+│   └── healthRoutes.js
+
+## API Structure
+
+/api/v1
 
 ## Config Flow
 
