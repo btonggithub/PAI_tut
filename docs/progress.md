@@ -47,8 +47,11 @@
 
 ## IN PROGRESS
 
-- API architecture stabilization
-- Preparation for controller layer migration
+### Application Layer (NEW PHASE)
+- Controller layer implementation started (planned)
+- Route-to-controller migration preparation
+- AsyncHandler integration into controller structure
+- AppError adoption in controller layer
 
 ---
 
@@ -56,14 +59,16 @@
 
 ### Application Layer
 
-#### Controller Layer (NEXT PRIORITY)
-- Introduce controller directory structure (`src/controllers/`)
+#### Controller Layer (IN PROGRESS)
+- Create `src/controllers/` directory
 - Move route logic into controllers
-- Apply asyncHandler to all controller functions
-- Replace raw errors with AppError usage
-- Ensure routes remain thin routing layer only
+- Apply asyncHandler to controller functions
+- Replace raw errors with AppError
+- Ensure routes remain thin layer
 
-#### Service Layer Planning (LATER PHASE)
+---
+
+#### Service Layer (FUTURE)
 - Define service layer boundaries
-- Prepare business logic separation strategy
-- Keep controllers lightweight and focused on request/response handling only
+- Separate business logic from controllers
+- Prepare scalable architecture structure
