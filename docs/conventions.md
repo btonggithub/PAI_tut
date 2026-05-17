@@ -174,3 +174,32 @@ Service:
 
 Repository:
 - database access only
+
+---
+
+## Repository Conventions
+
+- Repositories handle data-access only
+- Repositories must not contain HTTP logic
+- Repositories must not access req/res
+- Repositories are grouped by module/domain
+- Services communicate with repositories only
+
+---
+
+## Validation Conventions
+
+- Validation schemas belong in:
+  middleware/validation/schemas/
+
+- Route layer is responsible for validation execution
+- Controllers/services must not validate requests directly
+
+---
+
+## Authentication Conventions
+
+- JWT utilities belong in utils/
+- Auth middleware belongs in middleware/auth/
+- Password hashing handled via utility abstraction
+- Controllers remain transport-only

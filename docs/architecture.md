@@ -212,3 +212,17 @@ Environment variables validated using Joi.
 ### Middleware Layer
 - validation
 - error handling
+
+### Repository Layer
+- repositories
+- data-access abstraction
+- database interaction isolation
+
+### Validation Layer
+- Joi schemas
+- reusable validation middleware
+
+### Authentication Layer (planned)
+- JWT authentication
+- route protection middleware
+- auth services/repositories

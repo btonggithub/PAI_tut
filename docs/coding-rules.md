@@ -121,3 +121,24 @@ Validation must:
 - Services must not query database directly
 - Repositories must not contain HTTP logic
 - Repositories must not use req/res
+
+---
+
+## Repository Layer
+- Repositories handle database access only
+- Do not place business logic inside repositories
+- Services must access data through repositories only
+
+---
+
+## Validation Layer
+- Use Joi schemas for request validation
+- Validation must occur before controllers
+- Controllers/services must not validate HTTP requests
+
+---
+
+## Authentication
+- Never store raw passwords
+- Always hash passwords before persistence
+- JWT secret must come from env.js

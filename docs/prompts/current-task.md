@@ -1,113 +1,126 @@
 # Current Task
 
 ## Task
-Implement Repository Layer Foundation for scalable data access architecture
+Implement Authentication Foundation using existing layered architecture
 
 ---
 
 ## Requirements
-- Create repository directory structure (`src/repositories/`)
-- Introduce repository layer between services and database access
-- Move all data-access responsibility into repositories
-- Ensure services no longer access database directly
-- Keep controllers HTTP-only
-- Keep validation inside validation middleware layer
-- Maintain standardized JSON response format
-
-👉 อธิบาย:
-เฟสนี้คือการแยก data-access ออกจาก service layer
-เพื่อเตรียม architecture สำหรับ scale, testing และ database abstraction ในอนาคต
+- Introduce authentication module structure
+- Add user model foundation
+- Implement password hashing utility
+- Implement JWT token generation utility
+- Create authentication service layer
+- Create authentication controller layer
+- Add auth validation schemas
+- Add authentication middleware for protected routes
+- Maintain layered architecture consistency
 
 ---
 
 ## Architecture Target
 
 Route
-→ Validation Middleware
-→ Controller
-→ Service
-→ Repository
-→ Database
+↓
+Validation Middleware
+↓
+Controller
+↓
+Service
+↓
+Repository
+↓
+Database
 
 ---
 
-## Related Files
-- src/repositories/* (new)
-- src/services/*
-- src/controllers/*
-- src/middleware/validation/*
-- src/utils/AppError.js
-- src/utils/response.js
+## Expected Authentication Structure
+
+src/
+├── controllers/
+│   └── auth/
+│       └── authController.js
+│
+├── services/
+│   └── auth/
+│       └── authService.js
+│
+├── repositories/
+│   └── auth/
+│       └── authRepository.js
+│
+├── middleware/
+│   └── auth/
+│       └── protect.js
+│
+├── middleware/
+│   └── validation/
+│       └── schemas/
+│           └── authValidation.js
+│
+├── utils/
+│   ├── jwt.js
+│   └── password.js
 
 ---
 
 ## Constraints
 - CommonJS only
 - JSON responses only
-- No logging library
-- No authentication yet
-- No ORM introduction
-- No database schema/model changes
-- No business logic expansion
-
-👉 อธิบาย:
-ยังคง focus ที่ architecture separation เท่านั้น
-ยังไม่เข้าสู่ auth หรือ ORM abstraction
+- Use bcrypt for password hashing
+- Use JWT for authentication
+- No refresh-token implementation yet
+- No RBAC/roles yet
+- No frontend implementation
 
 ---
 
 ## Expected Result
-- Services delegate data access to repositories
-- Repositories handle all database interaction
+- Authentication architecture foundation exists
+- Login/Register endpoints functional
+- Passwords hashed securely
+- JWT tokens generated securely
+- Protected route middleware functional
+- Validation integrated into auth routes
 - Controllers remain HTTP-only
-- Validation remains middleware-only
-- Error flow remains centralized through AppError
-- Clean separation between business logic and persistence layer
+- Services remain business-logic layer
+- Repositories remain data-access layer
 
 ---
 
 ## Non-Goals
-- Do not implement authentication
-- Do not add ORM abstraction
-- Do not introduce caching
-- Do not implement pagination yet
-- Do not modify database schema
+- Do not implement OAuth
+- Do not implement refresh tokens
+- Do not implement role-based authorization
+- Do not implement email verification
+- Do not implement password reset
 
 ---
 
-## Success Criteria
-- Repository layer exists
-- At least 2 repositories implemented
-- Services no longer access database directly
-- Controllers contain no business logic
-- Validation does not exist in services
-- Standardized response format maintained
-
----
-
-## Completed (Do not repeat)
-- AsyncHandler implemented
-- AppError system implemented
-- Controller layer implemented
-- Response utility implemented
+## Completed Foundation (Do not repeat)
+- Error system implemented
 - Validation layer implemented
-- Standardized error handling implemented
+- Controller layer implemented
+- Service layer implemented
+- Repository layer implemented
+- Response utility standardized
 
 ---
 
 ## Current Status
-✔ Validation Layer completed
-✔ Controller-Service separation completed
-✔ Error handling standardized
-➡ Now entering Repository Layer foundation
+
+✔ Validation Layer complete  
+✔ Repository Layer complete  
+✔ Architecture layering stabilized  
+➡ Entering Authentication Foundation phase
 
 ---
 
 ## NEXT STEP (Future Phase)
 
-### Authentication Foundation
-- JWT authentication
-- Auth middleware
-- Protected routes
-- Access token strategy
-- Refresh token strategy
+### Scalable Data Architecture
+- Database model standardization
+- Shared repository patterns
+- Pagination patterns
+- Query abstraction patterns
+- Data indexing strategy
