@@ -106,3 +106,23 @@ The following are intentionally deferred:
 - Authentication
 - Dependency injection
 - DTO/Presenter abstractions
+
+---
+
+## Service Convention
+
+- One service file per module/domain
+- Services contain reusable processing logic
+- Services must not handle HTTP concerns
+- Services must not directly format responses
+- Services may throw AppError for operational failures
+- Controllers delegate processing to services
+
+Example:
+
+Controller:
+- request parsing
+- response handling
+
+Service:
+- reusable application logic

@@ -87,3 +87,18 @@ The following are intentionally deferred:
 - Validation middleware
 - Authentication/authorization
 - Dependency injection
+
+---
+
+## Service Rules
+
+Services must:
+- Remain framework-agnostic when possible
+- Avoid direct HTTP response handling
+- Avoid direct Express dependency
+- Contain reusable processing logic
+- Throw AppError for operational failures when needed
+
+Controllers must:
+- Delegate processing to services
+- Remain focused on HTTP concerns only

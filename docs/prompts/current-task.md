@@ -1,31 +1,34 @@
 # Current Task
 
 ## Task
-Polish controller and response architecture consistency before Service Layer introduction
+Introduce Service Layer foundation and begin separating business logic from controllers
 
 ---
 
 ## Requirements
-- Ensure all success responses use shared response utility
-- Standardize HTTP status code usage across controllers
-- Standardize controller export patterns
-- Improve controller naming consistency
-- Ensure AppError usage consistency
-- Ensure routes remain thin and declarative
-- Remove remaining duplicated response logic
+- Create service layer structure (`src/services/`)
+- Introduce module-based service organization
+- Move non-HTTP logic from controllers into services
+- Keep controllers focused on HTTP concerns only
+- Ensure controllers delegate processing to services
+- Maintain existing asyncHandler usage
+- Maintain AppError operational error flow
+- Maintain standardized success response flow
 
 👉 อธิบาย:
-เฟสนี้คือการเก็บรายละเอียด architecture ก่อนเข้า Service Layer จริง  
-เป้าหมายคือทำให้ response patterns และ controller conventions นิ่งที่สุดก่อนเริ่มแยก business logic
+เฟสนี้เริ่มแยก business logic ออกจาก controller  
+controller จะเหลือหน้าที่เกี่ยวกับ HTTP/request/response เท่านั้น  
+service layer จะเริ่มเป็นที่อยู่ของ application/business logic
 
 ---
 
 ## Related Files
 - src/controllers/**/*
+- src/services/**/* (new)
 - src/routes/*
-- src/utils/response.js
 - src/utils/AppError.js
 - src/utils/asyncHandler.js
+- src/utils/response.js
 - src/middleware/errorHandler.js
 
 ---
@@ -34,18 +37,17 @@ Polish controller and response architecture consistency before Service Layer int
 
 Route
 → Controller
+→ Service Layer
 → Response Utility
 → JSON Response
 
 Error Flow:
 Route
 → Controller
+→ Service Layer
 → AppError
 → Error Middleware
 → JSON Error Response
-
-(Future)
-→ Service Layer
 
 ---
 
@@ -53,53 +55,62 @@ Route
 - CommonJS only
 - JSON responses only
 - No logging library
-- No database changes
 - No validation middleware
-- No service layer implementation yet
-- No repository layer introduction
-- No business logic expansion
+- No repository/data-access layer yet
+- No database model changes
+- No authentication
+- No business logic expansion beyond current scope
 
 ---
 
 ## Expected Result
-- All controllers use same response pattern
-- Success payload structure fully standardized
-- AppError usage fully consistent
-- Routes remain declarative only
-- Architecture stabilized for service extraction
+- Controllers become thinner
+- Service layer structure established
+- Controllers delegate processing to services
+- Service modules organized by domain/module
+- AppError usage remains standardized
+- Response format remains standardized
 
 ---
 
 ## Non-Goals
-- Do not implement service layer
-- Do not introduce repository layer
-- Do not redesign architecture
+- Do not implement repository layer
+- Do not introduce ORM abstraction
+- Do not implement validation middleware
 - Do not add authentication
-- Do not add validation middleware
+- Do not redesign routing structure
+- Do not add dependency injection
 
 ---
 
 ## Success Criteria
-- All success responses use response utility
-- All controllers use asyncHandler
-- All operational errors use AppError
-- No duplicated response formatting logic
-- Route files contain no processing logic
-- Controller patterns remain consistent
+- `src/services/` exists
+- At least 2 service modules exist
+- Controllers contain HTTP concerns only
+- Service layer contains reusable processing logic
+- Routes remain declarative only
+- AppError flow remains centralized
+- Response utility remains standardized
 
 ---
 
 ## Current Status
+✔ Thin route architecture completed
 ✔ Controller Layer v2 completed
-✔ Shared response utility introduced
-✔ Multi-module controller structure established
-➡ Entering final controller polish phase before Service Layer
+✔ Response standardization completed
+✔ Controller stabilization completed
+➡ Entering Service Layer Foundation phase
 
 ---
 
 ## NEXT STEP (Future Phase)
 
-### Service Layer Foundation
-- Introduce service abstraction layer
-- Extract business logic from controllers
-- Keep controllers focused on HTTP concerns only
+### Repository Layer Planning
+- Introduce data-access abstraction
+- Separate persistence logic from services
+- Prepare scalable database architecture
+
+### Validation Layer
+- Request validation middleware
+- Schema validation strategy
+- Centralized validation flow

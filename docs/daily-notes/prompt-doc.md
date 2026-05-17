@@ -38,7 +38,7 @@ Follow existing architecture and coding style.
 Do not change folder structure.
 # <<< Prompts 3.
 
-# >>> Prompts 3.
+# >>> Prompts 4.
 Read project context from:
 - docs/project-overview.md
 - docs/architecture.md

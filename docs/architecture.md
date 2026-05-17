@@ -17,6 +17,13 @@ src/
 │   └── system/
 │       └── systemController.js
 │
+├── services/          <-- NEW PHASE
+│   ├── health/
+│   │   └── healthService.js
+│   │
+│   └── system/
+│       └── systemService.js
+│
 ├── middleware/
 │   └── errorHandler.js
 │
@@ -58,6 +65,8 @@ Route
 ↓
 Controller
 ↓
+Service Layer
+↓
 Response Utility
 ↓
 JSON Response
@@ -71,6 +80,8 @@ Request
 Route
 ↓
 Controller
+↓
+Service Layer
 ↓
 AppError
 ↓
