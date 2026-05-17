@@ -201,6 +201,18 @@ feature/07-service-layer-foundation
 Then
 feature/08-validation-layer
 
+01 infrastructure
+02 bootstrap
+03 error system
+04 controllers
+05 controller v2
+06 stabilization
+06.5 polish
+07 service layer
+08 validation layer
+09 repository layer
+10 scalable data architecture
+
 ##### =========== Next architecture ============ #####
 ตอนนี้ architecture evolution ของคุณเป็นแบบนี้
 Infrastructure

@@ -126,3 +126,16 @@ Controller:
 
 Service:
 - reusable application logic
+
+---
+
+## Validation Convention
+
+- Validation must occur before controller execution
+- Controllers must not contain request validation logic
+- Validation middleware may throw AppError
+- Validation rules should be reusable
+- Validation should support:
+  - body
+  - query
+  - params

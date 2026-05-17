@@ -102,3 +102,14 @@ Services must:
 Controllers must:
 - Delegate processing to services
 - Remain focused on HTTP concerns only
+
+---
+
+## Validation Rules
+
+Validation must:
+- Be middleware-based
+- Execute before controllers
+- Avoid inline validation inside controllers
+- Use AppError for validation failures
+- Remain reusable across modules

@@ -91,6 +91,22 @@ JSON Error Response
 
 ---
 
+## Validation Flow
+
+Request
+↓
+Validation Middleware
+↓
+Controller
+↓
+Service
+↓
+Response Utility
+↓
+JSON Response
+
+---
+
 ## Controller Architecture
 
 Controllers:
@@ -154,8 +170,6 @@ Environment variables validated using Joi.
 
 ---
 
-# Architecture
-
 ## Architecture Layers
 
 ### Infrastructure Layer
@@ -176,3 +190,7 @@ Environment variables validated using Joi.
 
 ### Error System
 - middleware
+
+### Middleware Layer
+- validation
+- error handling
