@@ -17,7 +17,7 @@ src/
 │   └── system/
 │       └── systemController.js
 │
-├── services/          <-- NEW PHASE
+├── services/
 │   ├── health/
 │   │   └── healthService.js
 │   │
@@ -25,7 +25,20 @@ src/
 │       └── systemService.js
 │
 ├── middleware/
+│   ├── validation/
+│   │   ├── schemas/
+│   │   │   └── systemValidation.js
+│   │   │
+│   │   └── validateRequest.js
+│   │
 │   └── errorHandler.js
+│
+├── repositories/          <-- NEW PHASE
+│   ├── health/
+│   │   └── healthRepository.js
+│   │
+│   └── system/
+│       └── systemRepository.js
 │
 ├── routes/
 │   ├── healthRoutes.js
@@ -74,11 +87,7 @@ Repository
 Database
 
 Response Flow
-↑
-Repository
-↑
-Service
-↑
+↓
 Controller
 ↓
 Response Utility

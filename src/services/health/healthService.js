@@ -1,5 +1,7 @@
+const healthRepository = require('../../repositories/health/healthRepository');
+
 const getHealthStatus = async () => {
-  return { status: 'ok' };
+  return healthRepository.fetchHealthStatus();
 };
 
 module.exports = {

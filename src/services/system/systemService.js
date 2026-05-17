@@ -1,9 +1,7 @@
+const systemRepository = require('../../repositories/system/systemRepository');
+
 const getSystemInfo = async () => {
-  return {
-    service: 'PAI_tut Backend',
-    version: 'v1',
-    uptime: process.uptime(),
-  };
+  return systemRepository.fetchSystemInfo();
 };
 
 module.exports = {
