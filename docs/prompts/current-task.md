@@ -1,50 +1,43 @@
 # Current Task
 
 ## Task
-Introduce Validation Layer foundation for request validation standardization
+Implement Repository Layer Foundation for scalable data access architecture
 
 ---
 
 ## Requirements
-- Create validation middleware structure (`src/middleware/validation/`)
-- Introduce reusable request validation flow
-- Support validation for:
-  - req.body
-  - req.query
-  - req.params
-- Ensure validation errors use AppError flow
-- Keep controllers free from validation logic
+- Create repository directory structure (`src/repositories/`)
+- Introduce repository layer between services and database access
+- Move all data-access responsibility into repositories
+- Ensure services no longer access database directly
+- Keep controllers HTTP-only
+- Keep validation inside validation middleware layer
 - Maintain standardized JSON response format
 
 👉 อธิบาย:
-เฟสนี้เริ่มแยก request validation ออกจาก controller  
-validation จะถูกจัดการผ่าน middleware ก่อนเข้าสู่ controller
-
----
-
-## Related Files
-- src/middleware/validation/**/* (new)
-- src/controllers/**/*
-- src/routes/**/*
-- src/utils/AppError.js
-- src/middleware/errorHandler.js
+เฟสนี้คือการแยก data-access ออกจาก service layer
+เพื่อเตรียม architecture สำหรับ scale, testing และ database abstraction ในอนาคต
 
 ---
 
 ## Architecture Target
 
-Request
+Route
 → Validation Middleware
 → Controller
 → Service
-→ Response Utility
-→ JSON Response
+→ Repository
+→ Database
 
-Error Flow:
-Validation Middleware
-→ AppError
-→ Error Middleware
-→ JSON Error Response
+---
+
+## Related Files
+- src/repositories/* (new)
+- src/services/*
+- src/controllers/*
+- src/middleware/validation/*
+- src/utils/AppError.js
+- src/utils/response.js
 
 ---
 
@@ -52,49 +45,69 @@ Validation Middleware
 - CommonJS only
 - JSON responses only
 - No logging library
-- No authentication
-- No database changes
-- No repository layer yet
+- No authentication yet
+- No ORM introduction
+- No database schema/model changes
 - No business logic expansion
+
+👉 อธิบาย:
+ยังคง focus ที่ architecture separation เท่านั้น
+ยังไม่เข้าสู่ auth หรือ ORM abstraction
 
 ---
 
 ## Expected Result
-- Validation logic separated from controllers
-- Reusable validation middleware introduced
-- Validation errors standardized through AppError
-- Controllers remain HTTP-focused only
+- Services delegate data access to repositories
+- Repositories handle all database interaction
+- Controllers remain HTTP-only
+- Validation remains middleware-only
+- Error flow remains centralized through AppError
+- Clean separation between business logic and persistence layer
 
 ---
 
 ## Non-Goals
 - Do not implement authentication
-- Do not introduce repository layer
-- Do not redesign service layer
-- Do not introduce ORM abstraction
+- Do not add ORM abstraction
+- Do not introduce caching
+- Do not implement pagination yet
+- Do not modify database schema
 
 ---
 
 ## Success Criteria
-- Validation middleware structure exists
-- Validation reusable across routes
-- Controllers contain zero validation logic
-- Validation errors use AppError flow
-- Routes remain declarative only
+- Repository layer exists
+- At least 2 repositories implemented
+- Services no longer access database directly
+- Controllers contain no business logic
+- Validation does not exist in services
+- Standardized response format maintained
+
+---
+
+## Completed (Do not repeat)
+- AsyncHandler implemented
+- AppError system implemented
+- Controller layer implemented
+- Response utility implemented
+- Validation layer implemented
+- Standardized error handling implemented
 
 ---
 
 ## Current Status
-✔ Service Layer foundation completed
-✔ Controllers stabilized
-✔ Response utility standardized
-➡ Entering Validation Layer phase
+✔ Validation Layer completed
+✔ Controller-Service separation completed
+✔ Error handling standardized
+➡ Now entering Repository Layer foundation
 
 ---
 
 ## NEXT STEP (Future Phase)
 
-### Repository Layer
-- Data access abstraction
-- Database separation strategy
-- Repository-service interaction
+### Authentication Foundation
+- JWT authentication
+- Auth middleware
+- Protected routes
+- Access token strategy
+- Refresh token strategy

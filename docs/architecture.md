@@ -57,7 +57,7 @@ server.js / db.js
 
 ---
 
-## Request Flow
+## Request Lifecycle
 
 Request
 ↓
@@ -67,7 +67,19 @@ Validation Middleware
 ↓
 Controller
 ↓
-Service Layer
+Service
+↓
+Repository
+↓
+Database
+
+Response Flow
+↑
+Repository
+↑
+Service
+↑
+Controller
 ↓
 Response Utility
 ↓
@@ -178,6 +190,7 @@ Environment variables validated using Joi.
 ### Application Layer
 - controllers
 - services
+- repositories
 
 ### Cross-cutting Utilities
 - response

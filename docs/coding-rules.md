@@ -113,3 +113,11 @@ Validation must:
 - Avoid inline validation inside controllers
 - Use AppError for validation failures
 - Remain reusable across modules
+
+---
+
+## Repository Rules
+- Repositories handle database access only
+- Services must not query database directly
+- Repositories must not contain HTTP logic
+- Repositories must not use req/res

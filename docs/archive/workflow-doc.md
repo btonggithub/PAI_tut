@@ -1,4 +1,6 @@
 
+# architecture-driven development
+
 ## step พื้นฐาน
 1. เขียน task
 2. AI อ่าน docs
@@ -249,3 +251,12 @@ AI รุ่นไหนมาอ่านก็ “เข้าใจตรง�
 5. Update progress
 6. เปลี่ยน task
 7. ทำวนไป
+
+## workflow backend จริง ๆ :
+1. แตก feature branch
+2. ให้ agent implement phase
+3. ตรวจ architecture
+4. update docs ให้สะท้อน reality
+5. commit docs + code
+6. merge เข้า main
+7. แตก branch phase ใหม่

@@ -139,3 +139,38 @@ Service:
   - body
   - query
   - params
+
+---
+
+## Repository Naming Convention
+
+Folder:
+- src/repositories/<module>/
+
+Files:
+- healthRepository.js
+- systemRepository.js
+
+Exports:
+module.exports = {
+  functionName,
+};
+
+---
+
+## Layer Responsibility
+
+Route:
+- routing only
+
+Validation:
+- request validation only
+
+Controller:
+- HTTP handling only
+
+Service:
+- business flow only
+
+Repository:
+- database access only
