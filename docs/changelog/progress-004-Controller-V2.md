@@ -45,40 +45,30 @@
 
 ---
 
-### Controller Layer v1 (COMPLETED)
-- Initial controller layer introduced
-- Route logic migrated into controllers
-- asyncHandler integrated into controllers
-- AppError integrated into application flow
-- Routes converted into thin routing layer
-
----
-
 ## IN PROGRESS
 
-### Controller Layer v2 (STANDARDIZATION PHASE)
-- Multi-module controller structure preparation
-- Controller pattern standardization
-- Consistent asyncHandler usage enforcement
-- Consistent AppError usage enforcement
-- Response structure consistency improvements
-- Architecture scaling readiness improvements
+### Application Layer (NEW PHASE)
+- Controller layer implementation started (planned)
+- Route-to-controller migration preparation
+- AsyncHandler integration into controller structure
+- AppError adoption in controller layer
 
 ---
 
 ## NEXT
 
-### Controller Layer v2
-- Organize controllers by domain/module
-- Ensure all controllers follow same structure
-- Eliminate remaining route-level logic
-- Standardize controller response patterns
-- Prepare clean transition path to service layer
+### Application Layer
+
+#### Controller Layer (IN PROGRESS)
+- Create `src/controllers/` directory
+- Move route logic into controllers
+- Apply asyncHandler to controller functions
+- Replace raw errors with AppError
+- Ensure routes remain thin layer
 
 ---
 
-### Service Layer (FUTURE)
-- Introduce service abstraction layer
+#### Service Layer (FUTURE)
+- Define service layer boundaries
 - Separate business logic from controllers
-- Keep controllers focused on HTTP concerns only
-- Prepare scalable long-term architecture
+- Prepare scalable architecture structure

@@ -7,15 +7,23 @@ src/
 ├── server.js
 │
 ├── config/
-│   ├── env.js
-│   └── db.js
+│   ├── db.js
+│   └── env.js
+│
+├── controller/
+│   ├── health/
+│   │   └── healthController.js
+│   └── system.js
+│       └── systemController.js
 │
 ├── middleware/
 │   └── errorHandler.js
 │
 ├── routes/
+│   ├── healthRoutes.js
 │   ├── index.js
-│   └── healthRoutes.js
+│   └── systemRoutes.js
+│
 ├── utils/
 │   ├── AppError.js
 │   └── asyncHandler.js
