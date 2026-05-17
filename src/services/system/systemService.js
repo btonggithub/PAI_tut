@@ -1,10 +1,4 @@
-const AppError = require('../../utils/AppError');
-
-const getSystemInfo = async (scope) => {
-  if (scope && scope !== 'basic') {
-    throw new AppError('Invalid scope parameter. Allowed value: basic', 400);
-  }
-
+const getSystemInfo = async () => {
   return {
     service: 'PAI_tut Backend',
     version: 'v1',

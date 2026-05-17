@@ -126,3 +126,13 @@
 - Request validation standardization
 - Validation error flow planning
 - Controller validation cleanup preparation
+
+---
+
+## Architecture Roadmap
+
+08 Validation Layer Foundation
+09 Repository Layer Foundation
+10 Authentication Foundation
+11 Scalable Data Architecture
+12 Production Hardening

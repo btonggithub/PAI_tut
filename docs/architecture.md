@@ -63,6 +63,8 @@ Request
 ↓
 Route
 ↓
+Validation Middleware
+↓
 Controller
 ↓
 Service Layer
@@ -75,13 +77,7 @@ JSON Response
 
 ## Error Flow
 
-Request
-↓
-Route
-↓
-Controller
-↓
-Service Layer
+Any Layer
 ↓
 AppError
 ↓

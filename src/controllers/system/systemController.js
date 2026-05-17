@@ -3,8 +3,7 @@ const { sendSuccess } = require('../../utils/response');
 const systemService = require('../../services/system/systemService');
 
 const getSystemInfo = asyncHandler(async (req, res) => {
-  const { scope } = req.query;
-  const data = await systemService.getSystemInfo(scope);
+  const data = await systemService.getSystemInfo();
   return sendSuccess(res, data);
 });
 
