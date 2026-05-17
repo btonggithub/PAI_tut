@@ -48,27 +48,26 @@
 ### Controller Layer v1
 - Initial controller structure introduced
 - Route logic migrated into controllers
-- asyncHandler integrated into controllers
 - Thin route architecture introduced
 
 ---
 
 ### Controller Layer v2
 - Multi-module controller structure implemented
-- health module controller introduced
-- system module controller introduced
-- Standardized controller pattern enforced
-- Thin route enforcement improved
-- AppError usage standardized in controllers
+- health controller module introduced
+- system controller module introduced
+- Standardized controller structure introduced
+- AppError usage standardized
+- asyncHandler usage standardized
 
 ---
 
 ### Controller Stabilization
 - Shared response utility introduced
-- Success response standardization improved
-- Controller structure consistency improved
-- AppError usage consistency improved
-- Thin route architecture maintained
+- Standardized success response structure introduced
+- Controller consistency improved
+- Route consistency improved
+- Thin route enforcement improved
 - Controllers prepared for future service extraction
 
 ---
@@ -76,11 +75,11 @@
 ## IN PROGRESS
 
 ### Response & Controller Polish Phase
-- HTTP status code consistency refinement
-- Controller export/import consistency
-- Response utility adoption refinement
-- Naming consistency cleanup
-- Remaining response duplication cleanup
+- Response utility standardization refinement
+- Controller export consistency refinement
+- Naming consistency refinement
+- Status code consistency refinement
+- Remaining duplicated response cleanup
 
 ---
 
@@ -90,12 +89,12 @@
 - Introduce service abstraction layer
 - Extract business logic from controllers
 - Define service boundaries
-- Prepare scalable application flow
+- Keep controllers HTTP-focused
 
 ---
 
 ### Future Architecture Goals
-- Validation layer introduction
+- Validation middleware
 - Repository/data-access abstraction
-- Authentication/authorization system
+- Authentication/authorization
 - Long-term scalable module architecture

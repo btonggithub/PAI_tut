@@ -43,6 +43,7 @@ Read project context from:
 - docs/project-overview.md
 - docs/architecture.md
 - docs/decisions.md
+- docs/conventions.md
 - docs/coding-rules.md
 - docs/progress.md
 - docs/prompts/current-task.md

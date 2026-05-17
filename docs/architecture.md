@@ -38,7 +38,7 @@ src/
 
 ---
 
-## Configuration Flow
+## Config Flow
 
 .env
 ↓
@@ -50,117 +50,56 @@ server.js / db.js
 
 ---
 
-## Request Lifecycle
+## Request Flow
 
-request
+Request
 ↓
-route
+Route
 ↓
-controller
+Controller
 ↓
-service layer (future)
+Response Utility
 ↓
-AppError (if operational error)
-↓
-errorHandler middleware
-↓
-JSON response
+JSON Response
 
 ---
 
-## Route Layer Rules
+## Error Flow
 
-Routes must:
-- Handle routing only
-- Contain no business logic
-- Contain no try/catch blocks
-- Delegate request handling to controllers
-
-Example:
-
-router.get('/', healthController.getHealth);
-
----
-
-## Controller Layer Rules
-
-Controllers must:
-- Handle HTTP request/response flow only
-- Use asyncHandler for all async functions
-- Use AppError for operational errors
-- Return standardized JSON responses
-- Remain lightweight and framework-focused
-
-Example response:
-
-{
-  "success": true,
-  "data": {}
-}
-
----
-
-## Error Handling Strategy
-
-Operational errors:
-- Use AppError
-- Flow through centralized error middleware
-- Return standardized JSON responses
-
-Programming errors:
-- Fall back to generic 500 response
-- Prevent internal details leaking to clients
-
-Flow:
-
+Request
+↓
+Route
+↓
 Controller
 ↓
 AppError
 ↓
-errorHandler middleware
+Error Middleware
 ↓
-JSON response
+JSON Error Response
 
 ---
 
-## Async Error Strategy
+## Controller Architecture
 
-All async controllers are wrapped using asyncHandler.
-
-Purpose:
-- Eliminate repetitive try/catch blocks
-- Automatically forward async errors to middleware
-
-Pattern:
-
-asyncHandler(async (req, res, next) => {
-  ...
-});
+Controllers:
+- Handle HTTP concerns only
+- Use asyncHandler
+- Use AppError for operational errors
+- Use shared response utility for success responses
+- Remain lightweight and modular
 
 ---
 
-## Validation
+## Route Architecture
 
-Environment variables validated using Joi.
-
----
-
-## Current Architecture Phase
-
-Controller Layer v2
-- Multi-module controller structure
-- Thin route architecture
-- Standardized error handling
-- Scaling-ready controller organization
+Routes:
+- Handle routing only
+- Remain declarative
+- Contain no business logic
+- Delegate all processing to controllers
 
 ---
-
-## Planned Next Phase
-
-Service Layer Introduction
-- Separate business logic from controllers
-- Introduce service abstraction layer
-- Keep controllers focused on HTTP concerns only
 
 ## Database Architecture
 
@@ -169,16 +108,8 @@ Current database stack:
 - Mongoose
 
 Current phase:
-- Connection layer implemented
-- Database abstraction not introduced yet
-
-Current flow:
-
-Controller
-↓
-(database access will be introduced later)
-↓
-MongoDB
+- Database connection layer implemented
+- Repository layer intentionally deferred
 
 Future target flow:
 
@@ -186,13 +117,26 @@ Route
 ↓
 Controller
 ↓
-Service
+Service Layer
 ↓
 Repository/Data Access Layer
 ↓
 MongoDB
 
-Reason:
-- Avoid premature abstraction
-- Keep early architecture lightweight
-- Introduce repository/service layers incrementally
+---
+
+## Current Architecture Phase
+
+Response & Controller Polish Phase
+
+Current priorities:
+- Response consistency
+- Controller consistency
+- AppError standardization
+- Service-layer readiness
+
+---
+
+## Validation
+
+Environment variables validated using Joi.

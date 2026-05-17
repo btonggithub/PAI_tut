@@ -10,13 +10,13 @@ Polish controller and response architecture consistency before Service Layer int
 - Standardize HTTP status code usage across controllers
 - Standardize controller export patterns
 - Improve controller naming consistency
-- Ensure AppError usage consistency across modules
-- Ensure all routes remain thin and declarative
+- Ensure AppError usage consistency
+- Ensure routes remain thin and declarative
 - Remove remaining duplicated response logic
 
 👉 อธิบาย:
-เฟสนี้เป็น polishing phase ก่อนเข้า Service Layer จริง  
-เป้าหมายคือทำให้ controller architecture และ response conventions นิ่งที่สุดก่อนเริ่มแยก business logic ออกจาก controllers
+เฟสนี้คือการเก็บรายละเอียด architecture ก่อนเข้า Service Layer จริง  
+เป้าหมายคือทำให้ response patterns และ controller conventions นิ่งที่สุดก่อนเริ่มแยก business logic
 
 ---
 
@@ -35,8 +35,14 @@ Polish controller and response architecture consistency before Service Layer int
 Route
 → Controller
 → Response Utility
+→ JSON Response
+
+Error Flow:
+Route
+→ Controller
 → AppError
 → Error Middleware
+→ JSON Error Response
 
 (Future)
 → Service Layer
@@ -50,8 +56,8 @@ Route
 - No database changes
 - No validation middleware
 - No service layer implementation yet
-- No business logic expansion
 - No repository layer introduction
+- No business logic expansion
 
 ---
 
@@ -59,15 +65,15 @@ Route
 - All controllers use same response pattern
 - Success payload structure fully standardized
 - AppError usage fully consistent
-- Route layer remains purely declarative
-- Controller architecture stabilized for service extraction
+- Routes remain declarative only
+- Architecture stabilized for service extraction
 
 ---
 
 ## Non-Goals
 - Do not implement service layer
 - Do not introduce repository layer
-- Do not redesign application architecture
+- Do not redesign architecture
 - Do not add authentication
 - Do not add validation middleware
 
@@ -78,15 +84,15 @@ Route
 - All controllers use asyncHandler
 - All operational errors use AppError
 - No duplicated response formatting logic
-- Consistent controller export/import patterns
-- No business logic exists in routes
+- Route files contain no processing logic
+- Controller patterns remain consistent
 
 ---
 
 ## Current Status
 ✔ Controller Layer v2 completed
-✔ Response utility introduced
-✔ Multi-module architecture established
+✔ Shared response utility introduced
+✔ Multi-module controller structure established
 ➡ Entering final controller polish phase before Service Layer
 
 ---
@@ -97,4 +103,3 @@ Route
 - Introduce service abstraction layer
 - Extract business logic from controllers
 - Keep controllers focused on HTTP concerns only
-- Prepare scalable long-term architecture
