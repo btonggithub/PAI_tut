@@ -179,3 +179,24 @@ AI Agents:
 
 และ dev ที่ “ใช้ AI เป็น engineering system ได้”
 จะเร็วกว่า dev แบบเดิมหลายเท่าครับ
+
+##### =========== Next Flow ============== #####
+
+Flow ที่ผมแนะนำเต็ม ๆ
+Current completed
+feature/05-application-layer-controller-v2
+
+↓
+
+Next
+feature/06-controller-stabilization
+
+↓
+
+Then
+feature/07-service-layer-foundation
+
+↓
+
+Then
+feature/08-validation-layer

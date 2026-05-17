@@ -1,11 +1,9 @@
 const asyncHandler = require('../../utils/asyncHandler');
+const { sendSuccess } = require('../../utils/response');
 
 const getHealth = asyncHandler(async (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      status: 'ok',
-    },
+  return sendSuccess(res, {
+    status: 'ok',
   });
 });
 
