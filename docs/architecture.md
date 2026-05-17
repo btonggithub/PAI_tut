@@ -151,3 +151,28 @@ Current priorities:
 ## Validation
 
 Environment variables validated using Joi.
+
+---
+
+# Architecture
+
+## Architecture Layers
+
+### Infrastructure Layer
+- config
+- db
+
+### Transport Layer
+- routes
+
+### Application Layer
+- controllers
+- services
+
+### Cross-cutting Utilities
+- response
+- asyncHandler
+- AppError
+
+### Error System
+- middleware

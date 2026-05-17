@@ -1,5 +1,9 @@
 # Command
 
+## NPM
+
+npm run dev
+
 #### ตัวอย่าง add notes
 git checkout -b docs/add-notes
 
