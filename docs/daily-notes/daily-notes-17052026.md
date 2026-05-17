@@ -200,3 +200,27 @@ feature/07-service-layer-foundation
 
 Then
 feature/08-validation-layer
+
+##### =========== Next architecture ============ #####
+ตอนนี้ architecture evolution ของคุณเป็นแบบนี้
+Infrastructure
+↓
+Bootstrap
+↓
+Error System
+↓
+Thin Routes
+↓
+Controller Layer
+↓
+Controller v2
+↓
+Response Standardization
+↓
+Controller Polish   ← ตอนนี้
+↓
+Service Layer
+↓
+Validation Layer
+↓
+Repository Layer
