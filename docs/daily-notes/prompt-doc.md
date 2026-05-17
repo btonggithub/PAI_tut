@@ -37,3 +37,23 @@ Then implement current-task.md.
 Follow existing architecture and coding style.
 Do not change folder structure.
 # <<< Prompts 3.
+
+# >>> Prompts 3.
+Read project context from:
+- docs/project-overview.md
+- docs/architecture.md
+- docs/decisions.md
+- docs/coding-rules.md
+- docs/progress.md
+- docs/prompts/current-task.md
+
+Ignore:
+- docs/changelog/*
+- docs/daily-notes/*
+- docs/archive/*
+
+Then implement current-task.md.
+
+Follow existing architecture, coding rules, and project conventions.
+Do not change folder structure unless explicitly required by current-task.md.
+# <<< Prompts 4.
