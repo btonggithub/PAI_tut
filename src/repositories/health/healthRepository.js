@@ -1,5 +1,13 @@
+const BaseRepository = require('../base/BaseRepository');
+
+const healthBaseRepository = new BaseRepository();
+
 const fetchHealthStatus = async () => {
-  return { status: 'ok' };
+  healthBaseRepository.buildFilters({}, []);
+
+  return {
+    status: 'ok',
+  };
 };
 
 module.exports = {
