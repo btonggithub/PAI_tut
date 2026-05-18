@@ -100,35 +100,91 @@ Reason:
 
 ---
 
-## Deferred Service Layer
+## Validation Middleware Architecture
 
 Decision:
-- Delay service layer introduction until controller architecture stabilizes
+- Centralize request validation in middleware layer using Joi schemas
 
 Reason:
-- Avoid premature abstraction
-- Allow controller patterns to mature first
-- Reduce unnecessary complexity during early phases
+- Keep controllers validation-free
+- Standardize request validation flow
+- Improve schema reusability
+- Ensure validation occurs before business logic execution
 
 ---
 
-## Deferred Service Layer
+## Service Layer Architecture
 
 Decision:
-- Delay service layer introduction until controller architecture stabilizes
+- Services own business logic and orchestration
 
 Reason:
-- Avoid premature abstraction
-- Allow controller patterns to mature first
-- Reduce unnecessary complexity during early phases
+- Keep controllers HTTP-only
+- Improve separation of concerns
+- Prepare scalable application structure
+- Improve testability
 
-## Deferred Repository Layer
+---
+
+## Repository Layer Architecture
 
 Decision:
-- Delay repository/data-access abstraction until service layer phase
+- Repositories own all database access
 
 Reason:
-- Current application complexity is still low
-- Avoid unnecessary abstraction early
-- Allow controller architecture to stabilize first
-- Introduce database abstraction incrementally
+- Decouple services from database implementation
+- Centralize query logic
+- Improve scalability and maintainability
+- Prepare reusable query abstractions
+
+---
+
+## Response Utility Standardization
+
+Decision:
+- Use centralized response utility for all success responses
+
+Reason:
+- Standardize API response contract
+- Eliminate duplicated response formatting
+- Improve frontend integration consistency
+
+---
+
+## JWT Authentication Strategy
+
+Decision:
+- Use stateless JWT authentication
+
+Reason:
+- Simplify API authentication flow
+- Support scalable frontend/backend separation
+- Avoid server-side session storage
+- Improve API portability
+
+---
+
+## Layered Modular Architecture
+
+Decision:
+- Use layered modular architecture:
+  Route → Validation → Controller → Service → Repository → Database
+
+Reason:
+- Improve scalability
+- Enforce clear separation of concerns
+- Support long-term maintainability
+- Reduce cross-layer coupling
+
+---
+
+## Repository Scalability Preparation
+
+Decision:
+- Introduce reusable repository/query abstraction patterns before application growth
+
+Reason:
+- Prevent duplicated query logic
+- Prepare scalable pagination/filtering architecture
+- Improve MongoDB query consistency
+- Reduce future refactor complexity

@@ -1,76 +1,10 @@
 # Architecture
 
-## Structure
+## Architecture Style
 
-src/
-├── app.js
-├── server.js
-│
-├── config/
-│   ├── db.js
-│   └── env.js
-│
-├── controllers/
-│   ├── health/
-│   │   └── healthController.js
-│   │
-│   └── system/
-│       └── systemController.js
-│
-├── services/
-│   ├── health/
-│   │   └── healthService.js
-│   │
-│   └── system/
-│       └── systemService.js
-│
-├── middleware/
-│   ├── validation/
-│   │   ├── schemas/
-│   │   │   └── systemValidation.js
-│   │   │
-│   │   └── validateRequest.js
-│   │
-│   └── errorHandler.js
-│
-├── repositories/          <-- NEW PHASE
-│   ├── health/
-│   │   └── healthRepository.js
-│   │
-│   └── system/
-│       └── systemRepository.js
-│
-├── routes/
-│   ├── healthRoutes.js
-│   ├── systemRoutes.js
-│   └── index.js
-│
-├── utils/
-│   ├── AppError.js
-│   ├── asyncHandler.js
-│   └── response.js
+Layered Modular Architecture
 
----
-
-## API Structure
-
-/api/v1
-
----
-
-## Config Flow
-
-.env
-↓
-env.js
-↓
-validated config
-↓
-server.js / db.js
-
----
-
-## Request Lifecycle
+Request Flow:
 
 Request
 ↓
@@ -85,20 +19,16 @@ Service
 Repository
 ↓
 Database
-
-Response Flow
-↓
-Controller
 ↓
 Response Utility
 ↓
 JSON Response
 
----
+Error Flow:
 
-## Error Flow
-
-Any Layer
+Request
+↓
+Route / Controller / Service / Repository
 ↓
 AppError
 ↓
@@ -108,139 +38,197 @@ JSON Error Response
 
 ---
 
-## Validation Flow
-
-Request
-↓
-Validation Middleware
-↓
-Controller
-↓
-Service
-↓
-Response Utility
-↓
-JSON Response
-
----
-
-## Auth Flow
-
-Route
-↓
-Validation Middleware
-↓
-Protect Middleware (optional)
-↓
-Controller
-↓
-Service
-↓
-Repository
-↓
-DB
-
----
-
-## Controller Architecture
-
-Controllers:
-- Handle HTTP concerns only
-- Use asyncHandler
-- Use AppError for operational errors
-- Use shared response utility for success responses
-- Remain lightweight and modular
-
----
-
-## Route Architecture
-
-Routes:
-- Handle routing only
-- Remain declarative
-- Contain no business logic
-- Delegate all processing to controllers
-
----
-
-## Database Architecture
-
-Current database stack:
-- MongoDB
-- Mongoose
-
-Current phase:
-- Database connection layer implemented
-- Repository layer intentionally deferred
-
-Future target flow:
-
-Route
-↓
-Controller
-↓
-Service Layer
-↓
-Repository/Data Access Layer
-↓
-MongoDB
-
----
-
-## Current Architecture Phase
-
-Response & Controller Polish Phase
-
-Current priorities:
-- Response consistency
-- Controller consistency
-- AppError standardization
-- Service-layer readiness
-
----
-
-## Validation
-
-Environment variables validated using Joi.
-
----
-
-## Architecture Layers
+## Layers
 
 ### Infrastructure Layer
-- config
-- db
+Responsible for application/runtime configuration.
+
+Contains:
+- config/
+- database connection
+- environment validation
+
+---
 
 ### Transport Layer
-- routes
+Responsible for HTTP transport and route registration only.
 
-### Application Layer
-- controllers
-- services
-- repositories
+Contains:
+- routes/
 
-### Cross-cutting Utilities
-- response
-- asyncHandler
-- AppError
+Rules:
+- No business logic
+- No validation logic
+- No database access
 
-### Error System
-- middleware
-
-### Middleware Layer
-- validation
-- error handling
-
-### Repository Layer
-- repositories
-- data-access abstraction
-- database interaction isolation
+---
 
 ### Validation Layer
-- Joi schemas
-- reusable validation middleware
+Responsible for request validation before controller execution.
 
-### Authentication Layer (planned)
-- JWT authentication
-- route protection middleware
-- auth services/repositories
+Contains:
+- middleware/validation/
+
+Rules:
+- Validate req.body / req.query / req.params
+- Joi schemas only
+- Validation errors flow through AppError
+
+---
+
+### Application Layer
+
+#### Controllers
+Responsible for HTTP-only concerns.
+
+Contains:
+- controllers/
+
+Responsibilities:
+- Read request data
+- Call services
+- Return standardized responses
+
+Rules:
+- No business logic
+- No database access
+- No validation logic
+- Must use asyncHandler
+
+---
+
+#### Services
+Responsible for business/application logic.
+
+Contains:
+- services/
+
+Responsibilities:
+- Business rules
+- Orchestration
+- Application flow
+- Error handling with AppError
+
+Rules:
+- No Express req/res usage
+- No response formatting
+- No direct database access
+
+---
+
+#### Repositories
+Responsible for data access abstraction.
+
+Contains:
+- repositories/
+
+Responsibilities:
+- Database queries
+- Data persistence
+- Data retrieval
+- Query abstraction
+
+Rules:
+- No HTTP logic
+- No response formatting
+- No validation logic
+- No business rules
+
+---
+
+### Data Layer
+
+Contains:
+- models/
+
+Responsibilities:
+- Mongoose schema definitions
+- Index definitions
+- Database structure
+
+---
+
+### Cross-cutting Utilities
+
+Contains:
+- utils/
+
+Examples:
+- asyncHandler
+- AppError
+- response utility
+- jwt utility
+- password utility
+
+---
+
+### Error System
+
+Contains:
+- middleware/errorHandler.js
+
+Responsibilities:
+- Centralized error responses
+- Operational error handling
+- Standardized JSON error format
+
+---
+
+## Structure
+
+src/
+├── app.js
+├── server.js
+│
+├── config/
+│   ├── db.js
+│   └── env.js
+│
+├── controllers/
+│   ├── auth/
+│   ├── health/
+│   └── system/
+│
+├── services/
+│   ├── auth/
+│   ├── health/
+│   └── system/
+│
+├── repositories/
+│   ├── auth/
+│   ├── health/
+│   └── system/
+│
+├── models/
+│   └── userModel.js
+│
+├── middleware/
+│   ├── auth/
+│   ├── validation/
+│   └── errorHandler.js
+│
+├── routes/
+│   ├── authRoutes.js
+│   ├── healthRoutes.js
+│   ├── systemRoutes.js
+│   └── index.js
+│
+├── utils/
+│   ├── AppError.js
+│   ├── asyncHandler.js
+│   ├── jwt.js
+│   ├── password.js
+│   └── response.js
+
+---
+
+## Current Phase
+
+Phase 11 — Scalable Data Architecture
+
+Goals:
+- Base repository abstraction
+- Reusable pagination/query utilities
+- Consistent database access patterns
+- Query scalability preparation
+- MongoDB optimization foundation

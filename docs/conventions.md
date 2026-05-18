@@ -1,205 +1,122 @@
 # Conventions
 
-## Controller Convention
+## Naming
 
-- One module per directory
-- One controller file per module
-- Controllers export plain functions
-- Controllers must use asyncHandler
-- Controllers must remain lightweight
-- Controllers handle HTTP concerns only
-- Controllers must use AppError for operational errors
-- Controllers must use response utility for success responses
+### Files
+- camelCase for utility files
+- PascalCase only for classes
+- Feature-based module folders
+
+Examples:
+- authService.js
+- authRepository.js
+- authController.js
+- validateRequest.js
 
 ---
 
-## Route Convention
+## Layer Responsibilities
 
-- One route file per module/domain
-- Routes remain declarative only
-- Routes contain no business logic
-- Routes delegate handling to controllers only
+### Route
+Responsible only for:
+- route declaration
+- middleware composition
 
-Example:
+Must NOT:
+- contain business logic
+- access database
+- validate manually
 
-router.get('/', healthController.getHealth);
+---
+
+### Controller
+Responsible only for:
+- reading HTTP request
+- calling services
+- returning response
+
+Must NOT:
+- contain business logic
+- access models directly
+- perform validation
+
+---
+
+### Service
+Responsible for:
+- business rules
+- orchestration
+- AppError throwing
+
+Must NOT:
+- use req/res
+- access Express objects directly
+- return HTTP responses
+
+---
+
+### Repository
+Responsible for:
+- data access
+- query abstraction
+- model interaction
+
+Must NOT:
+- contain business rules
+- return HTTP responses
+- use Express
 
 ---
 
 ## Response Convention
 
-Success responses must follow:
-
+Success Response:
 {
   "success": true,
   "message": "Success",
   "data": {}
 }
 
-Error responses are handled only through:
-- AppError
-- error middleware
-
----
-
-## Error Convention
-
-Operational errors:
-- Must use AppError
-
-Programming errors:
-- Must fall through centralized error middleware
-
-Controllers must not manually format error responses.
-
----
-
-## Naming Convention
-
-Controllers:
-- healthController.js
-- systemController.js
-
-Routes:
-- healthRoutes.js
-- systemRoutes.js
-
-Utilities:
-- asyncHandler.js
-- response.js
-- AppError.js
-
----
-
-## Architecture Convention
-
-Current architecture flow:
-
-Route
-→ Controller
-→ Response Utility
-→ JSON Response
-
-Error flow:
-
-Route
-→ Controller
-→ AppError
-→ Error Middleware
-
-Future target:
-
-Route
-→ Controller
-→ Service Layer
-→ Repository/Data Access
-→ Database
-
----
-
-## Deferred Convention
-
-The following are intentionally deferred:
-- Service layer
-- Repository layer
-- Validation middleware
-- Authentication
-- Dependency injection
-- DTO/Presenter abstractions
-
----
-
-## Service Convention
-
-- One service file per module/domain
-- Services contain reusable processing logic
-- Services must not handle HTTP concerns
-- Services must not directly format responses
-- Services may throw AppError for operational failures
-- Controllers delegate processing to services
-
-Example:
-
-Controller:
-- request parsing
-- response handling
-
-Service:
-- reusable application logic
-
----
-
-## Validation Convention
-
-- Validation must occur before controller execution
-- Controllers must not contain request validation logic
-- Validation middleware may throw AppError
-- Validation rules should be reusable
-- Validation should support:
-  - body
-  - query
-  - params
-
----
-
-## Repository Naming Convention
-
-Folder:
-- src/repositories/<module>/
-
-Files:
-- healthRepository.js
-- systemRepository.js
-
-Exports:
-module.exports = {
-  functionName,
-};
-
----
-
-## Layer Responsibility
-
-Route:
-- routing only
-
-Validation:
-- request validation only
-
-Controller:
-- HTTP handling only
-
-Service:
-- business flow only
-
-Repository:
-- database access only
+Error Response:
+{
+  "success": false,
+  "message": "Error message"
+}
 
 ---
 
 ## Repository Conventions
 
-- Repositories handle data-access only
-- Repositories must not contain HTTP logic
-- Repositories must not access req/res
-- Repositories are grouped by module/domain
-- Services communicate with repositories only
+### Repository Scope
+
+Each module owns its repository.
+
+Examples:
+- authRepository
+- systemRepository
+
+### Repository Rules
+- Only repositories can access models
+- Services must not query models directly
+- Keep query logic centralized
 
 ---
+
+## Database Conventions
+Models:
+- One model per file
+- Use timestamps
+- Define indexes explicitly
+- Normalize reusable fields
+
+Query Rules:
+- Prefer lean() for read-only queries
+- Avoid duplicated query patterns
+- Centralize reusable queries
+
+--- 
 
 ## Validation Conventions
-
-- Validation schemas belong in:
-  middleware/validation/schemas/
-
-- Route layer is responsible for validation execution
-- Controllers/services must not validate requests directly
-
----
-
-## Authentication Conventions
-
-- JWT utilities belong in utils/
-- Auth middleware belongs in middleware/auth/
-- Password hashing handled via utility abstraction
-- Controllers remain transport-only
+- Joi only
+- Validation middleware before controller
+- Schemas separated by module
