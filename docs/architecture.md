@@ -124,6 +124,24 @@ JSON Response
 
 ---
 
+## Auth Flow
+
+Route
+↓
+Validation Middleware
+↓
+Protect Middleware (optional)
+↓
+Controller
+↓
+Service
+↓
+Repository
+↓
+DB
+
+---
+
 ## Controller Architecture
 
 Controllers:

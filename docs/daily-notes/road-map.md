@@ -153,3 +153,65 @@ repository
 ของ backend
 
 ---
+
+## Next
+- auth
+- database
+- frontend
+- docker
+- redis
+- microservices
+- CQRS
+- event sourcing
+- kubernetes
+- hexagonal แบบเต็ม
+- clean architecture overkill
+
+--- 
+
+ตอนนี้ phase ถัดไปที่เหมาะสุดคือ:
+
+feature/11-scalable-data-architecture
+
+เป้าหมายจะเริ่มเป็น:
+
+reusable repository patterns
+pagination
+query abstraction
+base repository
+timestamps/index strategy
+Mongo optimization foundation
+reusable mongoose helpers
+optional soft delete architecture
+
+ก่อนจะไป:
+
+12-production-hardening
+
+เช่น:
+
+security headers
+rate limit
+helmet
+compression
+logging
+graceful shutdown
+centralized config hardening
+refresh token strategy
+production auth security
+
+## และหลัง backend stable แล้ว
+ค่อยเริ่ม frontend project แยก:
+
+แนะนำ:
+
+Next.js + TypeScript
+App Router
+Tailwind
+Axios/fetch client
+Auth token flow
+Protected route
+API layer
+React Query/TanStack Query
+
+ซึ่งตอนนั้น backend ของคุณจะพร้อมเชื่อม frontend จริงได้ทันที ไม่ต้องย้อนมารื้อ architecture ใหม่อีก
