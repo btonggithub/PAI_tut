@@ -1,88 +1,93 @@
 # Current Task
 
-## Task
-Implement Scalable Data Architecture foundation
+Phase 12 — Production Hardening
+
+## Objective
+
+Improve production readiness and standardize API behavior across the backend.
 
 ---
 
 ## Requirements
 
-- Create reusable BaseRepository abstraction
-- Standardize repository patterns across modules
-- Add reusable pagination utility
-- Add reusable query filtering/sorting utilities
-- Prepare repositories for scalable querying
-- Improve MongoDB query consistency
+### 1. Standardize API Response Contract
+
+All API responses must follow consistent structure.
+
+Success response:
+{
+  "success": true,
+  "message": "Success",
+  "data": {}
+}
+
+Error response:
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "status": 400
+  }
+}
+
+Requirements:
+- Update errorHandler.js
+- Preserve existing response utility usage
+- Do not break controller flow
+- All errors must include success:false
 
 ---
 
-## Architecture Target
+### 2. Security Middleware Foundation
 
-Route
-→ Validation Middleware
-→ Controller
-→ Service
-→ Repository
-→ Database
+Add production-ready middleware foundation.
 
----
-
-## Constraints
-
-- CommonJS only
-- JSON responses only
-- No logging library
-- No frontend implementation
-- No business logic expansion
-- No authentication redesign
+Requirements:
+- Add helmet
+- Add cors
+- Add request size limiting
+- Prepare security middleware registration structure
 
 ---
 
-## Expected Result
+### 3. Authentication Hardening
 
-- Shared BaseRepository exists
-- Repositories follow consistent structure
-- Pagination utilities reusable across modules
-- Query filtering centralized
-- Services remain database-agnostic
+Improve authentication robustness.
+
+Requirements:
+- Centralize token extraction logic
+- Improve JWT error handling
+- Prevent malformed authorization header issues
+- Keep auth middleware thin
+
+---
+
+### 4. Error Hardening
+
+Requirements:
+- Prevent internal error leakage
+- Differentiate operational vs unknown errors
+- Keep AppError as operational error standard
+
+---
+
+### 5. Maintain Existing Architecture
+
+Rules:
 - Controllers remain HTTP-only
-
----
-
-## Non-Goals
-
-- Do not implement frontend
-- Do not add caching layer
-- Do not introduce microservices
-- Do not redesign auth flow
+- Services contain business logic only
+- Repositories own database access
+- Validation stays in middleware layer
+- No business logic in middleware
+- No HTTP logic in repositories
 
 ---
 
 ## Success Criteria
 
-- BaseRepository implemented
-- At least 2 repositories extend/reuse common patterns
-- Pagination utility exists
-- Query utility exists
-- No direct model access from services
-- Architecture remains layered and modular
-
----
-
-## Current Status
-
-✔ Validation Layer complete  
-✔ Repository Layer complete  
-✔ Authentication Foundation complete  
-➡ Entering scalable data architecture phase
-
----
-
-## NEXT STEP (Future Phase)
-
-### Production Hardening
-- Security middleware
-- Rate limiting
-- Graceful shutdown improvements
-- Production logging
-- Environment hardening
+1. Consistent success/error response shape
+2. Security middleware integrated
+3. Error responses hardened
+4. Auth middleware more robust
+5. Existing architecture preserved
+6. No route/controller responsibility leakage

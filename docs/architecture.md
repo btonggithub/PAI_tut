@@ -8,6 +8,8 @@ Request Flow:
 
 Request
 ↓
+Security Middleware
+↓
 Route
 ↓
 Validation Middleware
@@ -171,6 +173,20 @@ Responsibilities:
 - Centralized error responses
 - Operational error handling
 - Standardized JSON error format
+
+---
+
+## Response System
+
+### Success Flow
+controller
+→ response utility
+→ standardized JSON response
+
+### Error Flow
+throw AppError
+→ errorHandler
+→ standardized JSON error response
 
 ---
 

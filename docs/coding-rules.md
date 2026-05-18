@@ -51,3 +51,11 @@
 - Never expose password fields
 - Hash passwords with bcrypt
 - JWT secret must come from env.js
+
+---
+
+## Response Rules
+- All API responses must include success:boolean
+- Use centralized response utility for success responses
+- Use centralized errorHandler for error responses
+- Never format API responses directly inside routes

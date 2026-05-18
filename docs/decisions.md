@@ -188,3 +188,16 @@ Reason:
 - Prepare scalable pagination/filtering architecture
 - Improve MongoDB query consistency
 - Reduce future refactor complexity
+
+---
+
+## Standardized Response Contract
+
+Decision:
+- Use unified API response shape for both success and error responses
+
+Reason:
+- Simplify frontend integration
+- Improve API consistency
+- Reduce client-side branching complexity
+- Improve long-term maintainability

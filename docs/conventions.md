@@ -120,3 +120,29 @@ Query Rules:
 - Joi only
 - Validation middleware before controller
 - Schemas separated by module
+
+---
+
+## API Response Contract
+
+### Success Response
+{
+  "success": true,
+  "message": "Success",
+  "data": {}
+}
+
+### Error Response
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "status": 400
+  }
+}
+
+Rules:
+- All API responses must include success
+- Controllers must use response utility
+- Errors must go through centralized errorHandler
+- Routes must never format responses directly
