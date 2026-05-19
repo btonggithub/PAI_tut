@@ -1,113 +1,26 @@
 # Architecture
 
-## Architecture Style
+## Infrastructure Layer
 
-Layered Modular Architecture
-
-Request Flow:
-
-Request
-↓
-Security Middleware
-↓
-Route
-↓
-Validation Middleware
-↓
-Controller
-↓
-Service
-↓
-Repository
-↓
-Database
-↓
-Response Utility
-↓
-JSON Response
-
-Error Flow:
-
-Request
-↓
-Route / Controller / Service / Repository
-↓
-AppError
-↓
-Error Middleware
-↓
-JSON Error Response
-
----
-
-## Testing Architecture
-
-Testing Layers:
-- Unit Testing
-- Integration Testing
-
-Testing Goals:
-- Validate business logic safely
-- Prevent regression
-- Verify API contracts
-- Support scalable refactoring
-
-Testing Scope by Layer:
-
-### Controller Tests
-Focus:
-- HTTP status codes
-- Response structure
-- Middleware integration
-
-Rules:
-- Do not test database queries directly
-- Mock service layer when appropriate
-
-### Service Tests
-Focus:
-- Business rules
-- Application logic
-- Error handling flow
-
-Rules:
-- Mock repositories
-- No HTTP testing
-
-### Repository Tests
-Focus:
-- Database query correctness
-- Query utilities
-- Pagination/filter behavior
-
-Rules:
-- No HTTP concerns
-- No response formatting
-
-### Integration Tests
-Focus:
-- Full request lifecycle
-- Route → middleware → controller → service → repository flow
-
-Rules:
-- Use isolated test database
-- Verify real API responses
-
----
-
-## Layers
-
-### Infrastructure Layer
-Responsible for application/runtime configuration.
+Responsible for environment and infrastructure configuration.
 
 Contains:
 - config/
-- database connection
-- environment validation
+- db/
+
+Responsibilities:
+- Environment configuration
+- Database connection
+- Infrastructure setup
+
+Rules:
+- No business logic
+- No HTTP logic
 
 ---
 
-### Transport Layer
+## Transport Layer
+
 Responsible for HTTP transport and route registration only.
 
 Contains:
@@ -117,69 +30,96 @@ Rules:
 - No business logic
 - No validation logic
 - No database access
-- Must remain easily testable
-- Must support integration testing flow
+- No authentication business logic
+- Routes must remain declarative only
 
 ---
 
-### Validation Layer
+## Validation Layer
+
 Responsible for request validation before controller execution.
 
 Contains:
 - middleware/validation/
 
+Responsibilities:
+- Body validation
+- Query validation
+- Params validation
+- Validation standardization
+
 Rules:
-- Validate req.body / req.query / req.params
-- Joi schemas only
-- Validation errors flow through AppError
+- No business logic
+- No database access
+- No response formatting
 
 ---
 
-### Application Layer
+## Authentication Layer
 
-#### Controllers
-Responsible for HTTP-only concerns.
+Responsible for authentication transport protection.
+
+Contains:
+- middleware/auth/
+- utils/jwt.js
+- utils/password.js
+
+Responsibilities:
+- JWT verification
+- Bearer token extraction
+- Authentication protection
+- Password hashing/comparison
+
+Rules:
+- No response formatting
+- No controller responsibilities
+- No database queries outside service/repository flow
+
+---
+
+## Controller Layer
+
+Responsible for HTTP request/response orchestration only.
 
 Contains:
 - controllers/
 
 Responsibilities:
-- Read request data
+- Read request input
 - Call services
 - Return standardized responses
 
 Rules:
-- No business logic
 - No database access
 - No validation logic
-- Must use asyncHandler
-- Controllers should remain mock-friendly for testing
-- Controllers should not contain direct database access
+- No business rules
+- No direct Mongoose usage
 
 ---
 
-#### Services
-Responsible for business/application logic.
+## Service Layer
+
+Responsible for business logic orchestration.
 
 Contains:
 - services/
 
 Responsibilities:
 - Business rules
-- Orchestration
-- Application flow
-- Error handling with AppError
+- Application workflows
+- Domain orchestration
+- Security/business validation
 
 Rules:
-- No Express req/res usage
+- No HTTP logic
 - No response formatting
 - No direct database access
-- Services should be unit-test friendly
-- Services must support repository mocking
+- Must use repositories
 
 ---
 
-#### Repositories
+## Repository Layer
+
 Responsible for data access abstraction.
 
 Contains:
@@ -190,7 +130,8 @@ Responsibilities:
 - Data persistence
 - Data retrieval
 - Query abstraction
-- Repositories should support isolated query testing
+- Pagination abstraction
+- Filtering abstraction
 
 Rules:
 - No HTTP logic
@@ -200,120 +141,154 @@ Rules:
 
 ---
 
-### Data Layer
+## Base Repository Layer
+
+Responsible for reusable database access patterns.
+
+Contains:
+- repositories/base/
+
+Responsibilities:
+- Generic pagination
+- Generic filtering
+- Generic sorting
+- Shared query behavior
+
+Rules:
+- No business/domain logic
+- No HTTP logic
+- No response formatting
+
+---
+
+## Model Layer
+
+Responsible for schema/model definition.
 
 Contains:
 - models/
 
 Responsibilities:
-- Mongoose schema definitions
-- Index definitions
-- Database structure
+- Mongoose schemas
+- Model definitions
+- Database structure constraints
+
+Rules:
+- No HTTP logic
+- No business workflows
+- No response formatting
 
 ---
 
-### Cross-cutting Utilities
+## Cross-cutting Utilities
 
 Contains:
 - utils/
 
-Examples:
-- asyncHandler
-- AppError
-- response utility
-- jwt utility
-- password utility
+Responsibilities:
+- Shared reusable utilities
+- Response formatting
+- Async handling
+- Query utilities
+- Pagination utilities
 
 ---
 
-### Error System
+## Error System
+
+Responsible for centralized operational error handling.
 
 Contains:
 - middleware/errorHandler.js
+- utils/AppError.js
 
 Responsibilities:
-- Centralized error responses
+- Centralized error flow
 - Operational error handling
-- Standardized JSON error format
+- Safe production error responses
+
+Rules:
+- Prevent internal leakage
+- Standardize error contracts
 
 ---
 
-## Response System
+## Security Layer
 
-### Success Flow
-controller
-→ response utility
-→ standardized JSON response
+Responsible for application hardening and transport security.
 
-### Error Flow
-throw AppError
-→ errorHandler
-→ standardized JSON error response
+Contains:
+- middleware/security/
+
+Responsibilities:
+- Helmet registration
+- CORS registration
+- Request size limiting
+- Security middleware centralization
 
 ---
 
-## Structure
+## Testing Layer
 
-src/
-├── app.js
-├── server.js
-│
-├── config/
-│   ├── db.js
-│   └── env.js
-│
-├── controllers/
-│   ├── auth/
-│   ├── health/
-│   └── system/
-│
-├── services/
-│   ├── auth/
-│   ├── health/
-│   └── system/
-│
-├── repositories/
-│   ├── auth/
-│   ├── health/
-│   └── system/
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── fixtures/
-│   └── helpers/
-│
-├── models/
-│   └── userModel.js
-│
-├── middleware/
-│   ├── auth/
-│   ├── validation/
-│   └── errorHandler.js
-│
-├── routes/
-│   ├── authRoutes.js
-│   ├── healthRoutes.js
-│   ├── systemRoutes.js
-│   └── index.js
-│
-├── utils/
-│   ├── AppError.js
-│   ├── asyncHandler.js
-│   ├── jwt.js
-│   ├── password.js
-│   └── response.js
+Responsible for application verification and regression protection.
+
+Contains:
+- tests/
+
+Structure:
+- unit/
+- integration/
+- helpers/
+- fixtures/
+
+Responsibilities:
+- Unit testing
+- Integration testing
+- Shared test setup
+- Shared test fixtures
+
+Rules:
+- Tests must remain isolated
+- Fixtures should be reusable
+- Helpers should centralize setup logic
+
+---
+
+## Request Lifecycle
+
+Request
+↓
+Route
+↓
+Validation Middleware
+↓
+Authentication Middleware
+↓
+Controller
+↓
+Service
+↓
+Repository
+↓
+BaseRepository
+↓
+Mongoose
+↓
+MongoDB
+↓
+Response Utility
+↓
+JSON Response
 
 ---
 
 ## Current Phase
 
-Phase 13 — Testing Foundation
+Phase 14 — User Management Module
 
 Goals:
-- Base repository abstraction
-- Reusable pagination/query utilities
-- Consistent database access patterns
-- Query scalability preparation
-- MongoDB optimization foundation
-
+- Expand user domain architecture
+- Introduce scalable user query patterns
+- Introduce reusable user repository methods
+- Prepare role/permission scalability
+- Improve modular domain separation

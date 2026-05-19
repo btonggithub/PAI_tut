@@ -2,7 +2,7 @@
 
 ## Project Goal
 
-Build a scalable Node.js REST API backend using Express.js with clean architecture principles, standardized error handling, and modular application structure.
+Build a scalable Node.js REST API backend using Express.js with clean architecture principles, layered application design, standardized API contracts, and scalable module organization.
 
 The project focuses on:
 - Clean backend architecture
@@ -10,37 +10,23 @@ The project focuses on:
 - Standardized API patterns
 - Separation of concerns
 - Maintainable Express.js structure
+- Long-term scalability
+- Testable application design
 
 ---
 
 ## Current Stack
 
-Core:
 - Node.js
 - Express.js
-
-Database:
 - MongoDB
 - Mongoose
-
-Validation:
 - Joi
-
-Authentication:
-- JWT (jsonwebtoken)
+- JWT
 - bcrypt
-
-Security:
-- helmet
-- cors
-
-Development:
+- Jest
+- Supertest
 - Nodemon
-
-Architecture Support:
-- Custom AppError system
-- Repository abstraction
-- Pagination/query utilities
 
 ---
 
@@ -48,40 +34,22 @@ Architecture Support:
 
 The project currently implements:
 
-Infrastructure:
 - Environment configuration validation
 - MongoDB connection management
-
-Transport:
-- Modular route registration
-- Validation middleware architecture
-
-Application:
-- Controller layer
-- Service layer
-- Repository layer
-
-Security:
-- JWT authentication foundation
-- Password hashing
-- Security middleware registration
-
-Error Handling:
 - Centralized error handling
+- Async route utilities
 - Standardized AppError system
-- Production-safe error responses
-
-Scalability:
-- BaseRepository abstraction
+- Modular route registration
+- Controller-based application structure
+- Service layer abstraction
+- Repository layer abstraction
+- Validation middleware layer
+- Authentication foundation
+- Base repository abstraction
+- Query filtering utilities
 - Pagination utilities
-- Query utilities
-- Modular domain structure
-
-Architecture Quality:
-- Thin route enforcement
-- HTTP-only controllers
-- Framework-independent services
-- Repository-owned database access
+- Production security hardening
+- Testing infrastructure foundation
 
 ---
 
@@ -89,15 +57,15 @@ Architecture Quality:
 
 - Thin route layer
 - Lightweight controllers
+- Service-oriented business logic
+- Repository-owned database access
 - Centralized error handling
 - Standardized JSON responses
 - Modular domain structure
 - Incremental architecture evolution
-- Layer-based architecture
-- Repository-owned data access
-- Validation-before-controller flow
-- Production-safe error exposure
-- Testable application design
+- Reusable validation system
+- Reusable repository patterns
+- Testability-first architecture
 
 ---
 
@@ -109,7 +77,7 @@ Route
 ↓
 Validation Middleware
 ↓
-Authentication Middleware (if protected)
+Authentication Middleware
 ↓
 Controller
 ↓
@@ -127,36 +95,26 @@ JSON Response
 
 ## Current Development Phase
 
-## Current Development Phase
+Phase 14 — User Management Module
 
-Phase 13 — Testing Foundation
-
-Current architecture includes:
-- Validation layer
-- Service layer
-- Repository layer
-- Authentication foundation
-- Scalable data architecture
-- Production hardening foundation
-
-Current focus:
-- Testing infrastructure
-- Integration testing
-- Unit testing foundation
-- API contract verification
+Current goals:
+- Introduce scalable user module architecture
+- Expand repository/service/controller patterns
+- Add user profile management foundation
+- Introduce reusable user query patterns
+- Prepare modular domain scaling
 
 ---
 
 ## Planned Next Phase
 
-Testing Foundation Expansion
-
-Goals:
-- Unit testing architecture
-- Integration testing setup
-- Test utilities/helpers
-- API contract testing
-- Scalable test structure
+Future goals:
+- Role-based authorization
+- Refresh token strategy
+- API documentation
+- Rate limiting
+- Audit logging
+- Background job architecture
 
 ---
 
@@ -170,54 +128,32 @@ Current architecture:
 Controller
 → Service
 → Repository
+→ BaseRepository
+→ Mongoose
 → MongoDB
 
-Current database responsibilities:
-
-Repositories:
-- Database queries
-- Data persistence
-- Pagination/filter abstraction
-- Query standardization
-
-Services:
-- Business logic only
-- No direct database access
-
-Controllers:
-- HTTP transport only
-- No database access
-
-Scalability foundation:
-- BaseRepository abstraction
-- Shared query utilities
-- Shared pagination utilities
-
-Future direction:
-- Database indexing strategy
-- Advanced query optimization
-- Transaction support
-- Caching layer
-- Multi-service scalability
+Database architecture goals:
+- Centralized database access patterns
+- Reusable query abstraction
+- Pagination standardization
+- Scalable repository structure
+- Domain-driven repository ownership
 
 ---
 
-## Testing Direction
+## Current Testing Status
 
-Testing architecture will follow the existing layered architecture.
-
-Planned testing layers:
-- Unit testing
-- Integration testing
+Testing infrastructure currently includes:
+- Jest
+- Supertest
+- Unit testing structure
+- Integration testing structure
+- Test helpers structure
+- Test fixtures structure
 
 Testing goals:
-- Prevent regression
-- Verify API contracts
-- Improve refactor safety
-- Maintain long-term scalability
-
-Testing philosophy:
-- Thin controllers remain easy to test
-- Services remain mock-friendly
-- Repositories remain isolated
-- Integration tests validate full request lifecycle
+- Service isolation testing
+- Repository behavior validation
+- API response contract verification
+- Authentication flow testing
+- Long-term regression protection

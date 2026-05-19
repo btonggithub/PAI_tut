@@ -1,86 +1,99 @@
 # Coding Rules
 
-## General
-- Use CommonJS only
-- Use async/await
-- Keep files small and focused
-- Prefer modular separation
-- Prefer single responsibility per file
+## Controllers
+
+Controllers must:
+- Handle HTTP transport only
+- Read req data
+- Call services
+- Return standardized responses
+
+Controllers must NOT:
+- Access database directly
+- Use Mongoose directly
+- Contain validation logic
+- Contain business rules
 
 ---
 
-## API
-- JSON responses only
-- Standardized response format
-- Use centralized error handling
+## Services
+
+Services must:
+- Handle business workflows
+- Use repositories only
+- Throw AppError for operational failures
+
+Services must NOT:
+- Use req/res
+- Access database directly
+- Use Mongoose directly
+- Format HTTP responses
 
 ---
 
-## Architecture
-- No business logic in routes
-- Controllers must stay HTTP-only
-- Services must not access models directly
-- Repositories own database access
-- Config must go through env.js
+## Repositories
+
+Repositories must:
+- Own all database access
+- Encapsulate query logic
+- Reuse BaseRepository patterns where appropriate
+
+Repositories should:
+- Expose domain-oriented methods
+
+Examples:
+- findUserByEmail()
+- findUsersByRole()
+- findActiveUsers()
+
+Repositories must NOT:
+- Contain HTTP logic
+- Contain response formatting
+- Contain validation logic
 
 ---
 
 ## Validation
-- Joi validation only
-- Validation handled in middleware layer
-- No inline validation inside controllers
 
----
+Validation must:
+- Exist in middleware layer only
+- Use Joi schemas
+- Execute before controllers
 
-## Repository Layer
-- Repositories abstract database access
-- Use reusable query patterns
-- Prefer lean() for read queries
-- Avoid duplicated query logic
+Validation must NOT:
+- Exist inside controllers
+- Exist inside services
+- Exist inside repositories
 
 ---
 
 ## Error Handling
-- Use AppError for operational errors
-- Forward errors to centralized middleware
-- Avoid inline try/catch in controllers
+
+All operational errors must:
+- Use AppError
+- Flow into centralized error middleware
+
+Internal/system errors must:
+- Avoid leaking implementation details
+- Return standardized error contracts
 
 ---
 
-## Security
-- Never expose password fields
-- Hash passwords with bcrypt
-- JWT secret must come from env.js
+## Testing Rules
 
----
+Unit tests must:
+- Remain isolated
+- Mock dependencies
+- Avoid HTTP server startup
 
-## Response Rules
-- All API responses must include success:boolean
-- Use centralized response utility for success responses
-- Use centralized errorHandler for error responses
-- Never format API responses directly inside routes
+Integration tests must:
+- Validate API contracts
+- Validate middleware flow
+- Validate response standardization
 
----
+Fixtures must:
+- Remain reusable
+- Avoid duplication
 
-# Testing Rules
-
-Rules:
-- Production code must remain testable
-- Avoid tightly coupled modules
-- Avoid hidden side effects
-- Avoid global mutable state
-
-Controllers:
-- Must remain thin
-- Must not contain business logic
-
-Services:
-- Must remain framework-independent
-- Must support mocking
-
-Repositories:
-- Must isolate database access
-
-Tests:
-- Must avoid real external services
-- Must avoid shared state between test cases
+Helpers must:
+- Centralize reusable setup logic

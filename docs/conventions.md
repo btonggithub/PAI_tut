@@ -1,203 +1,95 @@
 # Conventions
 
-## Naming
+## General Rules
 
-### Files
-- camelCase for utility files
-- PascalCase only for classes
-- Feature-based module folders
+- Use CommonJS modules
+- Use async/await only
+- Use centralized response utility
+- Use AppError for operational errors
+- Use asyncHandler for async controllers
+- Use modular folder organization
+
+---
+
+## Naming Conventions
+
+### Controllers
+- <module>Controller.js
+
+Examples:
+- authController.js
+- userController.js
+
+---
+
+### Services
+- <module>Service.js
 
 Examples:
 - authService.js
+- userService.js
+
+---
+
+### Repositories
+- <module>Repository.js
+
+Examples:
 - authRepository.js
-- authController.js
+- userRepository.js
+
+---
+
+### Validation Schemas
+- <module>Validation.js
+
+Examples:
+- authValidation.js
+- userValidation.js
+
+---
+
+### Middleware
+- camelCase naming
+
+Examples:
 - validateRequest.js
-
----
-
-## Layer Responsibilities
-
-### Route
-Responsible only for:
-- route declaration
-- middleware composition
-
-Must NOT:
-- contain business logic
-- access database
-- validate manually
-
----
-
-### Controller
-Responsible only for:
-- reading HTTP request
-- calling services
-- returning response
-
-Must NOT:
-- contain business logic
-- access models directly
-- perform validation
-
----
-
-### Service
-Responsible for:
-- business rules
-- orchestration
-- AppError throwing
-
-Must NOT:
-- use req/res
-- access Express objects directly
-- return HTTP responses
-
----
-
-### Repository
-Responsible for:
-- data access
-- query abstraction
-- model interaction
-
-Must NOT:
-- contain business rules
-- return HTTP responses
-- use Express
-
----
-
-## Response Convention
-
-Success Response:
-{
-  "success": true,
-  "message": "Success",
-  "data": {}
-}
-
-Error Response:
-{
-  "success": false,
-  "message": "Error message"
-}
+- errorHandler.js
+- registerSecurity.js
 
 ---
 
 ## Repository Conventions
 
-### Repository Scope
+Repositories should expose:
+- Domain-oriented methods
+- Reusable query behavior
+- Database abstraction only
 
-Each module owns its repository.
+Good:
+- findUserByEmail()
+- findUsersByRole()
+- findActiveUsers()
 
-Examples:
-- authRepository
-- systemRepository
-
-### Repository Rules
-- Only repositories can access models
-- Services must not query models directly
-- Keep query logic centralized
-
----
-
-## Database Conventions
-Models:
-- One model per file
-- Use timestamps
-- Define indexes explicitly
-- Normalize reusable fields
-
-Query Rules:
-- Prefer lean() for read-only queries
-- Avoid duplicated query patterns
-- Centralize reusable queries
-
---- 
-
-## Validation Conventions
-- Joi only
-- Validation middleware before controller
-- Schemas separated by module
+Avoid:
+- Generic business leakage into services
+- Service-owned database queries
 
 ---
 
-## API Response Contract
+## Testing Conventions
 
-### Success Response
-{
-  "success": true,
-  "message": "Success",
-  "data": {}
-}
+### Unit Tests
+- test isolated logic only
+- mock external dependencies
 
-### Error Response
-{
-  "success": false,
-  "message": "Validation failed",
-  "error": {
-    "status": 400
-  }
-}
+### Integration Tests
+- validate HTTP contracts
+- validate middleware behavior
+- validate standardized response shape
 
-Rules:
-- All API responses must include success
-- Controllers must use response utility
-- Errors must go through centralized errorHandler
-- Routes must never format responses directly
+### Helpers
+- centralize reusable test setup
 
----
-
-# Testing Conventions
-
-## Test File Naming
-
-Use:
-- *.test.js
-
-Examples:
-- authService.test.js
-- authController.test.js
-
----
-
-## Test Folder Structure
-
-tests/
-├── unit/
-├── integration/
-├── fixtures/
-├── helpers/
-
----
-
-## Testing Principles
-
-Rules:
-- One responsibility per test
-- Arrange → Act → Assert structure
-- Avoid duplicated setup logic
-- Prefer deterministic test data
-
----
-
-## Mocking Rules
-
-Controllers:
-- Mock services when testing controllers
-
-Services:
-- Mock repositories when testing services
-
-Repositories:
-- Prefer real database integration tests
-
----
-
-## Response Contract Testing
-
-All API integration tests must verify:
-- success field
-- message field
-- response shape consistency
+### Fixtures
+- centralize reusable test payloads/data

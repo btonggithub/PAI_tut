@@ -36,6 +36,18 @@ Reason:
 
 ---
 
+## Standardized Response Contract
+
+Decision:
+- Standardize both success and error response shape
+
+Reason:
+- Predictable frontend integration
+- Consistent API contracts
+- Easier testing and debugging
+
+---
+
 ## asyncHandler Strategy
 
 Decision:
@@ -60,170 +72,101 @@ Reason:
 
 ---
 
-## Controller-Based Structure
-
-Decision:
-- Move request handling into controllers
-
-Reason:
-- Improve application organization
-- Prepare for future service layer introduction
-- Standardize request/response flow
-
----
-
-## Multi-Module Controller Structure
-
-Decision:
-- Organize controllers by domain/module
-
-Example:
-- health/
-- system/
-
-Reason:
-- Improve scalability
-- Improve module isolation
-- Support long-term architecture growth
-
----
-
-## JSON-Only API Responses
-
-Decision:
-- Return JSON responses only
-
-Reason:
-- Maintain API consistency
-- Simplify frontend integration
-- Standardize response contracts
-
----
-
-## Validation Middleware Architecture
-
-Decision:
-- Centralize request validation in middleware layer using Joi schemas
-
-Reason:
-- Keep controllers validation-free
-- Standardize request validation flow
-- Improve schema reusability
-- Ensure validation occurs before business logic execution
-
----
-
 ## Service Layer Architecture
 
 Decision:
-- Services own business logic and orchestration
+- Centralize business logic inside services
 
 Reason:
-- Keep controllers HTTP-only
-- Improve separation of concerns
-- Prepare scalable application structure
+- Improve maintainability
 - Improve testability
+- Prevent controller bloat
 
 ---
 
-## Repository Layer Architecture
+## Repository Ownership Strategy
 
 Decision:
 - Repositories own all database access
 
 Reason:
-- Decouple services from database implementation
-- Centralize query logic
-- Improve scalability and maintainability
-- Prepare reusable query abstractions
+- Prevent Mongoose leakage into services
+- Improve abstraction consistency
+- Simplify future database migration
 
 ---
 
-## Response Utility Standardization
+## BaseRepository Strategy
 
 Decision:
-- Use centralized response utility for all success responses
+- Introduce reusable BaseRepository utilities
 
 Reason:
-- Standardize API response contract
-- Eliminate duplicated response formatting
-- Improve frontend integration consistency
-
----
-
-## JWT Authentication Strategy
-
-Decision:
-- Use stateless JWT authentication
-
-Reason:
-- Simplify API authentication flow
-- Support scalable frontend/backend separation
-- Avoid server-side session storage
-- Improve API portability
-
----
-
-## Layered Modular Architecture
-
-Decision:
-- Use layered modular architecture:
-  Route → Validation → Controller → Service → Repository → Database
-
-Reason:
+- Reduce duplication
+- Standardize pagination/filtering/sorting
 - Improve scalability
-- Enforce clear separation of concerns
-- Support long-term maintainability
-- Reduce cross-layer coupling
 
 ---
 
-## Repository Scalability Preparation
+## Domain Repository Strategy
 
 Decision:
-- Introduce reusable repository/query abstraction patterns before application growth
+- Repositories should expose domain-oriented methods
+
+Examples:
+- findUserByEmail()
+- findActiveUsers()
+- findPendingPayments()
 
 Reason:
-- Prevent duplicated query logic
-- Prepare scalable pagination/filtering architecture
-- Improve MongoDB query consistency
-- Reduce future refactor complexity
-
----
-
-## Standardized Response Contract
-
-Decision:
-- Use unified API response shape for both success and error responses
-
-Reason:
-- Simplify frontend integration
-- Improve API consistency
-- Reduce client-side branching complexity
+- Prevent query leakage into services
+- Improve domain readability
 - Improve long-term maintainability
+
+---
+
+## Validation Middleware Strategy
+
+Decision:
+- Centralize request validation in middleware layer
+
+Reason:
+- Keep controllers/services clean
+- Standardize validation behavior
+- Improve reusability
+
+---
+
+## Security Hardening Strategy
+
+Decision:
+- Centralize security middleware registration
+
+Reason:
+- Simplify security management
+- Improve consistency
+- Reduce middleware duplication
 
 ---
 
 ## Testing Foundation Strategy
 
 Decision:
-- Introduce testing architecture incrementally
+- Separate unit and integration testing structures
 
 Reason:
-- Prevent regression during scaling
-- Support safe refactoring
-- Improve long-term maintainability
-- Enable confident feature development
+- Improve scalability of testing architecture
+- Prevent test duplication
+- Improve regression protection
 
 ---
 
-## Layer-Based Testing Strategy
+## Test Helpers and Fixtures Strategy
 
 Decision:
-- Separate testing responsibilities by architecture layer
+- Prepare reusable helpers and fixtures structure early
 
 Reason:
-- Improve test clarity
-- Reduce test duplication
-- Support scalable debugging
-- Improve maintainability
+- Prevent test duplication growth
+- Standardize test payloads/setup
+- Improve long-term test maintainability
