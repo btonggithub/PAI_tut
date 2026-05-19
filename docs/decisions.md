@@ -201,3 +201,29 @@ Reason:
 - Improve API consistency
 - Reduce client-side branching complexity
 - Improve long-term maintainability
+
+---
+
+## Testing Foundation Strategy
+
+Decision:
+- Introduce testing architecture incrementally
+
+Reason:
+- Prevent regression during scaling
+- Support safe refactoring
+- Improve long-term maintainability
+- Enable confident feature development
+
+---
+
+## Layer-Based Testing Strategy
+
+Decision:
+- Separate testing responsibilities by architecture layer
+
+Reason:
+- Improve test clarity
+- Reduce test duplication
+- Support scalable debugging
+- Improve maintainability

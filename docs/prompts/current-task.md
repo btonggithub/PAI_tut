@@ -1,93 +1,60 @@
 # Current Task
 
-Phase 12 — Production Hardening
+Phase:
+feature/13-testing-foundation
 
-## Objective
-
-Improve production readiness and standardize API behavior across the backend.
-
----
-
-## Requirements
-
-### 1. Standardize API Response Contract
-
-All API responses must follow consistent structure.
-
-Success response:
-{
-  "success": true,
-  "message": "Success",
-  "data": {}
-}
-
-Error response:
-{
-  "success": false,
-  "message": "Validation failed",
-  "error": {
-    "status": 400
-  }
-}
+Objective:
+Introduce scalable testing foundation architecture for the existing layered backend system.
 
 Requirements:
-- Update errorHandler.js
-- Preserve existing response utility usage
-- Do not break controller flow
-- All errors must include success:false
 
----
+1. Add testing infrastructure foundation
+- testing dependencies
+- test scripts
+- base test configuration
 
-### 2. Security Middleware Foundation
+2. Introduce test folder structure
+Suggested:
+tests/
+├── unit/
+├── integration/
+├── helpers/
+├── fixtures/
 
-Add production-ready middleware foundation.
+3. Add initial integration test coverage
+Target:
+- health route
+- auth route
 
-Requirements:
-- Add helmet
-- Add cors
-- Add request size limiting
-- Prepare security middleware registration structure
+4. Add initial unit test coverage
+Target:
+- auth service
+- query utility
+- pagination utility
 
----
-
-### 3. Authentication Hardening
-
-Improve authentication robustness.
-
-Requirements:
-- Centralize token extraction logic
-- Improve JWT error handling
-- Prevent malformed authorization header issues
-- Keep auth middleware thin
-
----
-
-### 4. Error Hardening
-
-Requirements:
-- Prevent internal error leakage
-- Differentiate operational vs unknown errors
-- Keep AppError as operational error standard
-
----
-
-### 5. Maintain Existing Architecture
-
+5. Ensure testing architecture matches layered architecture
 Rules:
-- Controllers remain HTTP-only
-- Services contain business logic only
-- Repositories own database access
-- Validation stays in middleware layer
-- No business logic in middleware
-- No HTTP logic in repositories
+- Controllers test HTTP behavior only
+- Services test business logic only
+- Repositories test database access only
 
----
+6. Preserve existing architecture
+Do not:
+- move folders unnecessarily
+- rewrite existing architecture
+- introduce frontend code
+- introduce E2E/browser testing
 
-## Success Criteria
+7. Maintain standardized API response contract
+All integration tests must verify:
+- success
+- message
+- response structure consistency
 
-1. Consistent success/error response shape
-2. Security middleware integrated
-3. Error responses hardened
-4. Auth middleware more robust
-5. Existing architecture preserved
-6. No route/controller responsibility leakage
+Success Criteria:
+- Test foundation implemented
+- Unit + integration structure exists
+- At least one service test exists
+- At least one integration API test exists
+- Existing API behavior preserved
+- Layer responsibilities remain clean

@@ -59,3 +59,28 @@
 - Use centralized response utility for success responses
 - Use centralized errorHandler for error responses
 - Never format API responses directly inside routes
+
+---
+
+# Testing Rules
+
+Rules:
+- Production code must remain testable
+- Avoid tightly coupled modules
+- Avoid hidden side effects
+- Avoid global mutable state
+
+Controllers:
+- Must remain thin
+- Must not contain business logic
+
+Services:
+- Must remain framework-independent
+- Must support mocking
+
+Repositories:
+- Must isolate database access
+
+Tests:
+- Must avoid real external services
+- Must avoid shared state between test cases

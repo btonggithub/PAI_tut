@@ -40,6 +40,61 @@ JSON Error Response
 
 ---
 
+## Testing Architecture
+
+Testing Layers:
+- Unit Testing
+- Integration Testing
+
+Testing Goals:
+- Validate business logic safely
+- Prevent regression
+- Verify API contracts
+- Support scalable refactoring
+
+Testing Scope by Layer:
+
+### Controller Tests
+Focus:
+- HTTP status codes
+- Response structure
+- Middleware integration
+
+Rules:
+- Do not test database queries directly
+- Mock service layer when appropriate
+
+### Service Tests
+Focus:
+- Business rules
+- Application logic
+- Error handling flow
+
+Rules:
+- Mock repositories
+- No HTTP testing
+
+### Repository Tests
+Focus:
+- Database query correctness
+- Query utilities
+- Pagination/filter behavior
+
+Rules:
+- No HTTP concerns
+- No response formatting
+
+### Integration Tests
+Focus:
+- Full request lifecycle
+- Route → middleware → controller → service → repository flow
+
+Rules:
+- Use isolated test database
+- Verify real API responses
+
+---
+
 ## Layers
 
 ### Infrastructure Layer
@@ -62,6 +117,8 @@ Rules:
 - No business logic
 - No validation logic
 - No database access
+- Must remain easily testable
+- Must support integration testing flow
 
 ---
 
@@ -96,6 +153,8 @@ Rules:
 - No database access
 - No validation logic
 - Must use asyncHandler
+- Controllers should remain mock-friendly for testing
+- Controllers should not contain direct database access
 
 ---
 
@@ -115,6 +174,8 @@ Rules:
 - No Express req/res usage
 - No response formatting
 - No direct database access
+- Services should be unit-test friendly
+- Services must support repository mocking
 
 ---
 
@@ -129,6 +190,7 @@ Responsibilities:
 - Data persistence
 - Data retrieval
 - Query abstraction
+- Repositories should support isolated query testing
 
 Rules:
 - No HTTP logic
@@ -215,6 +277,12 @@ src/
 │   ├── health/
 │   └── system/
 │
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── fixtures/
+│   └── helpers/
+│
 ├── models/
 │   └── userModel.js
 │
@@ -240,7 +308,7 @@ src/
 
 ## Current Phase
 
-Phase 11 — Scalable Data Architecture
+Phase 13 — Testing Foundation
 
 Goals:
 - Base repository abstraction
@@ -248,3 +316,4 @@ Goals:
 - Consistent database access patterns
 - Query scalability preparation
 - MongoDB optimization foundation
+

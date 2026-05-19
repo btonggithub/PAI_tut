@@ -146,3 +146,58 @@ Rules:
 - Controllers must use response utility
 - Errors must go through centralized errorHandler
 - Routes must never format responses directly
+
+---
+
+# Testing Conventions
+
+## Test File Naming
+
+Use:
+- *.test.js
+
+Examples:
+- authService.test.js
+- authController.test.js
+
+---
+
+## Test Folder Structure
+
+tests/
+├── unit/
+├── integration/
+├── fixtures/
+├── helpers/
+
+---
+
+## Testing Principles
+
+Rules:
+- One responsibility per test
+- Arrange → Act → Assert structure
+- Avoid duplicated setup logic
+- Prefer deterministic test data
+
+---
+
+## Mocking Rules
+
+Controllers:
+- Mock services when testing controllers
+
+Services:
+- Mock repositories when testing services
+
+Repositories:
+- Prefer real database integration tests
+
+---
+
+## Response Contract Testing
+
+All API integration tests must verify:
+- success field
+- message field
+- response shape consistency
