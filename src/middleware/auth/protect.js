@@ -1,15 +1,16 @@
 const AppError = require('../../utils/AppError');
 const { verifyToken } = require('../../utils/jwt');
 const authService = require('../../services/auth/authService');
+const extractBearerToken = require('./extractBearerToken');
 
 const protect = async (req, res, next) => {
-  const authHeader = req.headers.authorization || '';
+  let token;
 
-  if (!authHeader.startsWith('Bearer ')) {
-    return next(new AppError('Authorization token is missing', 401));
+  try {
+    token = extractBearerToken(req.headers.authorization);
+  } catch (error) {
+    return next(error);
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const payload = verifyToken(token);
@@ -23,6 +24,18 @@ const protect = async (req, res, next) => {
 
     return next();
   } catch (error) {
+    if (error.isOperational) {
+      return next(error);
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      return next(new AppError('Token has expired', 401));
+    }
+
+    if (error.name === 'JsonWebTokenError' || error.name === 'NotBeforeError') {
+      return next(new AppError('Invalid authentication token', 401));
+    }
+
     return next(new AppError('Invalid or expired token', 401));
   }
 };

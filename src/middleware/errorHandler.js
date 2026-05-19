@@ -1,27 +1,27 @@
+const env = require('../config/env');
+
 const errorHandler = (err, req, res, next) => {
-  let statusCode = 500;
-  let message = 'Internal Server Error';
+  const rawStatus = err.statusCode || err.status || 500;
+  const statusCode = Number.isInteger(rawStatus) ? rawStatus : 500;
+  const isOperational = Boolean(err.isOperational);
+  const canExposeMessage = isOperational || statusCode < 500;
+  const message = canExposeMessage
+    ? err.message || 'Request failed'
+    : 'Internal Server Error';
 
-  if (err.isOperational) {
-    // AppError instance
-    statusCode = err.statusCode || 500;
-    message = err.message;
-  } else if (err.statusCode) {
-    // Other errors with statusCode
-    statusCode = err.statusCode;
-    message = err.message || 'Internal Server Error';
-  } else if (err.status) {
-    // Other errors with status
-    statusCode = err.status;
-    message = err.message || 'Internal Server Error';
-  }
-
-  res.status(statusCode).json({
+  const responseBody = {
+    success: false,
+    message,
     error: {
       status: statusCode,
-      message,
     },
-  });
+  };
+
+  if (env.isDevelopment && !canExposeMessage && err.stack) {
+    responseBody.error.stack = err.stack;
+  }
+
+  return res.status(statusCode).json(responseBody);
 };
 
 module.exports = errorHandler;

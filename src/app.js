@@ -1,11 +1,12 @@
 const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
 const registerRoutes = require('./routes');
+const registerSecurity = require('./middleware/security/registerSecurity');
 const AppError = require('./utils/AppError');
 
 const app = express();
 
-app.use(express.json());
+registerSecurity(app);
 
 registerRoutes(app);
 
