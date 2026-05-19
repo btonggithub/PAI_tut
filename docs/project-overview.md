@@ -15,12 +15,32 @@ The project focuses on:
 
 ## Current Stack
 
+Core:
 - Node.js
 - Express.js
+
+Database:
 - MongoDB
 - Mongoose
+
+Validation:
 - Joi
+
+Authentication:
+- JWT (jsonwebtoken)
+- bcrypt
+
+Security:
+- helmet
+- cors
+
+Development:
 - Nodemon
+
+Architecture Support:
+- Custom AppError system
+- Repository abstraction
+- Pagination/query utilities
 
 ---
 
@@ -28,14 +48,40 @@ The project focuses on:
 
 The project currently implements:
 
+Infrastructure:
 - Environment configuration validation
 - MongoDB connection management
-- Centralized error handling
-- Async route utilities
-- Standardized AppError system
+
+Transport:
 - Modular route registration
-- Controller-based application structure
-- Multi-module controller organization
+- Validation middleware architecture
+
+Application:
+- Controller layer
+- Service layer
+- Repository layer
+
+Security:
+- JWT authentication foundation
+- Password hashing
+- Security middleware registration
+
+Error Handling:
+- Centralized error handling
+- Standardized AppError system
+- Production-safe error responses
+
+Scalability:
+- BaseRepository abstraction
+- Pagination utilities
+- Query utilities
+- Modular domain structure
+
+Architecture Quality:
+- Thin route enforcement
+- HTTP-only controllers
+- Framework-independent services
+- Repository-owned database access
 
 ---
 
@@ -47,6 +93,11 @@ The project currently implements:
 - Standardized JSON responses
 - Modular domain structure
 - Incremental architecture evolution
+- Layer-based architecture
+- Repository-owned data access
+- Validation-before-controller flow
+- Production-safe error exposure
+- Testable application design
 
 ---
 
@@ -56,11 +107,19 @@ Request
 ↓
 Route
 ↓
+Validation Middleware
+↓
+Authentication Middleware (if protected)
+↓
 Controller
 ↓
-AppError (if operational error)
+Service
 ↓
-Error Middleware
+Repository
+↓
+MongoDB
+↓
+Response Utility
 ↓
 JSON Response
 
@@ -68,23 +127,36 @@ JSON Response
 
 ## Current Development Phase
 
-Controller Layer v2
-- Multi-module controller architecture
-- Standardized controller patterns
-- Thin route enforcement
-- Scaling-ready structure
+## Current Development Phase
+
+Phase 13 — Testing Foundation
+
+Current architecture includes:
+- Validation layer
+- Service layer
+- Repository layer
+- Authentication foundation
+- Scalable data architecture
+- Production hardening foundation
+
+Current focus:
+- Testing infrastructure
+- Integration testing
+- Unit testing foundation
+- API contract verification
 
 ---
 
 ## Planned Next Phase
 
-Service Layer Introduction
+Testing Foundation Expansion
 
-Future goals:
-- Separate business logic from controllers
-- Introduce service abstraction
-- Improve long-term scalability
-- Maintain lightweight HTTP layer
+Goals:
+- Unit testing architecture
+- Integration testing setup
+- Test utilities/helpers
+- API contract testing
+- Scalable test structure
 
 ---
 
@@ -94,18 +166,58 @@ Current database stack:
 - MongoDB
 - Mongoose
 
-Current responsibility:
-- Database connection management only
-- No repository layer yet
-- No model abstraction yet
-
-Current architecture intentionally keeps:
-- Controllers lightweight
-- Database concerns minimal
-- Business logic separation deferred until Service Layer phase
-
-Future direction:
+Current architecture:
 Controller
 → Service
-→ Repository/Data Access
+→ Repository
 → MongoDB
+
+Current database responsibilities:
+
+Repositories:
+- Database queries
+- Data persistence
+- Pagination/filter abstraction
+- Query standardization
+
+Services:
+- Business logic only
+- No direct database access
+
+Controllers:
+- HTTP transport only
+- No database access
+
+Scalability foundation:
+- BaseRepository abstraction
+- Shared query utilities
+- Shared pagination utilities
+
+Future direction:
+- Database indexing strategy
+- Advanced query optimization
+- Transaction support
+- Caching layer
+- Multi-service scalability
+
+---
+
+## Testing Direction
+
+Testing architecture will follow the existing layered architecture.
+
+Planned testing layers:
+- Unit testing
+- Integration testing
+
+Testing goals:
+- Prevent regression
+- Verify API contracts
+- Improve refactor safety
+- Maintain long-term scalability
+
+Testing philosophy:
+- Thin controllers remain easy to test
+- Services remain mock-friendly
+- Repositories remain isolated
+- Integration tests validate full request lifecycle
