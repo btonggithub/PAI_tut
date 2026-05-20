@@ -1,26 +1,82 @@
 # Architecture
 
-## Infrastructure Layer
+## Architecture Style
 
-Responsible for environment and infrastructure configuration.
+Layered Modular Architecture
 
-Contains:
-- config/
-- db/
-
-Responsibilities:
-- Environment configuration
-- Database connection
-- Infrastructure setup
-
-Rules:
-- No business logic
-- No HTTP logic
+Goals:
+- Scalability
+- Maintainability
+- Clear responsibility boundaries
+- Predictable request lifecycle
+- Incremental architecture evolution
 
 ---
 
-## Transport Layer
+## Structure
 
+src/
+├── app.js
+├── server.js
+│
+├── config/
+│   ├── db.js
+│   └── env.js
+│
+├── controllers/
+│   ├── auth/
+│   ├── health/
+│   ├── system/
+│   └── user/
+│
+├── services/
+│   ├── auth/
+│   ├── health/
+│   ├── system/
+│   └── user/
+│
+├── repositories/
+│   ├── auth/
+│   ├── base/
+│   ├── health/
+│   ├── system/
+│   └── user/
+│
+├── middleware/
+│   ├── auth/
+│   ├── security/
+│   └── validation/
+│
+├── models/
+│   └── userModel.js
+│
+├── routes/
+│   ├── authRoutes.js
+│   ├── healthRoutes.js
+│   ├── systemRoutes.js
+│   ├── userRoutes.js
+│   └── index.js
+│
+├── utils/
+│   ├── AppError.js
+│   ├── asyncHandler.js
+│   ├── jwt.js
+│   ├── pagination.js
+│   ├── password.js
+│   ├── query.js
+│   └── response.js
+│
+└── tests/
+    ├── fixtures/
+    ├── helpers/
+    ├── integration/
+    └── unit/
+
+---
+
+## Layers
+
+### Transport Layer
 Responsible for HTTP transport and route registration only.
 
 Contains:
@@ -30,96 +86,71 @@ Rules:
 - No business logic
 - No validation logic
 - No database access
-- No authentication business logic
-- Routes must remain declarative only
+- No authorization rules
 
 ---
 
-## Validation Layer
-
-Responsible for request validation before controller execution.
+### Middleware Layer
+Responsible for reusable request pipeline behavior.
 
 Contains:
-- middleware/validation/
+- middleware/
 
 Responsibilities:
-- Body validation
-- Query validation
-- Params validation
-- Validation standardization
+- Validation
+- Authentication
+- Authorization
+- Security middleware
+- Request preprocessing
 
 Rules:
 - No business logic
-- No database access
-- No response formatting
+- No database query orchestration
+- Keep middleware reusable and composable
 
 ---
 
-## Authentication Layer
-
-Responsible for authentication transport protection.
-
-Contains:
-- middleware/auth/
-- utils/jwt.js
-- utils/password.js
-
-Responsibilities:
-- JWT verification
-- Bearer token extraction
-- Authentication protection
-- Password hashing/comparison
-
-Rules:
-- No response formatting
-- No controller responsibilities
-- No database queries outside service/repository flow
-
----
-
-## Controller Layer
-
-Responsible for HTTP request/response orchestration only.
+### Controller Layer
+Responsible for HTTP request/response handling only.
 
 Contains:
 - controllers/
 
 Responsibilities:
-- Read request input
+- Read request data
 - Call services
 - Return standardized responses
+- Forward errors
 
 Rules:
+- No business logic
 - No database access
+- No authorization rules
 - No validation logic
-- No business rules
-- No direct Mongoose usage
 
 ---
 
-## Service Layer
-
-Responsible for business logic orchestration.
+### Service Layer
+Responsible for business workflows and application rules.
 
 Contains:
 - services/
 
 Responsibilities:
-- Business rules
-- Application workflows
-- Domain orchestration
-- Security/business validation
+- Business workflows
+- Application orchestration
+- Cross-module coordination
+- Authorization decisions orchestration
 
 Rules:
-- No HTTP logic
+- No HTTP handling
 - No response formatting
 - No direct database access
-- Must use repositories
+- No raw Express objects
 
 ---
 
-## Repository Layer
-
+### Repository Layer
 Responsible for data access abstraction.
 
 Contains:
@@ -130,8 +161,7 @@ Responsibilities:
 - Data persistence
 - Data retrieval
 - Query abstraction
-- Pagination abstraction
-- Filtering abstraction
+- Pagination-ready querying
 
 Rules:
 - No HTTP logic
@@ -141,154 +171,61 @@ Rules:
 
 ---
 
-## Base Repository Layer
-
-Responsible for reusable database access patterns.
-
-Contains:
-- repositories/base/
-
-Responsibilities:
-- Generic pagination
-- Generic filtering
-- Generic sorting
-- Shared query behavior
-
-Rules:
-- No business/domain logic
-- No HTTP logic
-- No response formatting
-
----
-
-## Model Layer
-
-Responsible for schema/model definition.
-
-Contains:
-- models/
-
-Responsibilities:
-- Mongoose schemas
-- Model definitions
-- Database structure constraints
-
-Rules:
-- No HTTP logic
-- No business workflows
-- No response formatting
-
----
-
-## Cross-cutting Utilities
+### Utility Layer
+Responsible for reusable shared helpers.
 
 Contains:
 - utils/
 
 Responsibilities:
-- Shared reusable utilities
-- Response formatting
-- Async handling
+- JWT utilities
+- Password utilities
 - Query utilities
 - Pagination utilities
-
----
-
-## Error System
-
-Responsible for centralized operational error handling.
-
-Contains:
-- middleware/errorHandler.js
-- utils/AppError.js
-
-Responsibilities:
-- Centralized error flow
-- Operational error handling
-- Safe production error responses
+- Response utilities
 
 Rules:
-- Prevent internal leakage
-- Standardize error contracts
+- No business-specific logic
+- Keep utilities reusable
+- Avoid module coupling
 
 ---
 
-## Security Layer
+## Authorization Flow
 
-Responsible for application hardening and transport security.
+Authentication verifies identity.
 
-Contains:
-- middleware/security/
+Authorization verifies permissions.
 
-Responsibilities:
-- Helmet registration
-- CORS registration
-- Request size limiting
-- Security middleware centralization
-
----
-
-## Testing Layer
-
-Responsible for application verification and regression protection.
-
-Contains:
-- tests/
-
-Structure:
-- unit/
-- integration/
-- helpers/
-- fixtures/
-
-Responsibilities:
-- Unit testing
-- Integration testing
-- Shared test setup
-- Shared test fixtures
-
-Rules:
-- Tests must remain isolated
-- Fixtures should be reusable
-- Helpers should centralize setup logic
-
----
-
-## Request Lifecycle
+Example flow:
 
 Request
 ↓
-Route
-↓
-Validation Middleware
-↓
 Authentication Middleware
+↓
+Authorization Middleware
 ↓
 Controller
 ↓
 Service
 ↓
 Repository
-↓
-BaseRepository
-↓
-Mongoose
-↓
-MongoDB
-↓
-Response Utility
-↓
-JSON Response
 
 ---
 
-## Current Phase
+## Current RBAC Direction
 
-Phase 14 — User Management Module
+Current RBAC foundation goals:
+- Role-aware protected routes
+- Reusable authorization middleware
+- Separation between authentication and authorization
+- Policy-ready architecture preparation
 
-Goals:
-- Expand user domain architecture
-- Introduce scalable user query patterns
-- Introduce reusable user repository methods
-- Prepare role/permission scalability
-- Improve modular domain separation
+Future direction:
+RBAC
+↓
+Policy-based authorization
+↓
+Resource ownership enforcement
+↓
+Fine-grained permissions

@@ -1,95 +1,112 @@
 # Conventions
 
-## General Rules
-
-- Use CommonJS modules
-- Use async/await only
-- Use centralized response utility
-- Use AppError for operational errors
-- Use asyncHandler for async controllers
-- Use modular folder organization
-
----
-
 ## Naming Conventions
 
-### Controllers
-- <module>Controller.js
-
-Examples:
-- authController.js
-- userController.js
-
----
-
-### Services
-- <module>Service.js
-
-Examples:
-- authService.js
-- userService.js
-
----
-
-### Repositories
-- <module>Repository.js
-
-Examples:
-- authRepository.js
-- userRepository.js
-
----
-
-### Validation Schemas
-- <module>Validation.js
-
-Examples:
-- authValidation.js
-- userValidation.js
-
----
-
 ### Middleware
-- camelCase naming
-
-Examples:
-- validateRequest.js
-- errorHandler.js
-- registerSecurity.js
+- Authentication middleware:
+  - protect.js
+- Authorization middleware:
+  - authorize.js
 
 ---
 
-## Repository Conventions
+### Role Naming
 
-Repositories should expose:
-- Domain-oriented methods
-- Reusable query behavior
-- Database abstraction only
+Use lowercase role names.
 
-Good:
-- findUserByEmail()
-- findUsersByRole()
-- findActiveUsers()
+Examples:
+- admin
+- user
+- moderator
+
+Rules:
+- Avoid uppercase role names
+- Avoid mixed naming styles
+- Keep role values predictable
+
+---
+
+### Authorization Naming
+
+Use action-oriented naming.
+
+Examples:
+- authorize
+- requireRole
+- requireOwnership
 
 Avoid:
-- Generic business leakage into services
-- Service-owned database queries
+- checkStuff
+- handlePermission
 
 ---
 
-## Testing Conventions
+## Route Protection Convention
 
-### Unit Tests
-- test isolated logic only
-- mock external dependencies
+Protected routes must apply middleware in this order:
 
-### Integration Tests
-- validate HTTP contracts
-- validate middleware behavior
-- validate standardized response shape
+Route
+↓
+Authentication
+↓
+Authorization
+↓
+Validation
+↓
+Controller
+
+Example:
+router.get(
+  '/',
+  protect,
+  authorize('admin'),
+  validateRequest(...),
+  controller
+);
+
+---
+
+## Repository Convention
+
+Repositories should expose domain-oriented methods.
+
+Preferred:
+- findActiveUsers
+- findUserProfile
+- findPendingOrders
+
+Avoid overly-generic business access patterns:
+- save
+- update
+- delete
+- findAll
+
+Rules:
+- Generic helpers belong in BaseRepository only
+- Domain repositories should express business/domain intent
+
+---
+
+## Testing Convention
 
 ### Helpers
-- centralize reusable test setup
+Reusable testing logic only.
+
+Examples:
+- auth header generators
+- mock request builders
+- reusable setup utilities
+
+---
 
 ### Fixtures
-- centralize reusable test payloads/data
+Reusable static test data only.
+
+Examples:
+- user fixtures
+- auth payload fixtures
+- role fixtures
+
+Rules:
+- Avoid hardcoding repeated payloads inside tests
+- Keep fixtures deterministic

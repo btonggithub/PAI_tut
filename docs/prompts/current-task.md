@@ -1,122 +1,113 @@
 # Current Task
 
-## Phase 14 — User Management Module
+Phase 15 — Role-Based Access Control (RBAC)
 
-Objective:
-Introduce a scalable user management module using the existing layered architecture.
+## Objective
 
----
-
-## Required Context Files
-
-Always read these files before making changes:
-
-1. docs/project-overview.md
-2. docs/architecture.md
-3. docs/decisions.md
-4. docs/conventions.md
-5. docs/coding-rules.md
-6. docs/progress.md
-7. docs/prompts/current-task.md
+Implement reusable role-based authorization architecture while preserving the existing layered architecture and standardized response contract.
 
 ---
 
-## Architecture Rules
+## Requirements
 
-The project architecture MUST remain:
+### User Model
+Add role support to user model.
 
-Route
-→ Validation Middleware
-→ Authentication Middleware
-→ Controller
-→ Service
-→ Repository
-→ BaseRepository
-→ Mongoose
-→ MongoDB
+Requirements:
+- role field
+- default role
+- enum restriction
+
+Allowed roles initially:
+- user
+- admin
+
+---
+
+### Authorization Middleware
+
+Create reusable authorization middleware.
+
+Example usage:
+- authorize('admin')
+- authorize('admin', 'moderator')
+
+Responsibilities:
+- Verify authenticated user role
+- Block unauthorized access
+- Return standardized AppError responses
 
 Rules:
-- Controllers remain HTTP-only
-- Services contain business logic only
-- Repositories own all database access
-- Validation remains middleware-only
-- No direct Mongoose usage outside repositories
-- Standardized response contract must remain unchanged
+- Middleware-only authorization
+- No role checks inside controllers
+- No role checks inside routes
 
 ---
 
-## Implementation Goals
+### Protected Admin Routes
 
-Implement scalable user management foundation.
+Add initial admin-protected routes.
 
-Expected additions:
-- user module routes
-- user controller
-- user service
-- user repository improvements
-- user validation schemas
-- protected user endpoints
-- reusable query patterns
-- user list pagination support
-
----
-
-## Expected User Features
-
-Add endpoints such as:
-- GET /api/v1/users/me
-- PATCH /api/v1/users/me
+Suggested examples:
 - GET /api/v1/users
 - GET /api/v1/users/:id
 
 Requirements:
-- protected routes
-- standardized response contracts
-- validation middleware
-- repository-based data access
-- pagination-ready list endpoint
+- Must require authentication
+- Must require admin role
 
 ---
 
-## Repository Rules
+### Service Layer
 
-Repositories should expose domain-oriented methods.
-
-Good examples:
-- findUserByEmail()
-- findUsers()
-- findUserProfile()
-- updateUserProfile()
-
-Avoid:
-- business queries inside services
-- direct Mongoose usage inside services
+Rules:
+- Services remain business-oriented
+- No Express request/response objects
+- No HTTP response formatting
+- No raw role checks duplicated across services
 
 ---
 
-## Testing Requirements
+### Repository Layer
 
-Add:
-- integration tests for user routes
-- unit tests for user service
-- validation behavior tests
-- authentication flow tests
+Rules:
+- Repositories continue owning all database access
+- Services must not access mongoose models directly
+- Preserve scalable repository structure
 
-Maintain:
-- tests/helpers structure
-- tests/fixtures structure
+---
+
+### Validation
+
+Validation must remain middleware-only.
+
+Requirements:
+- Validate role updates if role mutation is introduced
+- Keep Joi schemas modular
+
+---
+
+### Testing
+
+Add/update tests for:
+- Unauthorized access
+- Forbidden access
+- Admin-only routes
+- Authorization middleware behavior
+- Standardized error responses
+
+Requirements:
+- Integration tests required
+- Reuse helpers/fixtures when possible
 
 ---
 
 ## Success Criteria
 
-1. User module implemented
-2. Protected user endpoints implemented
-3. Controllers remain HTTP-only
-4. Services contain business logic only
-5. Repositories own database access
-6. Pagination-ready user listing implemented
-7. Validation remains middleware-only
-8. Standardized response contract maintained
-9. Tests added for new functionality
-10. Existing architecture preserved
+1. RBAC middleware implemented
+2. User roles supported
+3. Admin-only routes protected
+4. No role checks inside controllers
+5. Standardized error contract preserved
+6. Existing architecture preserved
+7. Tests pass successfully

@@ -1,99 +1,77 @@
 # Coding Rules
 
-## Controllers
+## Authorization Rules
 
-Controllers must:
-- Handle HTTP transport only
-- Read req data
-- Call services
-- Return standardized responses
+### Controllers
+Controllers must NOT contain role checks.
 
-Controllers must NOT:
-- Access database directly
-- Use Mongoose directly
-- Contain validation logic
-- Contain business rules
+Forbidden:
+- if (user.role === 'admin')
+
+Authorization belongs in middleware/service policy layers.
 
 ---
 
-## Services
+### Middleware
+Authorization middleware must remain reusable.
 
-Services must:
-- Handle business workflows
-- Use repositories only
-- Throw AppError for operational failures
+Good:
+- authorize('admin')
+- authorize('admin', 'moderator')
+
+Avoid:
+- hardcoded route-specific authorization logic
+
+---
+
+### Services
+Services may orchestrate authorization decisions,
+but should not directly depend on Express request objects.
+
+Forbidden:
+- req.user inside services
+
+---
+
+## Repository Rules
+
+Repositories own:
+- Mongoose queries
+- Filtering
+- Pagination
+- Sorting
+- Projection
 
 Services must NOT:
-- Use req/res
-- Access database directly
-- Use Mongoose directly
-- Format HTTP responses
-
----
-
-## Repositories
-
-Repositories must:
-- Own all database access
-- Encapsulate query logic
-- Reuse BaseRepository patterns where appropriate
-
-Repositories should:
-- Expose domain-oriented methods
-
-Examples:
-- findUserByEmail()
-- findUsersByRole()
-- findActiveUsers()
-
-Repositories must NOT:
-- Contain HTTP logic
-- Contain response formatting
-- Contain validation logic
-
----
-
-## Validation
-
-Validation must:
-- Exist in middleware layer only
-- Use Joi schemas
-- Execute before controllers
-
-Validation must NOT:
-- Exist inside controllers
-- Exist inside services
-- Exist inside repositories
-
----
-
-## Error Handling
-
-All operational errors must:
-- Use AppError
-- Flow into centralized error middleware
-
-Internal/system errors must:
-- Avoid leaking implementation details
-- Return standardized error contracts
+- import mongoose models directly
+- construct raw database queries
 
 ---
 
 ## Testing Rules
 
-Unit tests must:
-- Remain isolated
-- Mock dependencies
-- Avoid HTTP server startup
+### Integration Tests
+Must verify:
+- response contract
+- middleware behavior
+- auth protection
+- validation flow
 
-Integration tests must:
-- Validate API contracts
-- Validate middleware flow
-- Validate response standardization
+---
 
-Fixtures must:
-- Remain reusable
-- Avoid duplication
+### Unit Tests
+Must isolate:
+- business logic
+- utility behavior
+- repository mocking
 
-Helpers must:
-- Centralize reusable setup logic
+---
+
+## Security Rules
+
+Never trust:
+- req.body.role
+- client-provided permissions
+- frontend authorization claims
+
+Authorization must be server-controlled.

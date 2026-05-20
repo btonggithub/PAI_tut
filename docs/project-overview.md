@@ -2,7 +2,7 @@
 
 ## Project Goal
 
-Build a scalable Node.js REST API backend using Express.js with clean architecture principles, layered application design, standardized API contracts, and scalable module organization.
+Build a scalable Node.js REST API backend using Express.js with clean architecture principles, standardized error handling, modular domain organization, reusable data-access patterns, and production-ready authentication/authorization flows.
 
 The project focuses on:
 - Clean backend architecture
@@ -10,8 +10,8 @@ The project focuses on:
 - Standardized API patterns
 - Separation of concerns
 - Maintainable Express.js structure
+- Incremental architecture evolution
 - Long-term scalability
-- Testable application design
 
 ---
 
@@ -26,6 +26,8 @@ The project focuses on:
 - bcrypt
 - Jest
 - Supertest
+- Helmet
+- CORS
 - Nodemon
 
 ---
@@ -34,50 +36,65 @@ The project focuses on:
 
 The project currently implements:
 
+### Infrastructure
 - Environment configuration validation
 - MongoDB connection management
+- Security middleware foundation
 - Centralized error handling
-- Async route utilities
-- Standardized AppError system
+
+### Application Architecture
 - Modular route registration
-- Controller-based application structure
-- Service layer abstraction
+- Controller-based architecture
+- Service layer architecture
 - Repository layer abstraction
-- Validation middleware layer
-- Authentication foundation
-- Base repository abstraction
-- Query filtering utilities
-- Pagination utilities
-- Production security hardening
-- Testing infrastructure foundation
+- Scalable repository foundation
+- Reusable pagination/query utilities
+
+### Authentication & Security
+- JWT authentication
+- Password hashing
+- Protected route middleware
+- Standardized auth flow
+- Production-ready error response contract
+
+### User Management
+- User module foundation
+- User profile management
+- Pagination-ready user listing
+
+### Testing
+- Jest testing foundation
+- Integration testing structure
+- Unit testing structure
+- Reusable testing helpers/fixtures
 
 ---
 
 ## Architectural Principles
 
 - Thin route layer
-- Lightweight controllers
-- Service-oriented business logic
+- HTTP-only controllers
+- Service-based business logic
 - Repository-owned database access
+- Middleware-only validation
 - Centralized error handling
 - Standardized JSON responses
 - Modular domain structure
 - Incremental architecture evolution
-- Reusable validation system
-- Reusable repository patterns
-- Testability-first architecture
 
 ---
 
-## Current Application Flow
+## Current Request Lifecycle
 
 Request
 ↓
 Route
 ↓
-Validation Middleware
+Security Middleware
 ↓
 Authentication Middleware
+↓
+Validation Middleware
 ↓
 Controller
 ↓
@@ -85,7 +102,7 @@ Service
 ↓
 Repository
 ↓
-MongoDB
+Database
 ↓
 Response Utility
 ↓
@@ -95,26 +112,27 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 14 — User Management Module
+Phase 15 — Role-Based Access Control (RBAC)
 
 Current goals:
-- Introduce scalable user module architecture
-- Expand repository/service/controller patterns
-- Add user profile management foundation
-- Introduce reusable user query patterns
-- Prepare modular domain scaling
+- Introduce role-based authorization
+- Separate authentication vs authorization responsibilities
+- Add reusable authorization middleware
+- Prepare permission/policy architecture foundation
+- Enforce role-aware protected routes
 
 ---
 
 ## Planned Next Phase
 
+Authorization Policy System
+
 Future goals:
-- Role-based authorization
-- Refresh token strategy
-- API documentation
-- Rate limiting
-- Audit logging
-- Background job architecture
+- Resource ownership authorization
+- Policy-based access control
+- Permission abstraction
+- Fine-grained authorization flow
+- Resource-level access management
 
 ---
 
@@ -124,36 +142,22 @@ Current database stack:
 - MongoDB
 - Mongoose
 
-Current architecture:
+Current architecture includes:
+- Repository abstraction
+- Shared BaseRepository patterns
+- Pagination utilities
+- Query utilities
+- Reusable filtering/sorting patterns
+
+Current database responsibilities:
+- Data persistence
+- Query abstraction
+- Pagination-ready querying
+- Reusable repository patterns
+
+Future direction:
 Controller
 → Service
+→ Authorization Policy
 → Repository
-→ BaseRepository
-→ Mongoose
-→ MongoDB
-
-Database architecture goals:
-- Centralized database access patterns
-- Reusable query abstraction
-- Pagination standardization
-- Scalable repository structure
-- Domain-driven repository ownership
-
----
-
-## Current Testing Status
-
-Testing infrastructure currently includes:
-- Jest
-- Supertest
-- Unit testing structure
-- Integration testing structure
-- Test helpers structure
-- Test fixtures structure
-
-Testing goals:
-- Service isolation testing
-- Repository behavior validation
-- API response contract verification
-- Authentication flow testing
-- Long-term regression protection
+→ Database
