@@ -20,7 +20,7 @@ const protect = async (req, res, next) => {
     }
 
     const user = await authService.getAuthUser(payload.sub);
-    req.user = { id: user.id, email: user.email, name: user.name };
+    req.user = { id: user.id, email: user.email, name: user.name, role: user.role };
 
     return next();
   } catch (error) {

@@ -1,5 +1,6 @@
 const express = require('express');
 const protect = require('../middleware/auth/protect');
+const authorize = require('../middleware/auth/authorize');
 const validateRequest = require('../middleware/validation/validateRequest');
 const userController = require('../controllers/user/userController');
 const {
@@ -11,8 +12,8 @@ const {
 const router = express.Router();
 
 router.get('/me', protect, userController.getMe);
-router.patch('/me', validateRequest({ body: updateMeBodySchema }), protect, userController.updateMe);
-router.get('/', validateRequest({ query: listUsersQuerySchema }), protect, userController.listUsers);
-router.get('/:id', validateRequest({ params: userIdParamSchema }), protect, userController.getUserById);
+router.patch('/me', protect, validateRequest({ body: updateMeBodySchema }), userController.updateMe);
+router.get('/', protect, authorize('admin'), validateRequest({ query: listUsersQuerySchema }), userController.listUsers);
+router.get('/:id', protect, authorize('admin'), validateRequest({ params: userIdParamSchema }), userController.getUserById);
 
 module.exports = router;
