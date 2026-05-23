@@ -1,6 +1,7 @@
 const AppError = require('../../utils/AppError');
 const userRepository = require('../../repositories/user/userRepository');
 const { toSafeUser, toSafeUsers } = require('./userMapper');
+const { canViewUser, canUpdateUser, canManageUsers } = require('../../policies/userPolicy');
 
 const getMe = async (userId) => {
   const user = await userRepository.findUserProfile(userId);
@@ -12,7 +13,12 @@ const getMe = async (userId) => {
   return toSafeUser(user);
 };
 
-const updateMe = async (userId, payload) => {
+const updateMe = async (userId, payload, actor) => {
+  // Check if actor has permission to update this user
+  if (!canUpdateUser(actor, userId)) {
+    throw new AppError('Forbidden', 403);
+  }
+
   const allowedFields = ['name', 'email'];
   const updatePayload = {};
 
@@ -45,7 +51,12 @@ const updateMe = async (userId, payload) => {
   return toSafeUser(updatedUser);
 };
 
-const listUsers = async (query = {}) => {
+const listUsers = async (query = {}, actor) => {
+  // Check if actor has permission to list users
+  if (!canManageUsers(actor)) {
+    throw new AppError('Forbidden', 403);
+  }
+
   const result = await userRepository.findUsers(query);
 
   return {
@@ -54,7 +65,12 @@ const listUsers = async (query = {}) => {
   };
 };
 
-const getUserById = async (userId) => {
+const getUserById = async (userId, actor) => {
+  // Check if actor has permission to view this user
+  if (!canViewUser(actor, userId)) {
+    throw new AppError('Forbidden', 403);
+  }
+
   const user = await userRepository.findUserById(userId);
 
   if (!user) {

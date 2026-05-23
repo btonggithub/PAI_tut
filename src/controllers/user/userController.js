@@ -8,17 +8,17 @@ const getMe = asyncHandler(async (req, res) => {
 });
 
 const updateMe = asyncHandler(async (req, res) => {
-  const user = await userService.updateMe(req.user.id, req.body);
+  const user = await userService.updateMe(req.user.id, req.body, req.user);
   return sendSuccess(res, { user }, 200, 'Profile updated successfully');
 });
 
 const listUsers = asyncHandler(async (req, res) => {
-  const data = await userService.listUsers(req.query);
+  const data = await userService.listUsers(req.query, req.user);
   return sendSuccess(res, data);
 });
 
 const getUserById = asyncHandler(async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
+  const user = await userService.getUserById(req.params.id, req.user);
   return sendSuccess(res, { user });
 });
 

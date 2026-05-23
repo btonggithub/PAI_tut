@@ -45,7 +45,8 @@ src/
 ├── middleware/
 │   ├── auth/
 │   ├── security/
-│   └── validation/
+│   ├── validation/
+│   └── errorHandler.js
 │
 ├── models/
 │   └── userModel.js
@@ -56,6 +57,9 @@ src/
 │   ├── systemRoutes.js
 │   ├── userRoutes.js
 │   └── index.js
+│
+├── policies/
+│   └── userPolicy.js
 │
 ├── utils/
 │   ├── AppError.js

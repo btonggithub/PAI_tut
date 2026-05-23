@@ -158,4 +158,107 @@ describe('userService', () => {
       statusCode: 404,
     });
   });
+
+  describe('Authorization Policy Integration', () => {
+    it('listUsers throws Forbidden when non-admin user tries to list users', async () => {
+      const nonAdminActor = { id: 'user-123', role: 'user' };
+
+      await expect(userService.listUsers({}, nonAdminActor)).rejects.toMatchObject({
+        message: 'Forbidden',
+        statusCode: 403,
+      });
+    });
+
+    it('listUsers succeeds when admin lists users', async () => {
+      const adminActor = { id: 'admin-1', role: 'admin' };
+      const repoResult = {
+        items: [
+          {
+            _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+            name: 'John Doe',
+            email: 'john@example.com',
+            role: 'user',
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
+      };
+      userRepository.findUsers.mockResolvedValue(repoResult);
+
+      const result = await userService.listUsers({}, adminActor);
+
+      expect(result.users).toHaveLength(1);
+      expect(result.meta).toEqual(repoResult.meta);
+    });
+
+    it('getUserById throws Forbidden when user tries to view another user', async () => {
+      const userActor = { id: 'user-123', role: 'user' };
+
+      await expect(userService.getUserById('user-456', userActor)).rejects.toMatchObject({
+        message: 'Forbidden',
+        statusCode: 403,
+      });
+    });
+
+    it('getUserById succeeds when user views own profile', async () => {
+      const userActor = { id: 'user-123', role: 'user' };
+      userRepository.findUserById.mockResolvedValue({
+        _id: 'user-123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+      });
+
+      const result = await userService.getUserById('user-123', userActor);
+
+      expect(result.id).toBe('user-123');
+    });
+
+    it('getUserById succeeds when admin views any user', async () => {
+      const adminActor = { id: 'admin-1', role: 'admin' };
+      userRepository.findUserById.mockResolvedValue({
+        _id: 'user-456',
+        name: 'Another User',
+        email: 'another@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+      });
+
+      const result = await userService.getUserById('user-456', adminActor);
+
+      expect(result.id).toBe('user-456');
+    });
+
+    it('updateMe throws Forbidden when user tries to update another user', async () => {
+      const userActor = { id: 'user-123', role: 'user' };
+
+      await expect(userService.updateMe('user-456', { name: 'New Name' }, userActor)).rejects.toMatchObject({
+        message: 'Forbidden',
+        statusCode: 403,
+      });
+    });
+
+    it('updateMe succeeds when user updates own profile with policy check', async () => {
+      const userActor = { id: 'user-123', role: 'user' };
+      const updated = {
+        _id: 'user-123',
+        name: 'Updated Name',
+        email: 'user@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+      };
+      userRepository.findUserByEmailExcludingId.mockResolvedValue(null);
+      userRepository.updateUserProfile.mockResolvedValue(updated);
+
+      const result = await userService.updateMe('user-123', { name: 'Updated Name' }, userActor);
+
+      expect(result.id).toBe('user-123');
+      expect(result.name).toBe('Updated Name');
+    });
+  });
 });
