@@ -2,15 +2,7 @@ const AppError = require('../../utils/AppError');
 const { hashPassword, comparePassword } = require('../../utils/password');
 const { signToken } = require('../../utils/jwt');
 const authRepository = require('../../repositories/auth/authRepository');
-
-const toSafeUser = (user) => ({
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  role: user.role,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
+const { toSafeUser } = require('../user/userMapper');
 
 const register = async ({ name, email, password }) => {
   const existingUser = await authRepository.findUserByEmail(email);

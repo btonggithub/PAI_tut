@@ -71,6 +71,7 @@ Read project context from:
 - docs/coding-rules.md
 - docs/progress.md
 - docs/prompts/current-task.md
+- docs/review-checklist.md 
 
 Ignore:
 - docs/changelog/*

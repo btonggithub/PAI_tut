@@ -9,7 +9,6 @@ jest.mock('../../src/repositories/user/userRepository', () => ({
 const AppError = require('../../src/utils/AppError');
 const userService = require('../../src/services/user/userService');
 const userRepository = require('../../src/repositories/user/userRepository');
-const { makeUserFixture } = require('../fixtures/userFixture');
 
 describe('userService', () => {
   beforeEach(() => {
@@ -17,13 +16,29 @@ describe('userService', () => {
   });
 
   it('getMe returns user profile when found', async () => {
-    const user = makeUserFixture();
+    const user = {
+      _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'user',
+      password: 'hidden',
+      __v: 0,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+    };
     userRepository.findUserProfile.mockResolvedValue(user);
 
-    const result = await userService.getMe(user.id);
+    const result = await userService.getMe(user._id);
 
-    expect(userRepository.findUserProfile).toHaveBeenCalledWith(user.id);
-    expect(result).toEqual(user);
+    expect(userRepository.findUserProfile).toHaveBeenCalledWith(user._id);
+    expect(result).toEqual({
+      id: user._id,
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'user',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+    });
   });
 
   it('updateMe throws AppError when no updatable fields are provided', async () => {
@@ -34,28 +49,53 @@ describe('userService', () => {
   });
 
   it('updateMe updates and normalizes email', async () => {
-    const updated = makeUserFixture({ email: 'next@example.com' });
+    const updated = {
+      _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+      name: 'Next Name',
+      email: 'next@example.com',
+      role: 'user',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+    };
     userRepository.findUserByEmailExcludingId.mockResolvedValue(null);
     userRepository.updateUserProfile.mockResolvedValue(updated);
 
-    const result = await userService.updateMe(updated.id, {
+    const result = await userService.updateMe(updated._id, {
       email: 'NEXT@EXAMPLE.COM',
       name: 'Next Name',
       ignored: 'field',
     });
 
-    expect(userRepository.findUserByEmailExcludingId).toHaveBeenCalledWith('NEXT@EXAMPLE.COM', updated.id);
-    expect(userRepository.updateUserProfile).toHaveBeenCalledWith(updated.id, {
+    expect(userRepository.findUserByEmailExcludingId).toHaveBeenCalledWith('NEXT@EXAMPLE.COM', updated._id);
+    expect(userRepository.updateUserProfile).toHaveBeenCalledWith(updated._id, {
       email: 'next@example.com',
       name: 'Next Name',
     });
-    expect(result).toEqual(updated);
+    expect(result).toEqual({
+      id: updated._id,
+      name: 'Next Name',
+      email: 'next@example.com',
+      role: 'user',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+    });
   });
 
   it('listUsers returns users and pagination metadata', async () => {
     const query = { page: 2, limit: 5, name: 'john' };
     const repoResult = {
-      items: [makeUserFixture()],
+      items: [
+        {
+          _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'user',
+          password: 'hidden',
+          __v: 0,
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+        },
+      ],
       meta: {
         total: 1,
         page: 2,
@@ -71,8 +111,41 @@ describe('userService', () => {
 
     expect(userRepository.findUsers).toHaveBeenCalledWith(query);
     expect(result).toEqual({
-      users: repoResult.items,
+      users: [
+        {
+          id: '64b7f5b9f1d2c3a4b5c6d7e8',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'user',
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+        },
+      ],
       meta: repoResult.meta,
+    });
+  });
+
+  it('getUserById returns normalized user DTO', async () => {
+    userRepository.findUserById.mockResolvedValue({
+      _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'user',
+      password: 'hidden',
+      __v: 0,
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+    });
+
+    const result = await userService.getUserById('64b7f5b9f1d2c3a4b5c6d7e8');
+
+    expect(result).toEqual({
+      id: '64b7f5b9f1d2c3a4b5c6d7e8',
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'user',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-02T00:00:00.000Z'),
     });
   });
 

@@ -11,7 +11,8 @@ const updateMeBodySchema = Joi.object({
   email: Joi.string().email(),
 })
   .or('name', 'email')
-  .required();
+  .required()
+  .unknown(false);
 
 const listUsersQuerySchema = Joi.object({
   page: Joi.number().integer().min(1),

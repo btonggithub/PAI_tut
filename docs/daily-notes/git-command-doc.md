@@ -4,16 +4,14 @@
 
 npm run dev
 
-#### ตัวอย่าง add notes
+#### Git add all file and commit 
 git checkout -b docs/add-notes
 
 git add .
 
 git commit -m "add notes"
 
-
-## Workflow
-
+## Workflow Git
 ### เริ่มวัน:
 git checkout main
 git pull
@@ -23,10 +21,12 @@ git checkout -b ...feature/routes/ที่ต้องการ...
 git add .
 git commit ...message....
 
-## เสร็จจริง:
 git checkout main
 git merge ...feature/routes/ที่ต้องการ...
 
 ##### ================================ #####
 
-git checkout -b feature/....NewBranch....
+## Create New file
+
+touch docs/prompts/current-task.md
+

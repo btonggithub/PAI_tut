@@ -1,5 +1,6 @@
 const AppError = require('../../utils/AppError');
 const userRepository = require('../../repositories/user/userRepository');
+const { toSafeUser, toSafeUsers } = require('./userMapper');
 
 const getMe = async (userId) => {
   const user = await userRepository.findUserProfile(userId);
@@ -8,7 +9,7 @@ const getMe = async (userId) => {
     throw new AppError('User not found', 404);
   }
 
-  return user;
+  return toSafeUser(user);
 };
 
 const updateMe = async (userId, payload) => {
@@ -41,14 +42,14 @@ const updateMe = async (userId, payload) => {
     throw new AppError('User not found', 404);
   }
 
-  return updatedUser;
+  return toSafeUser(updatedUser);
 };
 
 const listUsers = async (query = {}) => {
   const result = await userRepository.findUsers(query);
 
   return {
-    users: result.items,
+    users: toSafeUsers(result.items),
     meta: result.meta,
   };
 };
@@ -60,7 +61,7 @@ const getUserById = async (userId) => {
     throw new AppError('User not found', 404);
   }
 
-  return user;
+  return toSafeUser(user);
 };
 
 module.exports = {
