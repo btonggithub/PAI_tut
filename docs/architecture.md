@@ -191,41 +191,95 @@ Rules:
 
 ---
 
+### Authorization Layer
+
+Responsible for permission evaluation and ownership checks.
+
+Contains:
+middleware/auth/policies/
+services/policies/
+
+Responsibilities:
+- Resource authorization
+- Ownership validation
+- Permission evaluation
+- Action authorization
+
+Examples:
+canViewUser()
+canUpdateUser()
+canDeleteUser()
+canManageUsers()
+
+Rules:
+- No HTTP response creation
+- No database write operations
+- No business workflow logic
+- No controller responsibilities
+
+---
+
 ## Authorization Flow
 
 Authentication verifies identity.
-
 Authorization verifies permissions.
 
 Example flow:
 
-Request
-↓
-Authentication Middleware
-↓
-Authorization Middleware
-↓
+Route
+ ↓
+Authentication
+ ↓
+RBAC
+ ↓
+Policy Authorization
+ ↓
 Controller
-↓
+ ↓
 Service
-↓
+ ↓
 Repository
+ ↓
+Database
 
 ---
 
-## Current RBAC Direction
+## Current Authorization Direction
 
-Current RBAC foundation goals:
-- Role-aware protected routes
-- Reusable authorization middleware
-- Separation between authentication and authorization
-- Policy-ready architecture preparation
+Current authorization foundation:
+
+### Authentication
+Implemented:
+- JWT-based authentication
+- Protected route middleware
+- Current user context resolution
+- Session-independent access control
+
+### Role-Based Access Control (RBAC)
+Implemented:
+- User roles (user, admin)
+- Reusable authorize middleware
+- Route-level role enforcement
+- Authentication and authorization separation
+
+### Policy-Based Authorization Goals
+Phase 16 objectives:
+- Centralized policy definitions
+- Resource-aware authorization
+- Ownership-based access decisions
+- Reusable policy evaluation layer
+- Consistent authorization rules across modules
 
 Future direction:
+
+Authentication
+↓
 RBAC
 ↓
-Policy-based authorization
+Policy-Based Authorization
 ↓
-Resource ownership enforcement
+Resource Ownership Rules
 ↓
-Fine-grained permissions
+Fine-Grained Permissions
+↓
+Domain-Specific Authorization Policies

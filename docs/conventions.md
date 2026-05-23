@@ -110,3 +110,34 @@ Examples:
 Rules:
 - Avoid hardcoding repeated payloads inside tests
 - Keep fixtures deterministic
+
+---
+
+## Policy Naming Convention
+
+Policy functions must use:
+  can<Action><Resource>()
+
+Examples:
+  canViewUser()
+  canUpdateUser()
+  canDeleteUser()
+  canManageUsers()
+
+Avoid:
+  checkUser()
+  validateUser()
+  verifyAccess()
+
+Reason:
+Policy intent must be explicit.
+
+### Policy File Convention
+
+One resource per file.
+
+Example:
+policies/
+ ├── userPolicy.js
+ ├── orderPolicy.js
+ └── paymentPolicy.js

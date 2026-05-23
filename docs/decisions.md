@@ -47,3 +47,39 @@ Reason:
 - Improve reusable test composition
 - Prevent duplicated mock data
 - Keep test suites maintainable as project grows
+
+---
+
+## Decision 016 — Authorization Separate From RBAC
+
+Status:
+Accepted
+
+Context:
+Role checks alone become insufficient as application complexity grows.
+
+Examples:
+- User can edit own profile
+- Admin can edit any profile
+- User cannot delete another user
+- Manager can access team resources only
+
+Decision:
+Authorization policies will be implemented separately from RBAC.
+
+RBAC determines:
+Who are you?
+
+Policy determines:
+Can you perform this action?
+
+Consequences:
+
+Positive:
+- Better scalability
+- Cleaner permissions
+- Reusable authorization logic
+
+Negative:
+- Additional abstraction layer
+- More policy tests required

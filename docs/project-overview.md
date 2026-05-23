@@ -39,34 +39,53 @@ The project currently implements:
 ### Infrastructure
 - Environment configuration validation
 - MongoDB connection management
-- Security middleware foundation
-- Centralized error handling
 
-### Application Architecture
+### Application Foundation
+- Express application bootstrap
 - Modular route registration
-- Controller-based architecture
-- Service layer architecture
-- Repository layer abstraction
-- Scalable repository foundation
-- Reusable pagination/query utilities
+- API versioning support
 
-### Authentication & Security
-- JWT authentication
-- Password hashing
-- Protected route middleware
-- Standardized auth flow
-- Production-ready error response contract
+### Error Handling
+- Centralized error handling
+- AppError operational error pattern
+- Standardized error response contract
+
+### Security Foundation
+- Helmet integration
+- CORS integration
+- Request size limiting
+- JWT authentication middleware
+
+### Data Access Layer
+- Repository pattern
+- BaseRepository abstraction
+- Pagination utilities
+- Query filtering utilities
+
+### Testing Foundation
+- Jest test infrastructure
+- Supertest integration testing
+- Unit testing conventions
 
 ### User Management
 - User module foundation
 - User profile management
 - Pagination-ready user listing
+- User profile update workflow
+- Safe user DTO mapping
 
-### Testing
-- Jest testing foundation
-- Integration testing structure
-- Unit testing structure
-- Reusable testing helpers/fixtures
+### Authorization Foundation
+- Role-Based Access Control (RBAC)
+- Admin role support
+- Authorization middleware
+- Route-level authorization enforcement
+
+### Authorization Policy System
+- Policy-based authorization foundation
+- Centralized permission evaluation
+- Role-to-permission mapping
+- Permission middleware abstraction
+- Resource access policy preparation
 
 ---
 
@@ -112,7 +131,7 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 15 — Role-Based Access Control (RBAC)
+Phase 16 — Authorization Policy System
 
 Current goals:
 - Introduce role-based authorization
@@ -125,14 +144,13 @@ Current goals:
 
 ## Planned Next Phase
 
-Authorization Policy System
+Refresh Token Session Management
 
 Future goals:
-- Resource ownership authorization
-- Policy-based access control
-- Permission abstraction
-- Fine-grained authorization flow
-- Resource-level access management
+- Long-lived authenticated sessions
+- Token rotation support
+- Session revocation
+- Device-level authentication management
 
 ---
 

@@ -44,23 +44,36 @@
 
 ## CURRENT PHASE
 
-Phase 15 — Role-Based Access Control (RBAC)
+Phase 16 — Authorization Policy System
 
 Goals:
-- Add role field support
-- Introduce authorization middleware
-- Enforce role-based protected routes
-- Separate authentication vs authorization
-- Prepare policy-based authorization foundation
+- Policy authorization layer
+- Ownership-based permissions
+- Resource authorization abstraction
+- Reusable policy functions
+- Separation of RBAC and authorization
+
+Success Criteria:
+1. Policy layer implemented
+2. Ownership checks centralized
+3. Controllers remain authorization-free
+4. Policies reusable across modules
+5. RBAC preserved
+6. Tests cover authorization scenarios
 
 ---
 
 ## NEXT PHASE
 
-Phase 16 — Authorization Policy System
+Phase 17 — Refresh Token & Session Management
 
 Planned goals:
-- Resource ownership policies
-- Permission abstraction
-- Policy-based authorization
-- Fine-grained access rules
+- Refresh token support
+- Session lifecycle management
+- Token rotation strategy
+- Secure logout flow
+- Multi-device session preparation
+
+---
+
+

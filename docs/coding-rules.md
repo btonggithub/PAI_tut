@@ -75,3 +75,32 @@ Never trust:
 - frontend authorization claims
 
 Authorization must be server-controlled.
+
+---
+
+## Authorization Rules
+
+Authorization must not be implemented inside controllers.
+
+Bad:
+    if (req.user.role !== 'admin') {
+    throw new AppError('Forbidden');
+    }
+
+Good:
+    authorize('admin')
+    canManageUsers()
+
+### Policy functions must be pure.
+
+Good:
+    const canUpdateUser = (actor, targetUserId) => {
+    return actor.role === 'admin' || actor.id === targetUserId;
+    };
+
+Avoid:
+    const canUpdateUser = async (...) => {
+    // database queries
+    };
+
+---
