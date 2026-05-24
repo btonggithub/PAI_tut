@@ -118,6 +118,9 @@ Refresh tokens:
 - Must be rotatable
 - Must support revocation
 - Must be linked to session records
+- Must never be stored as plain text
+- Must be stored as a hash in session records
+- Must be compared using a secure hash comparison flow
 
 Avoid:
     generatePermanentToken()

@@ -25,11 +25,14 @@ src/services/session/
 Session must store:
 
 - userId
-- refreshToken
+- refreshTokenHash
 - expiresAt
 - revokedAt
 - createdAt
 - updatedAt
+
+Refresh tokens must never be stored as plain text.
+Only a hashed refresh token may be persisted.
 
 ### Refresh Endpoint
 

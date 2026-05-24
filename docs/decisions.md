@@ -211,3 +211,25 @@ Old refresh token becomes invalid.
 Benefits:
 - Reduced replay attack risk
 - Better session security
+
+### Refresh Token Storage
+
+Status:
+Accepted
+
+Decision:
+Refresh tokens must not be stored as plain text.
+
+Session records store only:
+- refreshTokenHash
+
+During refresh:
+- The submitted refresh token is verified
+- The matching active session is loaded
+- The submitted token is hashed and compared with refreshTokenHash
+- A new refresh token is generated
+- The session refreshTokenHash is replaced
+
+Reason:
+If the database is leaked, plain refresh tokens would allow session takeover.
+Hashing refresh tokens reduces the impact of session storage compromise.

@@ -48,9 +48,12 @@
 ### Security
 
 - Access token short-lived
-- Refresh token stored securely
+- Refresh token is never stored as plain text
+- Refresh token hash is stored in session records
+- Refresh token hash comparison is used during refresh
 - Session ownership verified
 - Sensitive data not exposed in JWT payload
+
 
 ### Testing
 

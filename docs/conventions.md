@@ -182,9 +182,13 @@ Refresh order:
 
 Refresh Request
 ↓
-Validate Session
+Verify Refresh Token Signature
 ↓
-Validate Refresh Token
+Extract Session Identifier
+↓
+Validate Active Session
+↓
+Compare Refresh Token Hash
 ↓
 Rotate Tokens
 ↓
