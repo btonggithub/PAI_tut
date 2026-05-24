@@ -88,6 +88,12 @@ The project currently implements:
 - Permission middleware abstraction
 - Resource access policy preparation
 
+### Authentication
+- JWT access token authentication
+- Protected route middleware
+- Authenticated user context
+- Refresh token architecture preparation
+
 ### Permission Foundation
 - Permission-based authorization preparation
 - Role-to-permission mapping preparation
@@ -137,29 +143,25 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 18 — Permission System
+Phase 17 — Refresh Token & Session Management
 
 Current goals:
-- Permission abstraction
-- Role-to-permission mapping
-- Fine-grained authorization preparation
-- Policy and permission integration
+- Refresh token lifecycle
+- Session persistence
+- Token rotation foundation
+- Multi-device session preparation
 
 ---
 
 ## Planned Next Phase
 
-Refresh Token Session Management
+Permission System
 
 Future goals:
-- Long-lived authenticated sessions
-- Token rotation support
-- Session revocation
-- Session persistence
-- Device-level authentication management
-- Refresh token rotation
-- Multi-device login support
-- Secure logout flow
+- Permission abstraction
+- Role-permission mapping
+- Fine-grained authorization
+- Permission-aware policies
 
 ---
 

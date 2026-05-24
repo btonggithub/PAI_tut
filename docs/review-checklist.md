@@ -24,6 +24,43 @@
 
 ---
 
+## Session Architecture Review
+
+### Session Layer
+
+- Session model exists
+- Session repository exists
+- Session service exists
+- Session persistence separated from controllers
+
+### Refresh Token Flow
+
+- Refresh token validated
+- Session validated
+- Token rotation implemented
+- Old refresh token invalidated
+
+### Logout Flow
+
+- Session revocation implemented
+- Refresh token unusable after logout
+
+### Security
+
+- Access token short-lived
+- Refresh token stored securely
+- Session ownership verified
+- Sensitive data not exposed in JWT payload
+
+### Testing
+
+- Session tests added
+- Refresh tests added
+- Logout tests added
+- Existing tests continue passing
+
+---
+
 ## Permission Architecture Review
 
 Permission Design:

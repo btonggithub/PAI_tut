@@ -152,3 +152,62 @@ Future candidate events:
 Event infrastructure will be introduced only when
 multiple independent modules need to react to the
 same business event.
+
+--- 
+
+## Refresh Token Strategy
+
+Status:
+Accepted
+
+Context:
+Access tokens should remain short-lived.
+
+Long-lived JWT access tokens increase security risk:
+- Token theft exposure
+- Difficult revocation
+- Poor session control
+
+### Decision
+
+Use:
+- Short-lived access token
+- Long-lived refresh token
+- Persistent session storage
+
+Authentication flow:
+
+Login
+↓
+Create Session
+↓
+Issue Access Token
+↓
+Issue Refresh Token
+
+### Consequences
+
+Benefits:
+- Better security
+- Session revocation capability
+- Multi-device support
+- Login tracking capability
+
+Trade-offs:
+- Additional session storage
+- More authentication complexity
+
+### Refresh Token Rotation
+
+Status:
+Accepted
+
+Decision
+Every refresh operation generates:
+- New access token
+- New refresh token
+Old refresh token becomes invalid.
+
+Benefits:
+- Reduced replay attack risk
+- Better session security

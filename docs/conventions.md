@@ -142,7 +142,55 @@ policies/
  ├── orderPolicy.js
  └── paymentPolicy.js
 
- ---
+---
+
+## Token Naming Convention
+
+Access token:
+accessToken
+
+Refresh token:
+refreshToken
+
+Session identifier:
+sessionId
+
+### Session Naming Convention
+
+Session model:
+Session
+
+Repository:
+sessionRepository
+
+Service:
+sessionService
+
+### Authentication Flow Convention
+
+Authentication order:
+
+Login
+↓
+Create Session
+↓
+Issue Tokens
+↓
+Return Response
+
+Refresh order:
+
+Refresh Request
+↓
+Validate Session
+↓
+Validate Refresh Token
+↓
+Rotate Tokens
+↓
+Update Session
+
+---
 
 ## Permission Naming Convention
 

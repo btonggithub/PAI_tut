@@ -155,3 +155,38 @@ prompts/current-task.md
 
 
 ## Low Priority
+### จุดที่ควรแก้ใน Architecture.md
+
+ตอนนี้มี:
+    policies/
+
+แต่ยังไม่มี:
+    shared/
+
+ผมแนะนำเพิ่ม:
+src/
+ ├── shared/
+ │    ├── constants/
+ │    ├── permissions/
+ │    └── errors/
+
+### จุดที่ควรแก้ใน User Model
+
+ตอนนี้:
+    role
+
+มีแค่:
+    user
+    admin
+
+เตรียมไว้เลย:
+    role: {
+     type: String,
+     index: true
+    }
+
+email:
+    index: true
+
+สำหรับ production
+

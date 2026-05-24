@@ -23,12 +23,6 @@
 - Repository layer implemented
 - Scalable repository foundation implemented
 
-### Authentication
-- JWT authentication implemented
-- Password hashing implemented
-- Protected route middleware implemented
-- Token verification flow implemented
-
 ### User Management
 - User module implemented
 - Protected user endpoints implemented
@@ -46,32 +40,48 @@
 - Authorization policy layer implemented
 - Resource ownership policies implemented
 
+### Authentication
+- JWT access token authentication
+- Protected route middleware
+- Authenticated request context
+
 ---
 
 ## CURRENT PHASE
 
-Phase 18 — Permission System
+Phase 17 — Refresh Token & Session Management
 
 Goals:
-- Permission abstraction
-- Permission constants
-- Role-to-permission mapping
-- Permission evaluation utilities
-- Policy integration with permissions
+- Session model
+- Session repository
+- Session service
+- Refresh token endpoint
+- Token rotation
+- Session revocation
+
+## Success Criteria
+
+- Refresh tokens implemented
+- Session persistence implemented
+- Token rotation implemented
+- Logout invalidates session
+- Multi-session support prepared
+- Existing authentication remains functional
 
 ---
 
 ## NEXT PHASE
 
-Phase 19 — Refresh Token & Session Management
+Phase 18 — Permission System
 
 Planned goals:
-- Refresh token support
-- Session persistence
-- Token rotation
-- Logout session invalidation
-- Multi-device session handling
+- Permission abstraction
+- Permission constants
+- Role-permission mapping
+- Fine-grained authorization
 
 ---
+
+
 
 

@@ -256,15 +256,11 @@ Example flow:
 
 Request
  ↓
-Route
+Access Token Verification
  ↓
-Authentication
+Authenticated User
  ↓
-RBAC Middleware
- ↓
-Permission Evaluation
- ↓
-Policy Evaluation
+Controller
  ↓
 Service
  ↓
@@ -315,3 +311,64 @@ Resource authorization
 Fine-grained access control
 ↓
 Domain-Specific Authorization Policies
+
+---
+
+## Session Layer
+
+Responsible for session lifecycle management.
+
+Contains:
+    sessions/
+
+Rules:
+- No HTTP logic
+- No controller logic
+- No response formatting
+- Session persistence only
+
+Responsibilities:
+- Refresh token storage
+- Session lookup
+- Session revocation
+- Session expiration tracking
+
+Refresh Token Flow:
+
+Login
+↓
+Access Token
++
+Refresh Token
+↓
+Client
+↓
+Access Token Expired
+↓
+Refresh Endpoint
+↓
+Validate Session
+↓
+Issue New Access Token
+↓
+Rotate Refresh Token
+
+### Current Authentication Direction
+
+Current authentication goals:
+- Stateless access token authentication
+- Secure refresh token flow
+- Session invalidation support
+- Multi-device login preparation
+
+Future direction:
+
+Access Token
+↓
+Refresh Token
+↓
+Session Store
+↓
+Device Sessions
+↓
+Advanced Security Controls

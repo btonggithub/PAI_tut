@@ -105,6 +105,41 @@ Avoid:
 
 ---
 
+## Authentication Rules
+
+Access tokens must:
+- Remain short-lived
+- Never be persisted in database
+- Never contain sensitive information
+
+## Refresh Token Rules
+
+Refresh tokens:
+- Must be rotatable
+- Must support revocation
+- Must be linked to session records
+
+Avoid:
+    generatePermanentToken()
+
+or:
+    expiresIn: '365d'
+   
+## Session Rules
+
+Session management belongs to:
+- sessionService
+- sessionRepository
+
+Must not exist inside:
+- controllers
+- middleware
+- routes
+
+Controllers only orchestrate requests.
+
+---
+
 ## Permission Rules
 
 Permissions must not be hardcoded inside:

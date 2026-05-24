@@ -2,80 +2,84 @@
 
 ## Phase
 
-Phase 18 — Permission System
+Phase 17 — Refresh Token & Session Management
 
 ## Objective
 
-Introduce permission-based authorization on top of the existing RBAC and Policy architecture.
+Introduce refresh-token-based authentication and persistent session management while preserving existing JWT access token authentication.
 
 ## Requirements
 
-### Permission Foundation
+### Session Module
 
 Create:
 
-src/permissions/
+src/models/sessionModel.js
 
-Examples:
+src/repositories/session/
 
-- userPermissions.js
-- rolePermissions.js
+src/services/session/
 
-Permission format:
+### Session Persistence
 
-resource.action
+Session must store:
 
-Examples:
+- userId
+- refreshToken
+- expiresAt
+- revokedAt
+- createdAt
+- updatedAt
 
-- user.read
-- user.update
-- user.delete
-- user.manage
+### Refresh Endpoint
 
-### Permission Evaluation
+Implement:
 
-Create reusable utilities:
+POST /api/v1/auth/refresh
 
-- hasPermission()
-- hasAnyPermission()
-- hasAllPermissions()
+Responsibilities:
 
-Rules:
+- Validate refresh token
+- Validate active session
+- Rotate refresh token
+- Issue new access token
 
-- Pure functions only
-- No HTTP logic
-- No database access
+### Logout Endpoint
 
-### Role Mapping
+Implement:
 
-Centralize role-permission mapping.
+POST /api/v1/auth/logout
 
-Example:
+Responsibilities:
 
-admin
-→ all user permissions
+- Revoke session
+- Invalidate refresh token
 
-user
-→ self permissions only
+### Security Rules
 
-### Policy Integration
+Access token:
+- short-lived
 
-Policies should evaluate permissions instead of direct role names where appropriate.
+Refresh token:
+- long-lived
+- rotatable
+- revocable
 
 ### Testing
 
 Add:
 
-- permission utility tests
-- role mapping tests
-- policy integration tests
+- session service tests
+- refresh endpoint tests
+- logout endpoint tests
 
 ## Success Criteria
 
-1. Permission layer implemented
-2. Role-permission mapping implemented
-3. Authorization reusable across modules
-4. Policies remain pure
-5. Existing RBAC preserved
-6. Tests added
-7. Existing tests continue passing
+1. Session layer implemented
+2. Refresh token endpoint implemented
+3. Logout endpoint implemented
+4. Token rotation implemented
+5. Session revocation implemented
+6. Existing authentication preserved
+7. Tests added
+8. Existing tests continue passing
