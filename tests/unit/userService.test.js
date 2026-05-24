@@ -10,6 +10,16 @@ const AppError = require('../../src/utils/AppError');
 const userService = require('../../src/services/user/userService');
 const userRepository = require('../../src/repositories/user/userRepository');
 
+const userActor = {
+  id: 'u1',
+  role: 'user',
+};
+
+const adminActor = {
+  id: 'admin-id',
+  role: 'admin',
+};
+
 describe('userService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -42,7 +52,7 @@ describe('userService', () => {
   });
 
   it('updateMe throws AppError when no updatable fields are provided', async () => {
-    await expect(userService.updateMe('u1', {})).rejects.toMatchObject({
+    await expect(userService.updateMe('u1', {}, userActor)).rejects.toMatchObject({
       message: 'No updatable fields provided',
       statusCode: 400,
     });
@@ -60,11 +70,15 @@ describe('userService', () => {
     userRepository.findUserByEmailExcludingId.mockResolvedValue(null);
     userRepository.updateUserProfile.mockResolvedValue(updated);
 
-    const result = await userService.updateMe(updated._id, {
-      email: 'NEXT@EXAMPLE.COM',
-      name: 'Next Name',
-      ignored: 'field',
-    });
+    const result = await userService.updateMe(
+      updated._id,
+      {
+        email: 'NEXT@EXAMPLE.COM',
+        name: 'Next Name',
+        ignored: 'field',
+      },
+      adminActor
+    );
 
     expect(userRepository.findUserByEmailExcludingId).toHaveBeenCalledWith('NEXT@EXAMPLE.COM', updated._id);
     expect(userRepository.updateUserProfile).toHaveBeenCalledWith(updated._id, {
@@ -107,7 +121,7 @@ describe('userService', () => {
     };
     userRepository.findUsers.mockResolvedValue(repoResult);
 
-    const result = await userService.listUsers(query);
+    const result = await userService.listUsers(query, adminActor);
 
     expect(userRepository.findUsers).toHaveBeenCalledWith(query);
     expect(result).toEqual({
@@ -137,7 +151,7 @@ describe('userService', () => {
       updatedAt: new Date('2026-01-02T00:00:00.000Z'),
     });
 
-    const result = await userService.getUserById('64b7f5b9f1d2c3a4b5c6d7e8');
+    const result = await userService.getUserById('64b7f5b9f1d2c3a4b5c6d7e8', adminActor);
 
     expect(result).toEqual({
       id: '64b7f5b9f1d2c3a4b5c6d7e8',
@@ -152,8 +166,8 @@ describe('userService', () => {
   it('getUserById throws AppError when missing', async () => {
     userRepository.findUserById.mockResolvedValue(null);
 
-    await expect(userService.getUserById('missing-id')).rejects.toBeInstanceOf(AppError);
-    await expect(userService.getUserById('missing-id')).rejects.toMatchObject({
+    await expect(userService.getUserById('missing-id', adminActor)).rejects.toBeInstanceOf(AppError);
+    await expect(userService.getUserById('missing-id', adminActor)).rejects.toMatchObject({
       message: 'User not found',
       statusCode: 404,
     });
@@ -161,16 +175,13 @@ describe('userService', () => {
 
   describe('Authorization Policy Integration', () => {
     it('listUsers throws Forbidden when non-admin user tries to list users', async () => {
-      const nonAdminActor = { id: 'user-123', role: 'user' };
-
-      await expect(userService.listUsers({}, nonAdminActor)).rejects.toMatchObject({
+      await expect(userService.listUsers({}, userActor)).rejects.toMatchObject({
         message: 'Forbidden',
         statusCode: 403,
       });
     });
 
     it('listUsers succeeds when admin lists users', async () => {
-      const adminActor = { id: 'admin-1', role: 'admin' };
       const repoResult = {
         items: [
           {
@@ -193,8 +204,6 @@ describe('userService', () => {
     });
 
     it('getUserById throws Forbidden when user tries to view another user', async () => {
-      const userActor = { id: 'user-123', role: 'user' };
-
       await expect(userService.getUserById('user-456', userActor)).rejects.toMatchObject({
         message: 'Forbidden',
         statusCode: 403,
@@ -202,9 +211,8 @@ describe('userService', () => {
     });
 
     it('getUserById succeeds when user views own profile', async () => {
-      const userActor = { id: 'user-123', role: 'user' };
       userRepository.findUserById.mockResolvedValue({
-        _id: 'user-123',
+        _id: 'u1',
         name: 'John Doe',
         email: 'john@example.com',
         role: 'user',
@@ -212,13 +220,12 @@ describe('userService', () => {
         updatedAt: new Date('2026-01-02T00:00:00.000Z'),
       });
 
-      const result = await userService.getUserById('user-123', userActor);
+      const result = await userService.getUserById('u1', userActor);
 
-      expect(result.id).toBe('user-123');
+      expect(result.id).toBe('u1');
     });
 
     it('getUserById succeeds when admin views any user', async () => {
-      const adminActor = { id: 'admin-1', role: 'admin' };
       userRepository.findUserById.mockResolvedValue({
         _id: 'user-456',
         name: 'Another User',
@@ -234,8 +241,6 @@ describe('userService', () => {
     });
 
     it('updateMe throws Forbidden when user tries to update another user', async () => {
-      const userActor = { id: 'user-123', role: 'user' };
-
       await expect(userService.updateMe('user-456', { name: 'New Name' }, userActor)).rejects.toMatchObject({
         message: 'Forbidden',
         statusCode: 403,
@@ -243,9 +248,8 @@ describe('userService', () => {
     });
 
     it('updateMe succeeds when user updates own profile with policy check', async () => {
-      const userActor = { id: 'user-123', role: 'user' };
       const updated = {
-        _id: 'user-123',
+        _id: 'u1',
         name: 'Updated Name',
         email: 'user@example.com',
         role: 'user',
@@ -255,9 +259,9 @@ describe('userService', () => {
       userRepository.findUserByEmailExcludingId.mockResolvedValue(null);
       userRepository.updateUserProfile.mockResolvedValue(updated);
 
-      const result = await userService.updateMe('user-123', { name: 'Updated Name' }, userActor);
+      const result = await userService.updateMe('u1', { name: 'Updated Name' }, userActor);
 
-      expect(result.id).toBe('user-123');
+      expect(result.id).toBe('u1');
       expect(result.name).toBe('Updated Name');
     });
   });
