@@ -1,8 +1,48 @@
 const AppError = require('../../utils/AppError');
 const { hashPassword, comparePassword } = require('../../utils/password');
-const { signToken } = require('../../utils/jwt');
+const {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} = require('../../utils/jwt');
 const authRepository = require('../../repositories/auth/authRepository');
 const { toSafeUser } = require('../user/userMapper');
+const sessionService = require('../session/sessionService');
+
+const toRefreshExpiryDate = (payload) => {
+  return new Date(payload.exp * 1000);
+};
+
+const issueSessionTokens = async (userId) => {
+  const bootstrapExpiry = new Date(Date.now() + 60 * 1000);
+
+  const session = await sessionService.createSession({
+    userId,
+    refreshTokenHash: sessionService.hashRefreshToken(`${userId}:${Date.now()}`),
+    expiresAt: bootstrapExpiry,
+  });
+
+  const refreshToken = signRefreshToken({
+    sub: userId,
+    sid: session.id,
+    type: 'refresh',
+  });
+  const refreshPayload = verifyRefreshToken(refreshToken);
+
+  await sessionService.rotateSessionRefreshToken({
+    sessionId: session.id,
+    userId,
+    refreshToken,
+    expiresAt: toRefreshExpiryDate(refreshPayload),
+  });
+
+  const token = signAccessToken({ sub: userId });
+
+  return {
+    token,
+    refreshToken,
+  };
+};
 
 const register = async ({ name, email, password }) => {
   const existingUser = await authRepository.findUserByEmail(email);
@@ -18,11 +58,11 @@ const register = async ({ name, email, password }) => {
     password: hashedPassword,
   });
 
-  const token = signToken({ sub: user.id });
+  const tokens = await issueSessionTokens(user.id);
 
   return {
     user: toSafeUser(user),
-    token,
+    ...tokens,
   };
 };
 
@@ -39,11 +79,81 @@ const login = async ({ email, password }) => {
     throw new AppError('Invalid email or password', 401);
   }
 
-  const token = signToken({ sub: user.id });
+  const tokens = await issueSessionTokens(user.id);
 
   return {
     user: toSafeUser(user),
+    ...tokens,
+  };
+};
+
+const refresh = async ({ refreshToken }) => {
+  let payload;
+
+  try {
+    payload = verifyRefreshToken(refreshToken);
+  } catch (error) {
+    throw new AppError('Invalid or expired refresh token', 401);
+  }
+
+  if (!payload || !payload.sub || !payload.sid) {
+    throw new AppError('Invalid refresh token payload', 401);
+  }
+
+  await sessionService.validateRefreshSession({
+    sessionId: payload.sid,
+    userId: payload.sub,
+    refreshToken,
+  });
+
+  const nextRefreshToken = signRefreshToken({
+    sub: payload.sub,
+    sid: payload.sid,
+    type: 'refresh',
+  });
+  const nextRefreshPayload = verifyRefreshToken(nextRefreshToken);
+
+  await sessionService.rotateSessionRefreshToken({
+    sessionId: payload.sid,
+    userId: payload.sub,
+    refreshToken: nextRefreshToken,
+    expiresAt: toRefreshExpiryDate(nextRefreshPayload),
+  });
+
+  const token = signAccessToken({ sub: payload.sub });
+
+  return {
     token,
+    refreshToken: nextRefreshToken,
+  };
+};
+
+const logout = async ({ refreshToken }) => {
+  let payload;
+
+  try {
+    payload = verifyRefreshToken(refreshToken);
+  } catch (error) {
+    throw new AppError('Invalid or expired refresh token', 401);
+  }
+
+  if (!payload || !payload.sub || !payload.sid) {
+    throw new AppError('Invalid refresh token payload', 401);
+  }
+
+  await sessionService.validateRefreshSession({
+    sessionId: payload.sid,
+    userId: payload.sub,
+    refreshToken,
+  });
+
+  await sessionService.revokeSession({
+    sessionId: payload.sid,
+    userId: payload.sub,
+  });
+
+  return {
+    loggedOut: true,
   };
 };
 
@@ -60,5 +170,7 @@ const getAuthUser = async (userId) => {
 module.exports = {
   register,
   login,
+  refresh,
+  logout,
   getAuthUser,
 };

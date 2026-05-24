@@ -11,7 +11,17 @@ const loginBodySchema = Joi.object({
   password: Joi.string().min(8).required(),
 }).required();
 
+const refreshBodySchema = Joi.object({
+  refreshToken: Joi.string().trim().required(),
+}).required();
+
+const logoutBodySchema = Joi.object({
+  refreshToken: Joi.string().trim().required(),
+}).required();
+
 module.exports = {
   registerBodySchema,
   loginBodySchema,
+  refreshBodySchema,
+  logoutBodySchema,
 };

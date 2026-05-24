@@ -23,4 +23,24 @@ describe('Auth API integration', () => {
     expect(response.body).toHaveProperty('error');
     expect(response.body.error).toEqual({ status: 400 });
   });
+
+  it('POST /api/v1/auth/refresh validates request and returns standardized error shape', async () => {
+    const response = await request(app).post('/api/v1/auth/refresh').send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body).toHaveProperty('message');
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toEqual({ status: 400 });
+  });
+
+  it('POST /api/v1/auth/logout validates request and returns standardized error shape', async () => {
+    const response = await request(app).post('/api/v1/auth/logout').send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body).toHaveProperty('message');
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toEqual({ status: 400 });
+  });
 });

@@ -4,28 +4,50 @@ jest.mock('../../src/repositories/auth/authRepository', () => ({
   createUser: jest.fn(),
 }));
 
+jest.mock('../../src/services/session/sessionService', () => ({
+  hashRefreshToken: jest.fn(),
+  createSession: jest.fn(),
+  rotateSessionRefreshToken: jest.fn(),
+  validateRefreshSession: jest.fn(),
+  revokeSession: jest.fn(),
+}));
+
 jest.mock('../../src/utils/password', () => ({
   hashPassword: jest.fn(),
   comparePassword: jest.fn(),
 }));
 
 jest.mock('../../src/utils/jwt', () => ({
-  signToken: jest.fn(),
+  signAccessToken: jest.fn(),
+  signRefreshToken: jest.fn(),
+  verifyRefreshToken: jest.fn(),
 }));
 
 const AppError = require('../../src/utils/AppError');
 const authService = require('../../src/services/auth/authService');
 const authRepository = require('../../src/repositories/auth/authRepository');
+const sessionService = require('../../src/services/session/sessionService');
 const { hashPassword, comparePassword } = require('../../src/utils/password');
-const { signToken } = require('../../src/utils/jwt');
+const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../src/utils/jwt');
 
 describe('authService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    sessionService.hashRefreshToken.mockReturnValue('bootstrap-hash');
+    sessionService.createSession.mockResolvedValue({ id: 'session-1' });
+    sessionService.rotateSessionRefreshToken.mockResolvedValue({ id: 'session-1' });
+    signRefreshToken.mockReturnValue('refresh-token');
+    verifyRefreshToken.mockReturnValue({
+      sub: 'u1',
+      sid: 'session-1',
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
+    });
+    signAccessToken.mockReturnValue('access-token');
   });
 
   describe('register', () => {
-    it('registers user and returns safe user plus token', async () => {
+    it('registers user and returns safe user plus tokens', async () => {
       authRepository.findUserByEmail.mockResolvedValue(null);
       hashPassword.mockResolvedValue('hashed-password');
       authRepository.createUser.mockResolvedValue({
@@ -37,7 +59,6 @@ describe('authService', () => {
         createdAt: new Date('2026-01-01T00:00:00.000Z'),
         updatedAt: new Date('2026-01-01T00:00:00.000Z'),
       });
-      signToken.mockReturnValue('jwt-token');
 
       const result = await authService.register({
         name: 'John',
@@ -52,7 +73,11 @@ describe('authService', () => {
         email: 'john@example.com',
         password: 'hashed-password',
       });
-      expect(signToken).toHaveBeenCalledWith({ sub: 'u1' });
+      expect(sessionService.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'u1' })
+      );
+      expect(signRefreshToken).toHaveBeenCalledWith({ sub: 'u1', sid: 'session-1', type: 'refresh' });
+      expect(signAccessToken).toHaveBeenCalledWith({ sub: 'u1' });
       expect(result).toEqual({
         user: {
           id: 'u1',
@@ -62,7 +87,8 @@ describe('authService', () => {
           createdAt: new Date('2026-01-01T00:00:00.000Z'),
           updatedAt: new Date('2026-01-01T00:00:00.000Z'),
         },
-        token: 'jwt-token',
+        token: 'access-token',
+        refreshToken: 'refresh-token',
       });
     });
 
@@ -84,7 +110,7 @@ describe('authService', () => {
   });
 
   describe('login', () => {
-    it('returns safe user and token on valid credentials', async () => {
+    it('returns safe user and tokens on valid credentials', async () => {
       authRepository.findUserByEmail.mockResolvedValue({
         id: 'u1',
         name: 'John',
@@ -95,7 +121,6 @@ describe('authService', () => {
         updatedAt: new Date('2026-01-01T00:00:00.000Z'),
       });
       comparePassword.mockResolvedValue(true);
-      signToken.mockReturnValue('jwt-token');
 
       const result = await authService.login({
         email: 'john@example.com',
@@ -103,6 +128,9 @@ describe('authService', () => {
       });
 
       expect(comparePassword).toHaveBeenCalledWith('password123', 'hashed-password');
+      expect(sessionService.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: 'u1' })
+      );
       expect(result).toEqual({
         user: {
           id: 'u1',
@@ -112,7 +140,8 @@ describe('authService', () => {
           createdAt: new Date('2026-01-01T00:00:00.000Z'),
           updatedAt: new Date('2026-01-01T00:00:00.000Z'),
         },
-        token: 'jwt-token',
+        token: 'access-token',
+        refreshToken: 'refresh-token',
       });
     });
 
@@ -127,6 +156,82 @@ describe('authService', () => {
         authService.login({ email: 'john@example.com', password: 'wrongpass' })
       ).rejects.toMatchObject({
         message: 'Invalid email or password',
+        statusCode: 401,
+      });
+    });
+  });
+
+  describe('refresh', () => {
+    it('rotates refresh token and returns new token pair', async () => {
+      verifyRefreshToken.mockReturnValue({
+        sub: 'u1',
+        sid: 'session-1',
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      });
+      signRefreshToken.mockReturnValue('next-refresh-token');
+      signAccessToken.mockReturnValue('next-access-token');
+
+      const result = await authService.refresh({ refreshToken: 'old-refresh-token' });
+
+      expect(sessionService.validateRefreshSession).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        userId: 'u1',
+        refreshToken: 'old-refresh-token',
+      });
+      expect(sessionService.rotateSessionRefreshToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: 'session-1',
+          userId: 'u1',
+          refreshToken: 'next-refresh-token',
+        })
+      );
+      expect(result).toEqual({
+        token: 'next-access-token',
+        refreshToken: 'next-refresh-token',
+      });
+    });
+
+    it('throws AppError when refresh token signature is invalid', async () => {
+      verifyRefreshToken.mockImplementation(() => {
+        throw new Error('bad token');
+      });
+
+      await expect(authService.refresh({ refreshToken: 'bad-token' })).rejects.toMatchObject({
+        message: 'Invalid or expired refresh token',
+        statusCode: 401,
+      });
+    });
+  });
+
+  describe('logout', () => {
+    it('revokes session for valid refresh token', async () => {
+      verifyRefreshToken.mockReturnValue({
+        sub: 'u1',
+        sid: 'session-1',
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      });
+
+      const result = await authService.logout({ refreshToken: 'valid-refresh-token' });
+
+      expect(sessionService.validateRefreshSession).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        userId: 'u1',
+        refreshToken: 'valid-refresh-token',
+      });
+      expect(sessionService.revokeSession).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        userId: 'u1',
+      });
+      expect(result).toEqual({ loggedOut: true });
+    });
+
+    it('throws AppError when refresh token signature is invalid', async () => {
+      verifyRefreshToken.mockImplementation(() => {
+        throw new Error('bad token');
+      });
+
+      await expect(authService.logout({ refreshToken: 'bad-token' })).rejects.toMatchObject({
+        message: 'Invalid or expired refresh token',
         statusCode: 401,
       });
     });

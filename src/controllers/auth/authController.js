@@ -12,6 +12,16 @@ const login = asyncHandler(async (req, res) => {
   return sendSuccess(res, data, 200, 'Login successful');
 });
 
+const refresh = asyncHandler(async (req, res) => {
+  const data = await authService.refresh(req.body);
+  return sendSuccess(res, data, 200, 'Token refreshed successfully');
+});
+
+const logout = asyncHandler(async (req, res) => {
+  const data = await authService.logout(req.body);
+  return sendSuccess(res, data, 200, 'Logout successful');
+});
+
 const me = asyncHandler(async (req, res) => {
   const user = await authService.getAuthUser(req.user.id);
   return sendSuccess(res, { user });
@@ -20,5 +30,7 @@ const me = asyncHandler(async (req, res) => {
 module.exports = {
   register,
   login,
+  refresh,
+  logout,
   me,
 };
