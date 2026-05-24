@@ -104,3 +104,35 @@ Avoid:
     };
 
 ---
+
+## Permission Rules
+
+Permissions must not be hardcoded inside:
+- controllers
+- repositories
+- route handlers
+Use permission constants.
+
+Good:
+hasPermission(actor, USER_PERMISSIONS.READ)
+
+Bad:
+actor.permissions.includes('user.read')
+
+scattered throughout codebase.
+
+### Policy Rules
+
+Policies must:
+- remain pure functions
+- return boolean only
+- contain no database access
+- contain no HTTP logic
+
+Good:
+    canViewUser(actor, targetUserId)
+
+Bad:
+    res.status(403)
+
+inside policy layer.

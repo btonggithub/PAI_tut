@@ -83,3 +83,72 @@ Positive:
 Negative:
 - Additional abstraction layer
 - More policy tests required
+
+---
+
+## Permission-Based Authorization
+
+Status:
+Accepted
+
+Context:
+Current RBAC supports only simple role checks.
+
+Future business requirements may require:
+- manager
+- support
+- editor
+- auditor
+- finance
+
+Role-only authorization becomes difficult to maintain.
+
+### Decision
+Introduce permission abstraction layer.
+Permissions become the primary authorization unit.
+Roles become collections of permissions.
+
+Example:
+    admin
+    ├── user.read
+    ├── user.update
+    ├── user.delete
+    └── user.manage
+
+    user
+    ├── user.read.self
+    └── user.update.self
+
+Policies consume permissions instead of role names.
+
+### Consequences
+
+Benefits:
+- Fine-grained authorization
+- Easier role expansion
+- Better microservice compatibility
+- Reduced role coupling
+
+Trade-offs:
+- Additional authorization layer
+- Slightly more complexity
+
+---
+
+### Future Event-Driven Architecture
+
+Current architecture uses direct service orchestration.
+
+Event-driven communication is intentionally deferred.
+
+Future candidate events:
+
+- user.registered
+- user.updated
+- user.deleted
+- role.changed
+- password.changed
+
+Event infrastructure will be introduced only when
+multiple independent modules need to react to the
+same business event.

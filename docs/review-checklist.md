@@ -21,3 +21,26 @@
 - Are policy functions pure?
 - Are permissions reusable?
 - Are authorization scenarios tested?
+
+---
+
+## Permission Architecture Review
+
+Permission Design:
+- Permissions follow resource.action convention
+- Permission constants centralized
+- No hardcoded permission strings in services
+- No hardcoded permission strings in controllers
+
+Authorization:
+- Authorization separated from authentication
+- Permission evaluation reusable
+- Policies remain pure
+- Policies do not access repositories
+- Policies do not access HTTP layer
+
+Maintainability:
+- New roles can be added without changing services
+- New permissions can be added centrally
+- Permission mapping is centralized
+- Authorization logic is reusable across modules

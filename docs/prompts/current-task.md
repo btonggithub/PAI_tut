@@ -1,61 +1,81 @@
 # Current Task
 
-Phase 16 — Authorization Policy System
+## Phase
+
+Phase 18 — Permission System
 
 ## Objective
 
-Implement a reusable authorization policy layer that supports:
-
-- Ownership checks
-- Resource permissions
-- Action permissions
-- Separation from RBAC
-
----
+Introduce permission-based authorization on top of the existing RBAC and Policy architecture.
 
 ## Requirements
 
+### Permission Foundation
+
 Create:
 
-src/
- ├── policies/
- │    └── userPolicy.js
+src/permissions/
 
-Implement:
+Examples:
 
-- canViewUser()
-- canUpdateUser()
-- canDeleteUser()
-- canManageUsers()
+- userPermissions.js
+- rolePermissions.js
+
+Permission format:
+
+resource.action
+
+Examples:
+
+- user.read
+- user.update
+- user.delete
+- user.manage
+
+### Permission Evaluation
+
+Create reusable utilities:
+
+- hasPermission()
+- hasAnyPermission()
+- hasAllPermissions()
 
 Rules:
 
 - Pure functions only
 - No HTTP logic
 - No database access
-- No response formatting
 
-Integrate policy checks into User Module.
+### Role Mapping
 
-Examples:
+Centralize role-permission mapping.
 
-Admin:
-- View any user
-- Update any user
+Example:
 
-User:
-- View own profile
-- Update own profile
-- Cannot access another user
+admin
+→ all user permissions
 
----
+user
+→ self permissions only
+
+### Policy Integration
+
+Policies should evaluate permissions instead of direct role names where appropriate.
+
+### Testing
+
+Add:
+
+- permission utility tests
+- role mapping tests
+- policy integration tests
 
 ## Success Criteria
 
-1. Policy layer exists
-2. Ownership checks implemented
-3. RBAC remains intact
-4. Controllers remain thin
-5. Policies reusable
+1. Permission layer implemented
+2. Role-permission mapping implemented
+3. Authorization reusable across modules
+4. Policies remain pure
+5. Existing RBAC preserved
 6. Tests added
 7. Existing tests continue passing

@@ -79,6 +79,7 @@ The project currently implements:
 - Admin role support
 - Authorization middleware
 - Route-level authorization enforcement
+- Resource ownership enforcement
 
 ### Authorization Policy System
 - Policy-based authorization foundation
@@ -86,6 +87,11 @@ The project currently implements:
 - Role-to-permission mapping
 - Permission middleware abstraction
 - Resource access policy preparation
+
+### Permission Foundation
+- Permission-based authorization preparation
+- Role-to-permission mapping preparation
+- Fine-grained access control preparation
 
 ---
 
@@ -131,14 +137,13 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 16 — Authorization Policy System
+Phase 18 — Permission System
 
 Current goals:
-- Introduce role-based authorization
-- Separate authentication vs authorization responsibilities
-- Add reusable authorization middleware
-- Prepare permission/policy architecture foundation
-- Enforce role-aware protected routes
+- Permission abstraction
+- Role-to-permission mapping
+- Fine-grained authorization preparation
+- Policy and permission integration
 
 ---
 
@@ -150,7 +155,11 @@ Future goals:
 - Long-lived authenticated sessions
 - Token rotation support
 - Session revocation
+- Session persistence
 - Device-level authentication management
+- Refresh token rotation
+- Multi-device login support
+- Secure logout flow
 
 ---
 

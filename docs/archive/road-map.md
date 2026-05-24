@@ -18,13 +18,21 @@
 13. testing-foundation
 14. User-Management-Module
 15. role-based-access-control (RBAC)
-16. Authorization Policy System
-17. Refresh Token Session Management
-18. Audit Logging
-19. Admin Module
-20. File Upload Foundation
-21. Email Verification
-22. Cache Layer Foundation
+17. Refresh Token & Session Management
+18. Permission System
+19. Audit Logging
+20. Admin Module
+21. File Upload Foundation
+22. Email Verification
+23. Cache Layer Foundation
+24. Event Foundation
+25. Domain Events Foundation
+26. Notification Module
+27. Microservice Extraction Preparation
+    service contracts
+    event contracts
+    domain ownership
+    bounded contexts
 
 # แต่ละ phase คืออะไร
 
@@ -109,11 +117,18 @@ revoke/logout
 
 ---
 
-## Phase 18 — Audit Logging
+## Phase 18 — Permission System
+
+branch:
+feature/18-Permission-System
+
+---
+
+## Phase 19 — Audit Logging
 
 branch:
 
-feature/18-audit-logging
+feature/19-audit-logging
 ทำหลัง auth/session/policy
 
 เพราะตอนนี้เริ่มมี:
@@ -133,11 +148,11 @@ token ไหน login
 
 ---
 
-## Phase 19 — Admin Module
+## Phase 20 — Admin Module
 
 branch:
 
-feature/19-admin-module
+feature/20-admin-module
 ทำหลัง RBAC + Policy + Audit
 
 เพราะ admin module ต้องพึ่ง:
@@ -154,11 +169,11 @@ if (role === 'admin')
 
 ---
 
-## Phase 20 — File Upload Foundation
+## Phase 21 — File Upload Foundation
 
 branch:
 
-feature/20-file-upload-foundation
+feature/21-file-upload-foundation
 ทำหลัง admin/user mature แล้ว
 
 เพราะ upload จริงจะมี:
@@ -178,11 +193,11 @@ storage strategy
 
 ---
 
-## Phase 21 — Email Verification
+## Phase 22 — Email Verification
 
 branch:
 
-feature/21-email-verification
+feature/22-email-verification
 ทำหลัง session/auth mature
 
 เพราะต้องพึ่ง:
@@ -200,11 +215,11 @@ verification expiry
 
 ---
 
-## Phase 22 — Cache Layer Foundation
+## Phase 23 — Cache Layer Foundation
 
 branch:
 
-feature/22-cache-layer-foundation
+feature/23-cache-layer-foundation
 ทำท้ายๆ
 
 เพราะ cache ควร optimize:
@@ -214,16 +229,41 @@ mature services
 mature repositories
 
 ไม่ใช่ optimize เร็วเกินไป
-
-สรุปลำดับที่แนะนำ:
-15. Role based access control RBAC
-16. Authorization Policy System
-17. Refresh Token Session Management
-18. Audit Logging
-19. Admin Module
-20. File Upload Foundation
-21. Email Verification
-22. Cache Layer Foundation
-
 --- 
 
+## Next phase 
+
+### จุดที่ควรแก้ใน Architecture.md
+
+ตอนนี้มี:
+    policies/
+
+แต่ยังไม่มี:
+    shared/
+
+ผมแนะนำเพิ่ม:
+src/
+ ├── shared/
+ │    ├── constants/
+ │    ├── permissions/
+ │    └── errors/
+
+### จุดที่ควรแก้ใน User Model
+
+ตอนนี้:
+    role
+
+มีแค่:
+    user
+    admin
+
+เตรียมไว้เลย:
+    role: {
+     type: String,
+     index: true
+    }
+
+email:
+    index: true
+
+สำหรับ production

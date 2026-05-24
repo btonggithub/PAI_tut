@@ -40,39 +40,37 @@
 - Unit testing structure implemented
 - Helpers/fixtures testing structure implemented
 
+### Authorization
+- RBAC middleware implemented
+- Role-aware authentication
+- Authorization policy layer implemented
+- Resource ownership policies implemented
+
 ---
 
 ## CURRENT PHASE
 
-Phase 16 — Authorization Policy System
+Phase 18 — Permission System
 
 Goals:
-- Policy authorization layer
-- Ownership-based permissions
-- Resource authorization abstraction
-- Reusable policy functions
-- Separation of RBAC and authorization
-
-Success Criteria:
-1. Policy layer implemented
-2. Ownership checks centralized
-3. Controllers remain authorization-free
-4. Policies reusable across modules
-5. RBAC preserved
-6. Tests cover authorization scenarios
+- Permission abstraction
+- Permission constants
+- Role-to-permission mapping
+- Permission evaluation utilities
+- Policy integration with permissions
 
 ---
 
 ## NEXT PHASE
 
-Phase 17 — Refresh Token & Session Management
+Phase 19 — Refresh Token & Session Management
 
 Planned goals:
 - Refresh token support
-- Session lifecycle management
-- Token rotation strategy
-- Secure logout flow
-- Multi-device session preparation
+- Session persistence
+- Token rotation
+- Logout session invalidation
+- Multi-device session handling
 
 ---
 

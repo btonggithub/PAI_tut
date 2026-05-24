@@ -141,3 +141,48 @@ policies/
  ├── userPolicy.js
  ├── orderPolicy.js
  └── paymentPolicy.js
+
+ ---
+
+## Permission Naming Convention
+
+Format:
+resource.action
+
+Examples:
+ user.read
+ user.update
+ user.delete
+ user.manage
+
+ role.read
+ role.update
+
+ audit.read
+
+### Permission Constants Convention
+
+Permissions must be centralized.
+
+Example:
+permissions/
+ └── userPermissions.js
+
+Avoid:
+ 'admin'
+ 'user.read'
+ 'user.delete'
+
+inside services/controllers.
+
+### Authorization Convention
+
+Authorization order:
+
+Authentication
+↓
+Permission
+↓
+Policy
+↓
+Business Logic

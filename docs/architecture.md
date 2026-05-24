@@ -223,6 +223,30 @@ Rules:
 
 ---
 
+### Permission Layer
+
+Responsible for permission evaluation only.
+
+Contains:
+    permissions/
+
+Rules:
+- No database access
+- No HTTP logic
+- No controller logic
+- No repository access
+- Pure permission evaluation only
+
+Example:
+
+canManageUsers
+↓
+requires permission
+↓
+user.read
+
+---
+
 ## Authorization Flow
 
 Authentication verifies identity.
@@ -230,15 +254,17 @@ Authorization verifies permissions.
 
 Example flow:
 
+Request
+ ↓
 Route
  ↓
 Authentication
  ↓
-RBAC
+RBAC Middleware
  ↓
-Policy Authorization
+Permission Evaluation
  ↓
-Controller
+Policy Evaluation
  ↓
 Service
  ↓
@@ -280,10 +306,12 @@ Authentication
 ↓
 RBAC
 ↓
-Policy-Based Authorization
+Permissions
 ↓
-Resource Ownership Rules
+Policies
 ↓
-Fine-Grained Permissions
+Resource authorization
+↓
+Fine-grained access control
 ↓
 Domain-Specific Authorization Policies
