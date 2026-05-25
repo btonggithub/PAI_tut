@@ -1,4 +1,5 @@
 const AppError = require('../../utils/AppError');
+const crypto = require('crypto');
 const { hashPassword, comparePassword } = require('../../utils/password');
 const {
   signAccessToken,
@@ -14,25 +15,22 @@ const toRefreshExpiryDate = (payload) => {
 };
 
 const issueSessionTokens = async (userId) => {
-  const bootstrapExpiry = new Date(Date.now() + 60 * 1000);
-
-  const session = await sessionService.createSession({
-    userId,
-    refreshTokenHash: sessionService.hashRefreshToken(`${userId}:${Date.now()}`),
-    expiresAt: bootstrapExpiry,
-  });
+  const sessionId = crypto.randomUUID();
 
   const refreshToken = signRefreshToken({
     sub: userId,
-    sid: session.id,
+    sid: sessionId,
+    jti: crypto.randomUUID(),
     type: 'refresh',
   });
-  const refreshPayload = verifyRefreshToken(refreshToken);
 
-  await sessionService.rotateSessionRefreshToken({
-    sessionId: session.id,
+  const refreshPayload = verifyRefreshToken(refreshToken);
+  const refreshTokenHash = sessionService.hashRefreshToken(refreshToken);
+
+  await sessionService.createSession({
     userId,
-    refreshToken,
+    sessionId,
+    refreshTokenHash,
     expiresAt: toRefreshExpiryDate(refreshPayload),
   });
 
@@ -100,6 +98,10 @@ const refresh = async ({ refreshToken }) => {
     throw new AppError('Invalid refresh token payload', 401);
   }
 
+  if (payload.type !== 'refresh') {
+    throw new AppError('Invalid token type', 401);
+  }
+
   await sessionService.validateRefreshSession({
     sessionId: payload.sid,
     userId: payload.sub,
@@ -109,6 +111,7 @@ const refresh = async ({ refreshToken }) => {
   const nextRefreshToken = signRefreshToken({
     sub: payload.sub,
     sid: payload.sid,
+    jti: crypto.randomUUID(),
     type: 'refresh',
   });
   const nextRefreshPayload = verifyRefreshToken(nextRefreshToken);
@@ -116,6 +119,7 @@ const refresh = async ({ refreshToken }) => {
   await sessionService.rotateSessionRefreshToken({
     sessionId: payload.sid,
     userId: payload.sub,
+    currentRefreshToken: refreshToken,
     refreshToken: nextRefreshToken,
     expiresAt: toRefreshExpiryDate(nextRefreshPayload),
   });
@@ -139,6 +143,10 @@ const logout = async ({ refreshToken }) => {
 
   if (!payload || !payload.sub || !payload.sid) {
     throw new AppError('Invalid refresh token payload', 401);
+  }
+
+  if (payload.type !== 'refresh') {
+    throw new AppError('Invalid token type', 401);
   }
 
   await sessionService.validateRefreshSession({

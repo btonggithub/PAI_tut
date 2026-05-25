@@ -12,7 +12,7 @@ const signToken = (payload, options = {}) => {
 
 const signAccessToken = (payload, options = {}) => {
   const { expiresIn = ACCESS_TOKEN_EXPIRES_IN } = options;
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn });
+  return jwt.sign({ ...payload, type: 'access' }, env.JWT_SECRET, { expiresIn });
 };
 
 const signRefreshToken = (payload, options = {}) => {

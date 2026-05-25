@@ -35,12 +35,15 @@ describe('authService', () => {
     jest.clearAllMocks();
 
     sessionService.hashRefreshToken.mockReturnValue('bootstrap-hash');
-    sessionService.createSession.mockResolvedValue({ id: 'session-1' });
-    sessionService.rotateSessionRefreshToken.mockResolvedValue({ id: 'session-1' });
+    sessionService.createSession.mockResolvedValue({ sessionId: 'uuid-session-1' });
+    sessionService.rotateSessionRefreshToken.mockResolvedValue({ sessionId: 'uuid-session-1' });
     signRefreshToken.mockReturnValue('refresh-token');
+    
     verifyRefreshToken.mockReturnValue({
       sub: 'u1',
-      sid: 'session-1',
+      sid: 'uuid-session-1',
+      jti: 'uuid-jti-1',
+      type: 'refresh',
       exp: Math.floor(Date.now() / 1000) + 60 * 60,
     });
     signAccessToken.mockReturnValue('access-token');
@@ -74,10 +77,25 @@ describe('authService', () => {
         password: 'hashed-password',
       });
       expect(sessionService.createSession).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'u1' })
+        expect.objectContaining({
+          userId: 'u1',
+          sessionId: expect.any(String),
+          refreshTokenHash: expect.any(String),
+          expiresAt: expect.any(Date),
+        })
       );
-      expect(signRefreshToken).toHaveBeenCalledWith({ sub: 'u1', sid: 'session-1', type: 'refresh' });
+      
+      expect(signRefreshToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sub: 'u1',
+          sid: expect.any(String),
+          jti: expect.any(String),
+          type: 'refresh',
+        })
+      );
       expect(signAccessToken).toHaveBeenCalledWith({ sub: 'u1' });
+      
+      expect(sessionService.rotateSessionRefreshToken).not.toHaveBeenCalled();
       expect(result).toEqual({
         user: {
           id: 'u1',
@@ -131,6 +149,8 @@ describe('authService', () => {
       expect(sessionService.createSession).toHaveBeenCalledWith(
         expect.objectContaining({ userId: 'u1' })
       );
+      
+      expect(sessionService.rotateSessionRefreshToken).not.toHaveBeenCalled();
       expect(result).toEqual({
         user: {
           id: 'u1',
@@ -166,6 +186,8 @@ describe('authService', () => {
       verifyRefreshToken.mockReturnValue({
         sub: 'u1',
         sid: 'session-1',
+        jti: 'jti-old',
+        type: 'refresh',
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
       });
       signRefreshToken.mockReturnValue('next-refresh-token');
@@ -178,11 +200,22 @@ describe('authService', () => {
         userId: 'u1',
         refreshToken: 'old-refresh-token',
       });
+      
       expect(sessionService.rotateSessionRefreshToken).toHaveBeenCalledWith(
         expect.objectContaining({
           sessionId: 'session-1',
           userId: 'u1',
+          currentRefreshToken: 'old-refresh-token',
           refreshToken: 'next-refresh-token',
+        })
+      );
+      
+      expect(signRefreshToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sub: 'u1',
+          sid: 'session-1',
+          jti: expect.any(String),
+          type: 'refresh',
         })
       );
       expect(result).toEqual({
@@ -201,6 +234,20 @@ describe('authService', () => {
         statusCode: 401,
       });
     });
+
+    it('throws AppError when token type is not refresh', async () => {
+      verifyRefreshToken.mockReturnValue({
+        sub: 'u1',
+        sid: 'session-1',
+        type: 'access',
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      });
+
+      await expect(authService.refresh({ refreshToken: 'access-token-used-as-refresh' })).rejects.toMatchObject({
+        message: 'Invalid token type',
+        statusCode: 401,
+      });
+    });
   });
 
   describe('logout', () => {
@@ -208,6 +255,8 @@ describe('authService', () => {
       verifyRefreshToken.mockReturnValue({
         sub: 'u1',
         sid: 'session-1',
+        jti: 'jti-1',
+        type: 'refresh',
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
       });
 
@@ -232,6 +281,20 @@ describe('authService', () => {
 
       await expect(authService.logout({ refreshToken: 'bad-token' })).rejects.toMatchObject({
         message: 'Invalid or expired refresh token',
+        statusCode: 401,
+      });
+    });
+
+    it('throws AppError when token type is not refresh', async () => {
+      verifyRefreshToken.mockReturnValue({
+        sub: 'u1',
+        sid: 'session-1',
+        type: 'access',
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      });
+
+      await expect(authService.logout({ refreshToken: 'access-token-used-as-refresh' })).rejects.toMatchObject({
+        message: 'Invalid token type',
         statusCode: 401,
       });
     });

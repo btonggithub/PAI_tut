@@ -62,6 +62,15 @@ Do not change folder structure unless explicitly required by current-task.md.
 
 ---
 
+# >>> Prompts adjust
+
+Read markdown files docs/daily-notes/prompt-fet-17.5-Refresh-Token-And-Session-Hardening.md.
+
+Then implement.
+Follow the existing architecture and coding style.
+
+---
+
 # >>> Prompts 5
 Read project context from:
 - docs/project-overview.md

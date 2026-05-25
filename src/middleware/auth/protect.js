@@ -19,6 +19,10 @@ const protect = async (req, res, next) => {
       return next(new AppError('Invalid token payload', 401));
     }
 
+    if (payload.type !== 'access') {
+      return next(new AppError('Invalid authentication token', 401));
+    }
+
     const user = await authService.getAuthUser(payload.sub);
     req.user = { id: user.id, email: user.email, name: user.name, role: user.role };
 

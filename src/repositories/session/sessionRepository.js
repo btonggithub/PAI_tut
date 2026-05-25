@@ -1,8 +1,9 @@
 const Session = require('../../models/sessionModel');
 
-const createSession = async ({ userId, refreshTokenHash, expiresAt }) => {
+const createSession = async ({ userId, sessionId, refreshTokenHash, expiresAt }) => {
   return Session.create({
     userId,
+    sessionId,
     refreshTokenHash,
     expiresAt,
   });
@@ -10,18 +11,19 @@ const createSession = async ({ userId, refreshTokenHash, expiresAt }) => {
 
 const findActiveSessionByIdAndUser = async (sessionId, userId) => {
   return Session.findOne({
-    _id: sessionId,
+    sessionId,
     userId,
     revokedAt: null,
     expiresAt: { $gt: new Date() },
   }).lean();
 };
 
-const rotateSessionRefreshToken = async (sessionId, userId, refreshTokenHash, expiresAt) => {
+const rotateSessionRefreshToken = async (sessionId, userId, currentHash, refreshTokenHash, expiresAt) => {
   return Session.findOneAndUpdate(
     {
-      _id: sessionId,
+      sessionId,
       userId,
+      refreshTokenHash: currentHash,
       revokedAt: null,
       expiresAt: { $gt: new Date() },
     },
@@ -40,7 +42,7 @@ const rotateSessionRefreshToken = async (sessionId, userId, refreshTokenHash, ex
 const revokeSessionByIdAndUser = async (sessionId, userId) => {
   return Session.findOneAndUpdate(
     {
-      _id: sessionId,
+      sessionId,
       userId,
       revokedAt: null,
     },

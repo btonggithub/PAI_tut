@@ -17,9 +17,10 @@ const secureHashEquals = (left, right) => {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 };
 
-const createSession = async ({ userId, refreshTokenHash, expiresAt }) => {
+const createSession = async ({ userId, sessionId, refreshTokenHash, expiresAt }) => {
   return sessionRepository.createSession({
     userId,
+    sessionId,
     refreshTokenHash,
     expiresAt,
   });
@@ -42,12 +43,14 @@ const validateRefreshSession = async ({ sessionId, userId, refreshToken }) => {
   return session;
 };
 
-const rotateSessionRefreshToken = async ({ sessionId, userId, refreshToken, expiresAt }) => {
+const rotateSessionRefreshToken = async ({ sessionId, userId, currentRefreshToken, refreshToken, expiresAt }) => {
+  const currentHash = hashRefreshToken(currentRefreshToken);
   const nextHash = hashRefreshToken(refreshToken);
 
   const rotatedSession = await sessionRepository.rotateSessionRefreshToken(
     sessionId,
     userId,
+    currentHash,
     nextHash,
     expiresAt
   );

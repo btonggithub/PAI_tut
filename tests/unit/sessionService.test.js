@@ -26,15 +26,16 @@ describe('sessionService', () => {
   it('createSession delegates to repository', async () => {
     const payload = {
       userId: 'u1',
+      sessionId: 's1',
       refreshTokenHash: 'hashed-token',
       expiresAt: new Date('2026-12-31T00:00:00.000Z'),
     };
-    sessionRepository.createSession.mockResolvedValue({ id: 's1', ...payload });
+    sessionRepository.createSession.mockResolvedValue({ id: 'doc-id', ...payload });
 
     const result = await sessionService.createSession(payload);
 
     expect(sessionRepository.createSession).toHaveBeenCalledWith(payload);
-    expect(result).toEqual({ id: 's1', ...payload });
+    expect(result).toEqual({ id: 'doc-id', ...payload });
   });
 
   it('validateRefreshSession throws for missing active session', async () => {
@@ -89,13 +90,14 @@ describe('sessionService', () => {
     expect(result).toEqual(session);
   });
 
-  it('rotateSessionRefreshToken rotates hash in repository', async () => {
+  it('rotateSessionRefreshToken rotates hash in repository atomically', async () => {
     const expiresAt = new Date('2026-12-31T00:00:00.000Z');
     sessionRepository.rotateSessionRefreshToken.mockResolvedValue({ id: 's1' });
 
     const result = await sessionService.rotateSessionRefreshToken({
       sessionId: 's1',
       userId: 'u1',
+      currentRefreshToken: 'current-refresh-token',
       refreshToken: 'next-refresh-token',
       expiresAt,
     });
@@ -103,6 +105,7 @@ describe('sessionService', () => {
     expect(sessionRepository.rotateSessionRefreshToken).toHaveBeenCalledWith(
       's1',
       'u1',
+      sessionService.hashRefreshToken('current-refresh-token'),
       sessionService.hashRefreshToken('next-refresh-token'),
       expiresAt
     );

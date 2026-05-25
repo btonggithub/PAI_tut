@@ -1,0 +1,324 @@
+# Phase 17.5 — Refresh Token & Session Hardening
+
+Please review the current Phase 17 implementation and apply the following production-readiness improvements without changing the existing API contract.
+
+Current architecture constraints:
+
+* Controllers remain HTTP-only.
+* Services own business logic.
+* Repositories own database queries.
+* Middleware owns authentication and validation.
+* Policies own authorization logic.
+* No business logic in controllers.
+* No database access outside repositories.
+* Preserve layered architecture.
+* Existing auth responses still return user, token, and refreshToken.
+
+Do not rename existing response fields.
+Existing auth responses must continue returning:
+
+{
+  user,
+  token,
+  refreshToken
+}
+
+where token is the access token.
+
+---
+
+## Goals
+
+Improve security, maintainability, and future scalability of the refresh-token/session system while preserving existing behavior.
+
+---
+
+## 1. Introduce storage-independent sessionId
+
+Current implementation exposes Mongo ObjectId through JWT `sid`.
+
+Required changes:
+
+* Add `sessionId` field to Session model.
+* Generate with `crypto.randomUUID()`.
+* Required.
+* Unique.
+* Indexed.
+
+Example:
+
+sessionId: crypto.randomUUID()
+
+Refresh JWT must use:
+
+sid = session.sessionId
+
+instead of Mongo `_id`.
+
+Repository methods should query:
+
+* sessionId
+* userId
+
+and never depend on Mongo `_id` externally.
+
+Mongo `_id` must remain an internal persistence detail.
+
+---
+
+## 2. Remove bootstrap-session double write
+
+Current flow:
+
+1. Create placeholder session.
+2. Generate refresh token.
+3. Rotate refresh token hash.
+
+Replace with:
+
+1. Generate sessionId.
+2. Generate refresh token.
+3. Hash refresh token.
+4. Create session once.
+
+Session creation should require only a single database write.
+
+Preserve existing response contract.
+
+---
+
+## 3. Add refresh token type enforcement
+
+Refresh endpoints must only accept refresh tokens.
+
+After verification:
+
+Reject if:
+
+payload.type !== 'refresh'
+
+Return existing AppError(401) style response.
+
+Apply to:
+
+* refresh()
+* logout()
+
+---
+
+## 4. Add access token type enforcement
+
+Access token payload should include:
+
+type: 'access'
+
+Protect middleware must reject:
+
+payload.type !== 'access'
+
+Return existing authentication error style.
+
+Keep legacy signToken utility unchanged if required by existing tests.
+
+---
+
+## 5. Harden refresh-token rotation against replay
+
+Refresh token rotation must be atomic.
+
+Repository update query must match:
+
+* sessionId
+* userId
+* revokedAt = null
+* expiresAt > now
+* current refreshTokenHash
+
+Example concept:
+
+findOneAndUpdate({
+sessionId,
+userId,
+refreshTokenHash: currentHash
+})
+
+If update fails:
+
+Return AppError(401).
+
+Purpose:
+
+Prevent replay attacks and concurrent refresh-token reuse.
+
+Repository methods must remain domain-oriented.
+
+Preferred repository operations:
+
+- createSession()
+- findActiveSession()
+- rotateSessionRefreshToken()
+- revokeSession()
+
+Business validation must remain in services.
+
+Repositories must not throw authorization errors.
+Repositories must not perform JWT validation.
+
+---
+
+## 6. Add TTL cleanup for expired sessions
+
+Session collection should automatically remove expired records.
+
+Add Mongo TTL index:
+
+sessionSchema.index(
+{ expiresAt: 1 },
+{ expireAfterSeconds: 0 }
+);
+
+Do not change revokedAt behavior.
+
+No manual cleanup job required.
+
+---
+
+## 7. Add refresh-token uniqueness metadata
+
+Refresh token payload should contain:
+
+* sub
+* sid
+* jti
+* type
+* iat
+* exp
+
+Generate:
+
+jti = crypto.randomUUID()
+
+Store only hashed refresh tokens.
+
+Never store raw refresh tokens.
+
+## 7.1 Token Secret Separation
+
+Refresh tokens must continue using:
+
+env.JWT_REFRESH_SECRET
+
+Access tokens must continue using:
+
+env.JWT_SECRET
+
+Do not merge access-token and refresh-token signing secrets.
+
+---
+
+## 8. Testing
+
+Add or update tests for:
+
+### Session Identity
+
+* sessionId generated automatically
+* JWT sid uses sessionId
+* Mongo _id is not used as JWT sid
+
+### Session Persistence
+
+* refresh token stored only as hash
+* raw refresh token never stored
+
+### Token Type Validation
+
+* refresh rejects access token
+* logout rejects access token
+* protect rejects refresh token
+
+### Rotation Security
+
+* old refresh token cannot be reused
+* concurrent rotation cannot succeed twice
+* rotation requires current hash match
+
+### Session Cleanup
+
+* TTL index exists on expiresAt
+
+### Existing Behavior
+
+* register still works
+* login still works
+* refresh still works
+* logout still works
+* response contract unchanged
+
+Run:
+
+1. Focused tests
+2. Full test suite
+
+All tests must pass.
+
+---
+
+## Explicit Non-Goals
+
+Do NOT introduce:
+
+* Event Bus
+* Kafka
+* RabbitMQ
+* Redis Session Store
+* CQRS
+* Event Sourcing
+* Outbox Pattern
+* Distributed Session Coordination
+
+Keep implementation:
+
+* Single service
+* MongoDB based
+* Simple and maintainable
+
+Design abstractions so future microservice migration remains possible.
+
+---
+
+## Migration Safety
+
+If Session documents already exist in the database:
+
+- New fields must be backward compatible.
+- Existing sessions must not prevent application startup.
+- Schema changes must not require manual database cleanup.
+- Avoid destructive migrations.
+- Do not delete or modify existing session records automatically.
+
+For existing session records without `sessionId`:
+
+- They may be treated as invalid by refresh/logout flows.
+- They do not need to be migrated automatically.
+- They do not need a backfill process.
+- They should naturally expire and be replaced by newly created sessions.
+
+Application startup must not fail because legacy session records exist.
+
+---
+
+## Success Criteria
+
+Phase 17.5 is complete when:
+
+* Session IDs are storage-independent.
+* Refresh tokens contain jti + type.
+* Access tokens contain type.
+* Token type validation is enforced.
+* Refresh rotation is atomic.
+* Replay attacks are prevented.
+* Expired sessions auto-clean through TTL.
+* No raw refresh tokens are stored.
+* Existing API contract remains unchanged.
+* Full test suite passes.
