@@ -83,21 +83,35 @@ The project currently implements:
 
 ### Authorization Policy System
 - Policy-based authorization foundation
-- Centralized permission evaluation
-- Role-to-permission mapping
-- Permission middleware abstraction
+- Resource ownership policy evaluation
+- Route-level authorization enforcement
+- Policy abstraction preparation
 - Resource access policy preparation
 
 ### Authentication
 - JWT access token authentication
 - Protected route middleware
 - Authenticated user context
-- Refresh token architecture preparation
+- Refresh token lifecycle
+- Persistent session storage
+- Refresh token rotation
+- Session revocation
+- Storage-independent session identifiers
+- Token type enforcement
+
+### Session Management
+- Session model
+- Session repository
+- Session service
+- Refresh token hash persistence
+- Session revocation workflow
+- Expired session TTL cleanup
 
 ### Permission Foundation
 - Permission-based authorization preparation
 - Role-to-permission mapping preparation
 - Fine-grained access control preparation
+- Permission-aware policy preparation
 
 ---
 
@@ -125,6 +139,8 @@ Security Middleware
 ↓
 Authentication Middleware
 ↓
+Authorization / Permission Middleware
+↓
 Validation Middleware
 ↓
 Controller
@@ -143,25 +159,28 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 17 — Refresh Token & Session Management
+Phase 18 — Permission System
 
 Current goals:
-- Refresh token lifecycle
-- Session persistence
-- Token rotation foundation
-- Multi-device session preparation
+- Permission abstraction
+- Permission constants
+- Role-permission mapping
+- Permission evaluation helper
+- Permission middleware abstraction
+- Permission-aware authorization policies
+- Fine-grained authorization
 
 ---
 
 ## Planned Next Phase
 
-Permission System
+Advanced Session Management
 
 Future goals:
-- Permission abstraction
-- Role-permission mapping
-- Fine-grained authorization
-- Permission-aware policies
+- Device metadata
+- My sessions endpoint
+- Logout other devices
+- Session audit preparation
 
 ---
 

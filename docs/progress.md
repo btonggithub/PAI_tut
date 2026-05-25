@@ -44,44 +44,53 @@
 - JWT access token authentication
 - Protected route middleware
 - Authenticated request context
+- Refresh token endpoint implemented
+- Logout endpoint implemented
+- Persistent session storage implemented
+- Refresh token rotation implemented
+- Refresh token replay protection implemented
+- Session revocation implemented
+- Storage-independent sessionId implemented
+- Access/refresh token type enforcement implemented
 
 ---
 
 ## CURRENT PHASE
 
-Phase 17 — Refresh Token & Session Management
+Phase 18 — Permission System
 
 Goals:
-- Session model
-- Session repository
-- Session service
-- Refresh token endpoint
-- Token rotation
-- Session revocation
+- Permission constants
+- Role-permission mapping
+- Permission evaluation helper
+- Permission middleware
+- Permission-aware user policies
+- Replace route-level hardcoded role checks where appropriate
 
 ## Success Criteria
 
-- Refresh tokens implemented
-- Session persistence implemented
-- Token rotation implemented
-- Logout invalidates session
-- Multi-session support prepared
-- Existing authentication remains functional
+- Permission constants implemented
+- Role-permission mapping implemented
+- hasPermission helper implemented
+- Permission middleware implemented
+- User routes can use permission middleware
+- Policies can evaluate permissions without hardcoded role checks where practical
+- Authorization tests updated
+- Existing authentication/session tests continue passing
 
 ---
 
 ## NEXT PHASE
 
-Phase 18 — Permission System
+Advanced Session Management
 
 Planned goals:
-- Permission abstraction
-- Permission constants
-- Role-permission mapping
-- Fine-grained authorization
+- Device metadata
+- My sessions endpoint
+- Logout other devices
+- Session audit preparation
 
 ---
-
 
 
 

@@ -32,6 +32,7 @@ src/
 ├── services/
 │   ├── auth/
 │   ├── health/
+│   ├── session/
 │   ├── system/
 │   └── user/
 │
@@ -39,6 +40,7 @@ src/
 │   ├── auth/
 │   ├── base/
 │   ├── health/
+│   ├── session/
 │   ├── system/
 │   └── user/
 │
@@ -49,6 +51,7 @@ src/
 │   └── errorHandler.js
 │
 ├── models/
+│   ├── sessionModel.js
 │   └── userModel.js
 │
 ├── routes/
@@ -60,6 +63,12 @@ src/
 │
 ├── policies/
 │   └── userPolicy.js
+│
+├── permissions/
+│   ├── hasPermission.js
+│   ├── index.js
+│   ├── rolePermissions.js
+│   └── userPermissions.js
 │
 ├── utils/
 │   ├── AppError.js
@@ -200,8 +209,9 @@ Rules:
 Responsible for permission evaluation and ownership checks.
 
 Contains:
-middleware/auth/policies/
-services/policies/
+policies/
+middleware/auth/
+permissions/
 
 Responsibilities:
 - Resource authorization
@@ -228,7 +238,7 @@ Rules:
 Responsible for permission evaluation only.
 
 Contains:
-    permissions/
+permissions/
 
 Rules:
 - No database access
@@ -236,14 +246,30 @@ Rules:
 - No controller logic
 - No repository access
 - Pure permission evaluation only
+- Permission names must be centralized constants
+- Role-to-permission mapping must be centralized
 
 Example:
 
-canManageUsers
+admin
 ↓
-requires permission
+rolePermissions
 ↓
 user.read
+↓
+hasPermission(actor, USER_PERMISSIONS.READ)
+
+Responsibilities:
+- Define permission constants
+- Map roles to permissions
+- Evaluate actor permissions
+- Support permission-aware policies
+
+Non-responsibilities:
+- Resource ownership decisions
+- HTTP response creation
+- Database queries
+- Business workflows
 
 ---
 
@@ -288,19 +314,26 @@ Implemented:
 - Route-level role enforcement
 - Authentication and authorization separation
 
-### Policy-Based Authorization Goals
-Phase 16 objectives:
+### Policy-Based Authorization
+Implemented:
 - Centralized policy definitions
 - Resource-aware authorization
 - Ownership-based access decisions
 - Reusable policy evaluation layer
 - Consistent authorization rules across modules
 
+### Permission System Goals
+Phase 18 objectives:
+- Centralized permission constants
+- Centralized role-to-permission mapping
+- Reusable permission evaluation helper
+- Permission middleware for route-level checks
+- Permission-aware policies for resource decisions
+- Reduced hardcoded role checks in services and policies
+
 Future direction:
 
 Authentication
-↓
-RBAC
 ↓
 Permissions
 ↓
@@ -319,7 +352,9 @@ Domain-Specific Authorization Policies
 Responsible for session lifecycle management.
 
 Contains:
-    sessions/
+models/sessionModel.js
+repositories/session/
+services/session/
 
 Rules:
 - No HTTP logic
@@ -337,29 +372,34 @@ Refresh Token Flow:
 
 Login
 ↓
-Access Token
-+
-Refresh Token
+Create Session
+↓
+Issue Access Token
+↓
+Issue Refresh Token
 ↓
 Client
 ↓
-Access Token Expired
-↓
 Refresh Endpoint
 ↓
-Validate Session
+Verify Refresh Token
+↓
+Validate Active Session
+↓
+Compare Refresh Token Hash
+↓
+Atomically Rotate Refresh Token
 ↓
 Issue New Access Token
-↓
-Rotate Refresh Token
 
 ### Current Authentication Direction
 
 Current authentication goals:
-- Stateless access token authentication
+- Short-lived access token authentication
 - Secure refresh token flow
 - Session invalidation support
-- Multi-device login preparation
+- Refresh token replay protection
+- Storage-independent session identifiers
 
 Future direction:
 
@@ -372,3 +412,41 @@ Session Store
 Device Sessions
 ↓
 Advanced Security Controls
+
+---
+
+## Phase 18 Permission Flow
+
+Route-level permission check:
+
+Request
+↓
+Authentication Middleware
+↓
+Permission Middleware
+↓
+Validation Middleware
+↓
+Controller
+↓
+Service
+
+Resource-level policy check:
+
+Service
+↓
+Load Resource When Needed
+↓
+Policy Function
+↓
+Permission Evaluation
+↓
+Ownership Evaluation
+↓
+Business Logic
+
+Rules:
+- Route middleware may check broad permissions such as user.read.
+- Services may orchestrate policy decisions with actor and resource data.
+- Policies must remain pure and return boolean only.
+- Permissions must be evaluated from server-controlled role mappings.

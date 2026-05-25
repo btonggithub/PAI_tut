@@ -233,3 +233,86 @@ During refresh:
 Reason:
 If the database is leaked, plain refresh tokens would allow session takeover.
 Hashing refresh tokens reduces the impact of session storage compromise.
+
+---
+
+## Decision 018 — Permission System Scope
+
+Status:
+Accepted
+
+Context:
+The current authorization stack supports authentication, RBAC, and resource policies.
+However, route-level role checks such as admin-only access still couple authorization
+rules directly to role names.
+
+As the system grows, roles may change while capabilities remain stable.
+Examples:
+- admin can manage users
+- support can read users
+- auditor can read audit logs
+- user can read and update own profile
+
+Decision:
+Phase 18 introduces an in-code permission system.
+
+The system will include:
+- permission constants
+- role-to-permission mapping
+- reusable permission evaluation helper
+- permission middleware for route-level authorization
+- permission-aware policy functions
+
+Permissions become the stable authorization unit.
+Roles remain server-controlled collections of permissions.
+
+This phase will not introduce:
+- permission database tables
+- dynamic permission editing
+- role management endpoints
+- external policy engines
+
+Consequences:
+
+Positive:
+- Reduces hardcoded role checks
+- Makes authorization rules easier to expand
+- Keeps policies reusable
+- Prepares future role management without requiring it now
+
+Trade-offs:
+- Adds one authorization abstraction layer
+- Requires permission mapping tests
+- Existing RBAC middleware must coexist during migration
+
+---
+
+## Permission Evaluation Strategy
+
+Status:
+Accepted
+
+Decision:
+Permission evaluation must be pure and server-controlled.
+
+Rules:
+- Permission constants are centralized.
+- Role-to-permission mapping is centralized.
+- User-provided permissions are never trusted.
+- Controllers do not evaluate permissions.
+- Repositories do not evaluate permissions.
+- Policies may consume permission helpers but must remain pure.
+
+Example:
+
+admin
+↓
+ROLE_PERMISSIONS.admin
+↓
+USER_PERMISSIONS.READ
+↓
+hasPermission(actor, USER_PERMISSIONS.READ)
+
+Reason:
+Centralized permission evaluation prevents scattered string checks and keeps
+authorization rules consistent across routes, services, and policies.

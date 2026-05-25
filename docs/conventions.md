@@ -32,6 +32,7 @@ Use action-oriented naming.
 
 Examples:
 - authorize
+- requirePermission
 - requireRole
 - requireOwnership
 
@@ -59,7 +60,7 @@ Example:
 router.get(
   '/',
   protect,
-  authorize('admin'),
+  requirePermission(USER_PERMISSIONS.READ),
   validateRequest(...),
   controller
 );
@@ -212,13 +213,20 @@ Examples:
 
  audit.read
 
+Rules:
+- Use lowercase resource names.
+- Use lowercase action names.
+- Keep permission names capability-based, not role-based.
+- Do not encode role names into permission names.
+
 ### Permission Constants Convention
 
 Permissions must be centralized.
 
 Example:
 permissions/
- └── userPermissions.js
+ ├── userPermissions.js
+ └── rolePermissions.js
 
 Avoid:
  'admin'
@@ -226,6 +234,46 @@ Avoid:
  'user.delete'
 
 inside services/controllers.
+
+### Role-Permission Mapping Convention
+
+Roles map to permission constants.
+
+Example:
+ROLE_PERMISSIONS = {
+  admin: [
+    USER_PERMISSIONS.READ,
+    USER_PERMISSIONS.UPDATE,
+    USER_PERMISSIONS.DELETE,
+    USER_PERMISSIONS.MANAGE,
+  ],
+  user: [
+    USER_PERMISSIONS.READ_SELF,
+    USER_PERMISSIONS.UPDATE_SELF,
+  ],
+};
+
+Rules:
+- Role names remain lowercase.
+- Role-permission mapping is server-owned.
+- Do not accept permissions from request bodies.
+- Do not store permission arrays in JWT payloads during Phase 18.
+
+### Permission Middleware Convention
+
+Permission middleware should use action-oriented naming.
+
+Preferred:
+requirePermission(USER_PERMISSIONS.READ)
+
+Avoid:
+checkPermission('user.read')
+
+Rules:
+- Permission middleware requires authentication first.
+- Permission middleware must not query the database.
+- Permission middleware must not contain route-specific business logic.
+- Permission middleware returns 403 when the authenticated actor lacks permission.
 
 ### Authorization Convention
 
@@ -236,5 +284,17 @@ Authentication
 Permission
 ↓
 Policy
+↓
+Business Logic
+
+Resource ownership convention:
+
+Authentication
+↓
+Load Resource
+↓
+Policy
+↓
+Permission + Ownership
 ↓
 Business Logic

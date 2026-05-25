@@ -2,87 +2,217 @@
 
 ## Phase
 
-Phase 17 — Refresh Token & Session Management
+Phase 18 — Permission System
 
 ## Objective
 
-Introduce refresh-token-based authentication and persistent session management while preserving existing JWT access token authentication.
+Introduce a centralized permission system that reduces hardcoded role checks while preserving the existing authentication, session, RBAC, and policy behavior.
+
+Permissions become the stable authorization unit.
+Roles remain server-controlled collections of permissions.
+
+Existing API behavior and response contracts must remain unchanged.
+
+---
 
 ## Requirements
 
-### Session Module
+### Permission Module
 
 Create:
 
-src/models/sessionModel.js
+src/permissions/
 
-src/repositories/session/
+Recommended files:
 
-src/services/session/
+- src/permissions/userPermissions.js
+- src/permissions/rolePermissions.js
+- src/permissions/hasPermission.js
+- src/permissions/index.js
 
-### Session Persistence
+### Permission Constants
 
-Session must store:
+Define user-related permission constants.
 
-- userId
-- refreshTokenHash
-- expiresAt
-- revokedAt
-- createdAt
-- updatedAt
+Recommended permissions:
 
-Refresh tokens must never be stored as plain text.
-Only a hashed refresh token may be persisted.
+- user.read
+- user.read.self
+- user.update
+- user.update.self
+- user.delete
+- user.manage
 
-### Refresh Endpoint
+Rules:
 
-Implement:
+- Permission strings must be centralized.
+- Do not hardcode permission strings in controllers, routes, services, or policies.
+- Use constants such as USER_PERMISSIONS.READ.
 
-POST /api/v1/auth/refresh
+### Role-Permission Mapping
+
+Define role-to-permission mapping.
+
+Recommended initial mapping:
+
+admin:
+- user.read
+- user.update
+- user.delete
+- user.manage
+
+user:
+- user.read.self
+- user.update.self
+
+Rules:
+
+- Role-permission mapping must be server-controlled.
+- Do not trust permissions from request bodies.
+- Do not store permissions in JWT payloads during this phase.
+- Unknown roles should resolve to no permissions.
+
+### Permission Evaluation
+
+Implement a reusable permission helper.
+
+Recommended API:
+
+hasPermission(actor, permission)
 
 Responsibilities:
 
-- Validate refresh token
-- Validate active session
-- Rotate refresh token
-- Issue new access token
+- Read actor.role
+- Resolve permissions from rolePermissions
+- Return boolean
 
-### Logout Endpoint
+Rules:
 
-Implement:
+- Pure function only
+- No database access
+- No HTTP logic
+- No AppError creation inside the helper
 
-POST /api/v1/auth/logout
+### Permission Middleware
+
+Implement permission middleware.
+
+Recommended file:
+
+src/middleware/auth/requirePermission.js
+
+Recommended API:
+
+requirePermission(permission)
 
 Responsibilities:
 
-- Revoke session
-- Invalidate refresh token
+- Require req.user
+- Evaluate hasPermission(req.user, permission)
+- Call next() when allowed
+- Return 401 if no authenticated user exists
+- Return 403 if the actor lacks permission
 
-### Security Rules
+Rules:
 
-Access token:
-- short-lived
+- Must remain reusable
+- Must not query the database
+- Must not contain resource ownership logic
+- Must not contain route-specific business rules
 
-Refresh token:
-- long-lived
-- rotatable
-- revocable
+### Policy Integration
 
-### Testing
+Update authorization policies to consume permissions where practical.
 
-Add:
+Current policy behavior must remain equivalent:
 
-- session service tests
-- refresh endpoint tests
-- logout endpoint tests
+- Admin can manage users
+- User can view own profile
+- User can update own profile
+- User cannot access another user without permission
+
+Rules:
+
+- Policies remain pure functions
+- Policies return boolean only
+- Policies do not throw AppError
+- Policies do not access repositories
+- Ownership checks stay explicit
+
+### Route Integration
+
+Where appropriate, replace hardcoded role middleware with permission middleware.
+
+Example:
+
+Before:
+
+authorize('admin')
+
+After:
+
+requirePermission(USER_PERMISSIONS.READ)
+
+Rules:
+
+- Preserve endpoint behavior
+- Preserve response contract
+- Protected routes must still use protect before authorization middleware
+- Do not remove authorize middleware unless it is no longer used
+
+---
+
+## Testing
+
+Add or update tests for:
+
+### Permission Constants
+
+- Permission constants exist
+- Permission strings follow resource.action format
+- No duplicated permission values
+
+### Role-Permission Mapping
+
+- admin has user management permissions
+- user has only self permissions
+- unknown role has no permissions
+
+### Permission Helper
+
+- hasPermission returns true for allowed permissions
+- hasPermission returns false for missing permissions
+- hasPermission returns false for missing actor
+- hasPermission does not trust actor.permissions
+
+### Permission Middleware
+
+- allows authenticated actor with permission
+- blocks authenticated actor without permission with 403
+- blocks missing actor with 401
+- uses permission constants
+
+### Policy Integration
+
+- admin can manage users through permission mapping
+- user can access own resource through ownership policy
+- user cannot access another user's resource
+- policy functions remain pure boolean functions
+
+### Route Integration
+
+- admin-only user listing remains protected
+- non-admin user cannot list users
+- existing protected routes still work
 
 ## Success Criteria
 
-1. Session layer implemented
-2. Refresh token endpoint implemented
-3. Logout endpoint implemented
-4. Token rotation implemented
-5. Session revocation implemented
-6. Existing authentication preserved
-7. Tests added
-8. Existing tests continue passing
+1. Permission constants implemented
+2. Role-permission mapping implemented
+3. hasPermission helper implemented
+4. Permission middleware implemented
+5. User authorization policies are permission-aware where practical
+6. Route-level hardcoded role checks are reduced where appropriate
+7. Existing authentication/session behavior preserved
+8. Tests added or updated
+9. Full test suite passes

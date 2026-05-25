@@ -18,6 +18,7 @@ Authorization middleware must remain reusable.
 Good:
 - authorize('admin')
 - authorize('admin', 'moderator')
+- requirePermission(USER_PERMISSIONS.READ)
 
 Avoid:
 - hardcoded route-specific authorization logic
@@ -149,15 +150,65 @@ Permissions must not be hardcoded inside:
 - controllers
 - repositories
 - route handlers
+- services
+- policies
 Use permission constants.
 
 Good:
 hasPermission(actor, USER_PERMISSIONS.READ)
+requirePermission(USER_PERMISSIONS.READ)
 
 Bad:
 actor.permissions.includes('user.read')
 
 scattered throughout codebase.
+
+### Permission Constants Rules
+
+Permission constants must be centralized.
+
+Good:
+    USER_PERMISSIONS.READ
+    USER_PERMISSIONS.UPDATE_SELF
+
+Bad:
+    'user.read'
+    'user.update.self'
+
+Rules:
+- Do not duplicate permission strings across modules.
+- Do not build permission names dynamically from request input.
+- Do not expose internal permission mappings as public API in Phase 18.
+
+### Role-Permission Mapping Rules
+
+Role-to-permission mapping must be server-controlled.
+
+Good:
+    ROLE_PERMISSIONS.admin.includes(USER_PERMISSIONS.READ)
+
+Bad:
+    req.user.permissions.includes('user.read')
+
+Rules:
+- Never trust client-provided permissions.
+- Do not read permissions from req.body.
+- Do not store permissions in access tokens during Phase 18.
+- Keep role mapping deterministic and testable.
+
+### Permission Middleware Rules
+
+Permission middleware must:
+- require an authenticated actor
+- evaluate permission constants only
+- return 403 for authenticated users without permission
+- remain reusable across routes
+
+Permission middleware must not:
+- access repositories
+- create HTTP responses directly outside the middleware pattern
+- contain resource ownership logic
+- contain route-specific business rules
 
 ### Policy Rules
 
@@ -166,9 +217,12 @@ Policies must:
 - return boolean only
 - contain no database access
 - contain no HTTP logic
+- use permission helpers for capability checks
+- keep ownership checks explicit
 
 Good:
     canViewUser(actor, targetUserId)
+    canUpdateUser(actor, targetUserId)
 
 Bad:
     res.status(403)
