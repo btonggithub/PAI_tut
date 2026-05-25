@@ -122,7 +122,11 @@ Rules:
 
 ### Policy Integration
 
-Update authorization policies to consume permissions where practical.
+Policies may use permission helpers when beneficial.
+
+Policies must remain independent business authorization rules.
+
+Permissions must not become a replacement for ownership checks.
 
 Current policy behavior must remain equivalent:
 
@@ -152,6 +156,22 @@ authorize('admin')
 After:
 
 requirePermission(USER_PERMISSIONS.READ)
+
+Permission middleware protects capability-level access.
+
+Ownership remains the responsibility of policies.
+
+For resource ownership checks, permission middleware may be combined with policy checks:
+
+requirePermission(USER_PERMISSIONS.READ)
+
+AND
+
+canViewUser(actor, targetUserId)
+
+may both participate in authorization.
+
+Permission checks do not replace ownership checks.
 
 Rules:
 
@@ -216,3 +236,23 @@ Add or update tests for:
 7. Existing authentication/session behavior preserved
 8. Tests added or updated
 9. Full test suite passes
+
+---
+
+## Non Goals
+
+Do NOT implement:
+
+- dynamic permissions in database
+- permission management UI
+- permission caching
+- permission inheritance
+- ABAC
+- ACL
+- Event-driven authorization
+- Redis authorization cache
+- audit log model
+- audit log repository
+- audit log service
+
+Use static in-code permission definitions only.

@@ -82,15 +82,16 @@ Goals:
 
 ## NEXT PHASE
 
-Advanced Session Management
+Phase 19 — Audit Logging
 
 Planned goals:
-- Device metadata
-- My sessions endpoint
-- Logout other devices
-- Session audit preparation
+- Audit log foundation
+- Audit log model
+- Audit log repository
+- Audit log service
+- Security-sensitive action tracking
+- User/auth/admin activity audit preparation
 
 ---
-
 
 

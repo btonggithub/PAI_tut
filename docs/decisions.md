@@ -256,6 +256,10 @@ Examples:
 Decision:
 Phase 18 introduces an in-code permission system.
 
+Permissions do not replace ownership-based authorization.
+
+Ownership checks remain the responsibility of policy functions.
+
 The system will include:
 - permission constants
 - role-to-permission mapping

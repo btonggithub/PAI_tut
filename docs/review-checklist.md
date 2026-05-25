@@ -143,3 +143,10 @@ Maintainability:
 - Policy tests updated
 - Route/integration tests updated where behavior is affected
 - Full test suite passes
+
+### Ownership Review
+
+- Ownership checks still exist
+- Permission checks do not replace ownership checks
+- Self-resource access remains protected
+- Admin override behavior preserved
