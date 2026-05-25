@@ -4,9 +4,6 @@ const sessionSchema = new mongoose.Schema(
   {
     sessionId: {
       type: String,
-      required: true,
-      unique: true,
-      index: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,6 +27,17 @@ const sessionSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+  }
+);
+
+// Migration-safe unique index for storage-independent session IDs
+sessionSchema.index(
+  { sessionId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      sessionId: { $type: 'string' },
+    },
   }
 );
 

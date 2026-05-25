@@ -29,6 +29,7 @@ const authRepository = require('../../src/repositories/auth/authRepository');
 const sessionService = require('../../src/services/session/sessionService');
 const { hashPassword, comparePassword } = require('../../src/utils/password');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../src/utils/jwt');
+const crypto = require('crypto');
 
 describe('authService', () => {
   beforeEach(() => {
@@ -50,6 +51,45 @@ describe('authService', () => {
   });
 
   describe('register', () => {
+    it('uses generated sessionId as refresh JWT sid instead of any persistence id', async () => {
+      const randomUuidSpy = jest
+        .spyOn(crypto, 'randomUUID')
+        .mockReturnValueOnce('generated-session-id')
+        .mockReturnValueOnce('generated-jti-id');
+
+      authRepository.findUserByEmail.mockResolvedValue(null);
+      hashPassword.mockResolvedValue('hashed-password');
+      authRepository.createUser.mockResolvedValue({
+        id: 'mongo-user-id',
+        name: 'John',
+        email: 'john@example.com',
+        role: 'user',
+        password: 'hashed-password',
+      });
+      sessionService.createSession.mockResolvedValue({
+        id: 'mongo-session-object-id',
+        sessionId: 'persisted-session-id',
+      });
+
+      await authService.register({
+        name: 'John',
+        email: 'john@example.com',
+        password: 'password123',
+      });
+
+      expect(signRefreshToken).toHaveBeenCalledWith({
+        sub: 'mongo-user-id',
+        sid: 'generated-session-id',
+        jti: 'generated-jti-id',
+        type: 'refresh',
+      });
+      expect(signRefreshToken).not.toHaveBeenCalledWith(
+        expect.objectContaining({ sid: 'mongo-session-object-id' })
+      );
+
+      randomUuidSpy.mockRestore();
+    });
+
     it('registers user and returns safe user plus tokens', async () => {
       authRepository.findUserByEmail.mockResolvedValue(null);
       hashPassword.mockResolvedValue('hashed-password');
@@ -226,7 +266,7 @@ describe('authService', () => {
 
     it('throws AppError when refresh token signature is invalid', async () => {
       verifyRefreshToken.mockImplementation(() => {
-        throw new Error('bad token');
+        throw new AppError('bad token', 401);
       });
 
       await expect(authService.refresh({ refreshToken: 'bad-token' })).rejects.toMatchObject({
@@ -276,7 +316,7 @@ describe('authService', () => {
 
     it('throws AppError when refresh token signature is invalid', async () => {
       verifyRefreshToken.mockImplementation(() => {
-        throw new Error('bad token');
+        throw new AppError('bad token', 401);
       });
 
       await expect(authService.logout({ refreshToken: 'bad-token' })).rejects.toMatchObject({

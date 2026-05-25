@@ -18,6 +18,10 @@ const secureHashEquals = (left, right) => {
 };
 
 const createSession = async ({ userId, sessionId, refreshTokenHash, expiresAt }) => {
+  if (!sessionId) {
+    throw new AppError('sessionID is required', 500);
+  }
+
   return sessionRepository.createSession({
     userId,
     sessionId,

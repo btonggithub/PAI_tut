@@ -13,6 +13,48 @@ describe('sessionService', () => {
     jest.clearAllMocks();
   });
 
+  const buildAtomicRotationMocks = () => {
+    const storedSession = {
+      sessionId: 's1',
+      userId: 'u1',
+      revokedAt: null,
+      expiresAt: new Date('2027-01-01T00:00:00.000Z'),
+      refreshTokenHash: sessionService.hashRefreshToken('old-refresh-token'),
+    };
+
+    sessionRepository.findActiveSessionByIdAndUser.mockImplementation((sessionId, userId) => {
+      const isActive =
+        storedSession.sessionId === sessionId &&
+        storedSession.userId === userId &&
+        storedSession.revokedAt === null &&
+        storedSession.expiresAt > new Date();
+
+      return isActive ? { ...storedSession } : null;
+    });
+
+    sessionRepository.rotateSessionRefreshToken.mockImplementation(
+      async (sessionId, userId, currentHash, nextHash, expiresAt) => {
+        const matchesCurrentSession =
+          storedSession.sessionId === sessionId &&
+          storedSession.userId === userId &&
+          storedSession.revokedAt === null &&
+          storedSession.expiresAt > new Date() &&
+          storedSession.refreshTokenHash === currentHash;
+
+        if (!matchesCurrentSession) {
+          return null;
+        }
+
+        storedSession.refreshTokenHash = nextHash;
+        storedSession.expiresAt = expiresAt;
+
+        return { ...storedSession };
+      }
+    );
+
+    return storedSession;
+  };
+
   it('hashRefreshToken returns deterministic hash', () => {
     const token = 'refresh-token';
 
@@ -36,6 +78,16 @@ describe('sessionService', () => {
 
     expect(sessionRepository.createSession).toHaveBeenCalledWith(payload);
     expect(result).toEqual({ id: 'doc-id', ...payload });
+  });
+
+  it('createSession rejects missing sessionId for new sessions', async () => {
+    await expect(
+      sessionService.createSession({
+        userId: 'u1',
+        refreshTokenHash: 'hashed-token',
+        expiresAt: new Date('2026-12-31T00:00:00.000Z'),
+      })
+    ).rejects.toThrow('sessionID is required');
   });
 
   it('validateRefreshSession throws for missing active session', async () => {
@@ -110,6 +162,82 @@ describe('sessionService', () => {
       expiresAt
     );
     expect(result).toEqual({ id: 's1' });
+  });
+
+  it('rotateSessionRefreshToken throws when repository cannot atomically match current hash', async () => {
+    sessionRepository.rotateSessionRefreshToken.mockResolvedValue(null);
+
+    await expect(
+      sessionService.rotateSessionRefreshToken({
+        sessionId: 's1',
+        userId: 'u1',
+        currentRefreshToken: 'old-refresh-token',
+        refreshToken: 'next-refresh-token',
+        expiresAt: new Date('2026-12-31T00:00:00.000Z'),
+      })
+    ).rejects.toMatchObject({
+      message: 'Invalid refresh token',
+      statusCode: 401,
+    });
+  });
+
+  it('rejects reuse of the old refresh token after rotation', async () => {
+    buildAtomicRotationMocks();
+
+    await sessionService.rotateSessionRefreshToken({
+      sessionId: 's1',
+      userId: 'u1',
+      currentRefreshToken: 'old-refresh-token',
+      refreshToken: 'next-refresh-token',
+      expiresAt: new Date('2027-06-01T00:00:00.000Z'),
+    });
+
+    await expect(
+      sessionService.validateRefreshSession({
+        sessionId: 's1',
+        userId: 'u1',
+        refreshToken: 'old-refresh-token',
+      })
+    ).rejects.toMatchObject({
+      message: 'Invalid refresh token',
+      statusCode: 401,
+    });
+
+    await expect(
+      sessionService.validateRefreshSession({
+        sessionId: 's1',
+        userId: 'u1',
+        refreshToken: 'next-refresh-token',
+      })
+    ).resolves.toMatchObject({
+      sessionId: 's1',
+      userId: 'u1',
+    });
+  });
+
+  it('rejects a second refresh rotation attempt with the same old token', async () => {
+    buildAtomicRotationMocks();
+
+    await sessionService.rotateSessionRefreshToken({
+      sessionId: 's1',
+      userId: 'u1',
+      currentRefreshToken: 'old-refresh-token',
+      refreshToken: 'next-refresh-token',
+      expiresAt: new Date('2027-06-01T00:00:00.000Z'),
+    });
+
+    await expect(
+      sessionService.rotateSessionRefreshToken({
+        sessionId: 's1',
+        userId: 'u1',
+        currentRefreshToken: 'old-refresh-token',
+        refreshToken: 'nexter-refresh-token',
+        expiresAt: new Date('2027-07-01T00:00:00.000Z'),
+      })
+    ).rejects.toMatchObject({
+      message: 'Invalid refresh token',
+      statusCode: 401,
+    });
   });
 
   it('revokeSession revokes active session', async () => {

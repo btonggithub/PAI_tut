@@ -322,3 +322,83 @@ Phase 17.5 is complete when:
 * No raw refresh tokens are stored.
 * Existing API contract remains unchanged.
 * Full test suite passes.
+
+
+---
+
+# 17.5.1
+
+## Migration Safety — sessionId Unique Index
+
+Session.sessionId unique index must use a migration-safe strategy.
+
+Preferred options:
+
+1. Use a unique sparse or partial unique index:
+
+```js
+sessionSchema.index(
+  { sessionId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      sessionId: { $type: 'string' }
+    }
+  }
+);
+
+Do not define unique: true directly on the sessionId schema field if it would create a non-migration-safe unique index.
+
+2. Or backfill sessionId values before enforcing strict required validation.
+
+Rules:
+
+- Existing Session documents without sessionId must not break application startup.
+- Existing Session documents must not fail validation merely because they predate the sessionId field.
+- Legacy sessions without sessionId may be treated as invalid by refresh/logout flows.
+- New sessions must always be created with sessionId.
+- Do not delete or mutate legacy session records automatically.
+
+## Additional Test Coverage
+
+Add tests to verify the hardening behavior directly, not only through mocked services.
+
+### Session Model Index Tests
+
+Add tests confirming:
+
+- Session model has a TTL index on expiresAt.
+- TTL index uses expireAfterSeconds: 0.
+- sessionId unique index is migration-safe.
+- sessionId index uses sparse: true or partialFilterExpression.
+- Legacy documents without sessionId should not make index creation unsafe.
+
+### Repository Rotation Tests
+
+Add tests confirming rotateSessionRefreshToken query includes:
+
+- sessionId
+- userId
+- revokedAt: null
+- expiresAt > now
+- refreshTokenHash: currentHash
+
+The repository must only rotate when the currently stored refreshTokenHash matches the submitted old refresh token hash.
+
+### Replay Protection Tests
+
+Add tests confirming:
+
+- If rotateSessionRefreshToken returns null, service throws AppError(401).
+- Reusing an old refresh token after rotation fails.
+- A second concurrent refresh attempt with the same old refresh token cannot succeed after the first rotation updates the hash.
+
+### Token Contract Tests
+
+Add tests confirming:
+
+- Refresh JWT sid uses sessionId, not Mongo _id.
+- Refresh JWT includes jti and type: refresh.
+- Access JWT includes type: access.
+- Refresh/logout reject non-refresh token payloads.
+- protect rejects non-access token payloads.
