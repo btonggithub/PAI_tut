@@ -2,196 +2,192 @@
 
 ## Phase
 
-Phase 18 — Permission System
+Phase 19 — Audit Logging
 
 ## Objective
 
-Introduce a centralized permission system that reduces hardcoded role checks while preserving the existing authentication, session, RBAC, and policy behavior.
+Introduce an audit logging foundation for security-sensitive backend activity while preserving existing authentication, session, permission, policy, and response behavior.
 
-Permissions become the stable authorization unit.
-Roles remain server-controlled collections of permissions.
+Audit logs provide a server-controlled record of important actions.
+They must not become analytics, reporting, alerting, or event infrastructure in this phase.
 
-Existing authentication, refresh-token, session, and policy behavior
-must remain backward compatible unless explicitly required by this phase.
+Existing API behavior and response contracts must remain unchanged unless explicitly required by this phase.
 
 ---
 
 ## Requirements
 
-### Permission Module
+### Audit Module
 
 Create:
 
-src/permissions/
+src/models/auditLogModel.js
+src/repositories/audit/
+src/services/audit/
 
 Recommended files:
 
-- src/permissions/userPermissions.js
-- src/permissions/rolePermissions.js
-- src/permissions/hasPermission.js
-- src/permissions/index.js
+- src/models/auditLogModel.js
+- src/repositories/audit/auditLogRepository.js
+- src/services/audit/auditLogService.js
 
-### Permission Constants
+Optional files if they improve clarity without over-engineering:
 
-Define user-related permission constants.
-
-Recommended permissions:
-
-- user.read
-- user.read.self
-- user.update
-- user.update.self
-- user.delete
-- user.manage
+- src/services/audit/auditActions.js
+- src/services/audit/auditResults.js
 
 Rules:
 
-- Permission strings must be centralized.
-- Do not hardcode permission strings in controllers, routes, services, or policies.
-- Use constants such as USER_PERMISSIONS.READ.
+- Follow existing model/repository/service patterns.
+- Repositories own all audit log database access.
+- Controllers and routes must not write audit logs directly.
+- Do not introduce audit routes or public audit APIs during this phase.
 
-### Role-Permission Mapping
+### Audit Log Model
 
-Define role-to-permission mapping.
+Define an audit log model for security-sensitive actions.
 
-Recommended initial mapping:
+Recommended fields:
 
-admin:
-- user.read
-- user.update
-- user.delete
-- user.manage
-
-user:
-- user.read.self
-- user.update.self
+- actorId
+- actorRole
+- action
+- resourceType
+- resourceId
+- result
+- ipAddress
+- userAgent
+- metadata
+- createdAt
 
 Rules:
 
-- Role-permission mapping must be server-controlled.
-- Do not trust permissions from request bodies.
-- Do not store permissions in JWT payloads during this phase.
-- Unknown roles should resolve to no permissions.
+- actorId may be absent for unauthenticated events such as failed login.
+- action must be required.
+- result must be required.
+- metadata must default to an empty object.
+- createdAt must be available for audit ordering.
+- Do not store passwords, raw tokens, refresh token hashes, Authorization headers, or secrets.
 
-### Permission Evaluation
+### Audit Actions
 
-Implement a reusable permission helper.
+Use stable action names.
+
+Recommended initial actions:
+
+- auth.login
+- auth.refresh
+- auth.logout
+- user.profile.update
+- user.read.admin
+
+Rules:
+
+- Action names must be centralized where practical.
+- Action names must stay separate from result values.
+- Do not build action names dynamically from request input.
+- Keep names lowercase and dot-separated.
+
+### Audit Results
+
+Use predictable result values.
+
+Recommended results:
+
+- succeeded
+- failed
+- forbidden
+
+Rules:
+
+- Result values should be centralized where practical.
+- Use metadata for additional details instead of creating arbitrary result strings.
+
+### Audit Repository
+
+Implement a repository for audit log persistence.
 
 Recommended API:
 
-hasPermission(actor, permission)
+recordAuditLog(payload)
 
 Responsibilities:
 
-- Read actor.role
-- Resolve permissions from rolePermissions
-- Return boolean
+- Create audit log records.
+- Own Mongoose model usage.
+- Keep persistence details out of services.
 
 Rules:
 
-- Pure function only
-- No database access
-- No HTTP logic
-- No AppError creation inside the helper
+- No HTTP logic.
+- No response formatting.
+- No controller responsibilities.
+- No business workflow orchestration.
 
-### Permission Middleware
+### Audit Service
 
-Implement permission middleware.
-
-Recommended file:
-
-src/middleware/auth/requirePermission.js
+Implement a reusable audit service.
 
 Recommended API:
 
-requirePermission(permission)
+recordAuditEvent(payload)
 
 Responsibilities:
 
-- Require req.user
-- Evaluate hasPermission(req.user, permission)
-- Call next() when allowed
-- Return 401 if no authenticated user exists
-- Return 403 if the actor lacks permission
+- Normalize audit payloads.
+- Sanitize metadata.
+- Call audit repository.
+- Provide a reusable audit entry point for domain services.
 
 Rules:
 
-- Must remain reusable
-- Must not query the database
-- Must not contain resource ownership logic
-- Must not contain route-specific business rules
+- Do not depend on raw Express request objects.
+- Do not store secrets or token values.
+- Keep the service reusable across auth, user, and future admin workflows.
+- Preserve existing API response contracts.
 
-### Policy Integration
+### Integration Targets
 
-Policies may use permission helpers when beneficial.
+Add audit logging to selected security-sensitive workflows where practical.
 
-Policies must remain independent business authorization rules.
+Initial targets:
 
-Permissions must not become a replacement for ownership checks.
-
-Current policy behavior must remain equivalent:
-
-- Admin can manage users
-- User can view own profile
-- User can update own profile
-- User cannot access another user without permission
-
-Rules:
-
-- Policies remain pure functions
-- Policies return boolean only
-- Policies do not throw AppError
-- Policies do not access repositories
-- Ownership checks stay explicit
-
-### Route Integration
-
-Where appropriate, replace hardcoded role middleware with permission middleware.
-
-Initial route targets:
-
-- GET /api/v1/users
-- GET /api/v1/users/:id
-
-These currently represent admin-only user access and should move from role-name checks
-to capability checks while preserving the existing 401/403 behavior and response contract.
-
-Example:
-
-Before:
-
-authorize('admin')
-
-After:
-
-requirePermission(USER_PERMISSIONS.READ)
-
-Permission middleware protects capability-level access.
-
-Ownership remains the responsibility of policies.
-
-For resource ownership checks, permission middleware may be combined with policy checks:
-
-requirePermission(USER_PERMISSIONS.READ)
-
-AND
-
-canViewUser(actor, targetUserId)
-
-may both participate in authorization.
-
-Permission checks do not replace ownership checks.
+- Successful login
+- Failed login
+- Successful refresh token rotation
+- Failed refresh token attempt where practical
+- Successful logout/session revocation
+- Successful profile update
+- Admin user listing or admin user read where practical
 
 Rules:
 
-- Preserve endpoint behavior
-- Preserve response contract
-- Protected routes must still use protect before authorization middleware
-- Do not remove authorize middleware unless it is no longer used
-- Existing authorize(role) middleware may temporarily coexist with
-requirePermission(permission) during migration.
+- Keep integration minimal and focused.
+- Do not rewrite existing auth/session/user flows.
+- Do not add event infrastructure.
+- Do not let audit logging expose sensitive request data.
+- Existing success/error response shape must remain unchanged.
 
-Do not force complete RBAC removal in this phase.
+### Request Metadata
+
+When available, capture request metadata without coupling services to Express.
+
+Allowed metadata:
+
+- ipAddress
+- userAgent
+
+Recommended approach:
+
+- Controllers may pass sanitized request context into services when needed.
+- Services pass normalized audit context into auditLogService.
+- AuditLogService persists only safe fields.
+
+Rules:
+
+- Services must not receive raw req objects.
+- Do not store Authorization headers.
+- Do not store request bodies wholesale.
 
 ---
 
@@ -199,54 +195,50 @@ Do not force complete RBAC removal in this phase.
 
 Add or update tests for:
 
-### Permission Constants
+### Audit Log Model
 
-- Permission constants exist
-- Permission strings follow resource.action format
-- No duplicated permission values
+- Required fields are enforced.
+- Metadata defaults to an empty object.
+- Timestamps are available.
+- Sensitive fields are not part of the schema.
 
-### Role-Permission Mapping
+### Audit Repository
 
-- admin has user management permissions
-- user has only self permissions
-- unknown role has no permissions
+- recordAuditLog creates audit entries.
+- Repository owns model interaction.
+- Repository tests isolate persistence behavior.
 
-### Permission Helper
+### Audit Service
 
-- hasPermission returns true for allowed permissions
-- hasPermission returns false for missing permissions
-- hasPermission returns false for missing actor
-- hasPermission does not trust actor.permissions
+- recordAuditEvent calls the repository with normalized payload.
+- Missing optional actor fields are handled.
+- Sensitive metadata is removed.
+- Raw tokens, passwords, refresh token hashes, and Authorization headers are not persisted.
 
-### Permission Middleware
+### Workflow Integration
 
-- allows authenticated actor with permission
-- blocks authenticated actor without permission with 403
-- blocks missing actor with 401
-- uses permission constants
+- Successful login records an audit event.
+- Failed login records an audit event where practical.
+- Refresh/logout/profile update audit events are covered where implementation touches those workflows.
+- Existing response contracts remain unchanged.
 
-### Policy Integration
+### Regression
 
-- admin can manage users through permission mapping
-- user can access own resource through ownership policy
-- user cannot access another user's resource
-- policy functions remain pure boolean functions
+- Existing authentication/session tests continue passing.
+- Existing permission tests continue passing.
+- Full test suite passes.
 
-### Route Integration
-
-- admin-only user listing remains protected
-- non-admin user cannot list users
-- existing protected routes still work
+---
 
 ## Success Criteria
 
-1. Permission constants implemented
-2. Role-permission mapping implemented
-3. hasPermission helper implemented
-4. Permission middleware implemented
-5. User authorization policies are permission-aware where practical
-6. Route-level hardcoded role checks are reduced where appropriate
-7. Existing authentication/session behavior preserved
+1. Audit log model implemented
+2. Audit log repository implemented
+3. Audit log service implemented
+4. Audit action/result names centralized where practical
+5. Sensitive metadata sanitization implemented
+6. Security-sensitive workflows create audit entries where practical
+7. Existing authentication/session/permission behavior preserved
 8. Tests added or updated
 9. Full test suite passes
 
@@ -256,40 +248,47 @@ Add or update tests for:
 
 Do NOT implement:
 
-- dynamic permissions in database
-- permission management UI
-- permission caching
-- permission inheritance
-- ABAC
-- ACL
-- Event-driven authorization
-- Redis authorization cache
-- audit log model
-- audit log repository
-- audit log service
+- audit log UI
+- audit log search API
+- audit export/reporting
+- analytics dashboards
+- alerting
+- event-driven audit logging
+- message queues
+- external log shipping
+- SIEM integration
+- audit log retention policies
+- audit log permission management
+- dynamic audit configuration
 
 Rules:
-- Prefer the simplest implementation that satisfies current requirements.
-- Avoid speculative abstractions for future distributed systems.
-- Do not introduce infrastructure that is not actively required by Phase 18.
-- Maintain readability and maintainability over extensibility.
 
-Use static in-code permission definitions only.
+- Prefer the simplest implementation that satisfies current requirements.
+- Avoid speculative abstractions for external audit systems.
+- Do not introduce infrastructure that is not actively required by Phase 19.
+- Maintain readability and maintainability over extensibility.
+- Use direct service orchestration only.
 
 ---
 
-## Authorization Model
+## Audit Model
 
-Permissions determine capability.
+Audit logging records what happened.
 
-Policies determine contextual/resource ownership authorization.
+Authorization still determines whether an action may happen.
 
-A request may require BOTH:
-- permission validation
-- ownership validation
+Authentication still determines who the actor is.
 
-before access is granted.
+Audit logs must not change business behavior or API response contracts.
 
-Examples:
-- user.read allows reading capability
-- canViewUser(actor, resource) determines whether the actor may read THIS resource
+Flow:
+
+Business action
+↓
+Audit event payload
+↓
+Audit service sanitization
+↓
+Audit repository persistence
+↓
+Audit log record

@@ -150,3 +150,90 @@ Maintainability:
 - Permission checks do not replace ownership checks
 - Self-resource access remains protected
 - Admin override behavior preserved
+
+---
+
+## Audit Logging Review
+
+Audit Design:
+- Audit log model exists
+- Audit log repository exists
+- Audit log service exists
+- Audit action names are stable
+- Audit result values are predictable
+- Audit metadata is compact and security-relevant
+
+Architecture:
+- Controllers do not write audit logs directly
+- Routes do not write audit logs directly
+- Services orchestrate audit logging where appropriate
+- Audit repository owns database access
+- No direct Mongoose usage outside audit repository/model layer
+- Existing response contract remains unchanged
+
+Security:
+- Passwords are not audited
+- Raw access tokens are not audited
+- Raw refresh tokens are not audited
+- refreshTokenHash values are not audited
+- Authorization headers are not audited
+- Secrets/private keys are not audited
+- Failed unauthenticated actions can be logged without actorId
+
+Testing:
+- Audit model tests added
+- Audit repository tests added
+- Audit service tests added
+- Sensitive metadata sanitization tests added
+- Workflow integration tests updated where behavior is affected
+- Existing auth/session/permission tests continue passing
+
+---
+
+## Phase 19 Review
+
+### Audit Module
+
+- src/models/auditLogModel.js exists
+- src/repositories/audit exists
+- src/services/audit exists
+- Audit exports/imports follow existing module patterns
+
+### Audit Model
+
+- Required fields are enforced
+- Metadata defaults safely
+- Timestamps are available
+- Sensitive fields are excluded from schema and payloads
+
+### Audit Repository
+
+- Repository creates audit log entries
+- Repository owns audit model usage
+- Repository does not contain HTTP logic
+- Repository has focused tests
+
+### Audit Service
+
+- Service normalizes audit payloads
+- Service sanitizes metadata
+- Service does not depend on raw Express request objects
+- Service does not persist secrets or tokens
+- Service has focused tests
+
+### Workflow Integration
+
+- Login success/failure audit coverage exists where practical
+- Refresh/logout audit coverage exists where practical
+- Profile update audit coverage exists where practical
+- Admin user access audit coverage exists where practical
+- Existing response contracts are preserved
+
+### Scope Control
+
+- No audit UI added
+- No audit search/export API added
+- No event infrastructure added
+- No message queue added
+- No external log shipping added
+- Full test suite passes

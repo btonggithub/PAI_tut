@@ -319,3 +319,68 @@ Policies may:
 
 Reason:
 Policies must remain deterministic and reusable.
+
+---
+
+## Audit Logging Convention
+
+Audit action names use dot notation.
+
+Format:
+domain.action
+
+Examples:
+- auth.login
+- auth.refresh
+- auth.logout
+- user.profile.update
+- user.read.admin
+
+Rules:
+- Use lowercase action names.
+- Keep action names event-like and stable.
+- Keep action names separate from result values.
+- Do not include user-provided text in action names.
+- Do not build action names dynamically from request input.
+
+### Audit Result Convention
+
+Preferred result values:
+- succeeded
+- failed
+- forbidden
+
+Rules:
+- Results must be predictable constants where practical.
+- Avoid free-form result strings.
+- Use metadata for additional context.
+
+### Audit Entry Convention
+
+Audit entries should capture:
+- actorId
+- actorRole
+- action
+- resourceType
+- resourceId
+- result
+- ipAddress
+- userAgent
+- metadata
+- createdAt
+
+Rules:
+- Metadata must not contain passwords, raw tokens, refresh token hashes, or secrets.
+- Metadata should be compact and security-relevant.
+- Missing actor information is allowed for unauthenticated events such as failed login.
+
+### Audit Layer Convention
+
+Audit logging belongs to:
+- auditLogService
+- auditLogRepository
+- auditLogModel
+
+Controllers and routes must not write audit logs directly.
+
+Services may orchestrate audit logging after security-sensitive actions.

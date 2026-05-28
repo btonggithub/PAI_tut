@@ -228,3 +228,74 @@ Bad:
     res.status(403)
 
 inside policy layer.
+
+---
+
+## Audit Logging Rules
+
+Audit logging must not be implemented inside controllers or routes.
+
+Bad:
+    auditLogRepository.create(req.body)
+
+inside a controller or route handler.
+
+Good:
+    await auditLogService.record({ action, actor, resource, result, metadata })
+
+inside a service workflow.
+
+### Audit Repository Rules
+
+Audit repositories own:
+- Mongoose writes
+- audit log query helpers
+- audit log persistence details
+
+Services must NOT:
+- import audit log Mongoose models directly
+- construct raw audit log database queries
+- format HTTP responses from audit log results
+
+### Audit Service Rules
+
+Audit services may:
+- normalize audit payloads
+- filter sensitive metadata
+- call audit repositories
+- provide reusable record helpers
+
+Audit services must not:
+- depend on Express request objects directly
+- store passwords, raw tokens, refresh token hashes, or secrets
+- expose internal audit mappings as public API during Phase 19
+
+### Audit Metadata Rules
+
+Never audit:
+- password values
+- raw access tokens
+- raw refresh tokens
+- refreshTokenHash values
+- Authorization headers
+- secrets or private keys
+
+Prefer auditing:
+- actor id
+- actor role
+- action name
+- resource type
+- resource id
+- result
+- request IP address
+- user agent
+- compact security-relevant metadata
+
+### Audit Testing Rules
+
+Tests must verify:
+- audit model defaults and required fields
+- audit repository persistence behavior
+- audit service metadata sanitization
+- security-sensitive workflows create audit entries where required
+- existing response contracts remain unchanged

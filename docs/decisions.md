@@ -352,3 +352,95 @@ Current implementation remains:
 - permission mapping remains static and in-code
 - single-service oriented
 - static permission mapping based
+
+---
+
+## Decision 019 — Audit Logging Scope
+
+Status:
+Accepted
+
+Context:
+The project now supports authentication, sessions, role/permission authorization,
+and protected user workflows. Security-sensitive actions should be recorded so
+future operators can understand who did what, when, and whether the action
+succeeded.
+
+Examples:
+- successful login
+- failed login
+- refresh token rotation
+- logout/session revocation
+- profile update
+- admin user reads
+- forbidden authorization attempts where practical
+
+Decision:
+Phase 19 introduces an in-application audit logging foundation.
+
+The system will include:
+- audit log model
+- audit log repository
+- audit log service
+- centralized audit action/result constants where useful
+- service-level audit orchestration for security-sensitive workflows
+
+Audit logs must capture server-controlled context only.
+
+Recommended fields:
+- actorId
+- actorRole
+- action
+- resourceType
+- resourceId
+- result
+- ipAddress
+- userAgent
+- metadata
+- createdAt
+
+This phase will not introduce:
+- audit log UI
+- audit search API
+- export/reporting workflows
+- event-driven audit logging
+- external log shipping
+- analytics dashboards
+- alerting
+
+Consequences:
+
+Positive:
+- Improves security traceability
+- Prepares future admin activity review
+- Keeps audit persistence separated from controllers
+- Creates a foundation for future compliance workflows
+
+Trade-offs:
+- Adds write activity to selected service workflows
+- Requires careful sensitive-data filtering
+- Requires tests for audit model, repository, service, and integration points
+
+---
+
+## Audit Logging Strategy
+
+Status:
+Accepted
+
+Decision:
+Audit logging is orchestrated by services and persisted through an audit
+repository.
+
+Rules:
+- Controllers do not create audit logs directly.
+- Routes do not create audit logs directly.
+- Repositories own audit log database access.
+- Services may call auditLogService after security-sensitive actions.
+- Audit entries must not include passwords, raw tokens, refresh token hashes, or secrets.
+- Audit logging must preserve existing API response contracts.
+- Phase 19 uses direct service orchestration, not event-driven infrastructure.
+
+Reason:
+Service-level orchestration keeps HTTP concerns out of audit persistence while
+allowing business workflows to decide which actions are security-sensitive.

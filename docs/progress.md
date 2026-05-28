@@ -53,38 +53,23 @@
 - Storage-independent sessionId implemented
 - Access/refresh token type enforcement implemented
 
+### Permission System
+- Permission constants implemented
+- Role-permission mapping implemented
+- Permission evaluation helper implemented
+- Permission middleware implemented
+- Permission middleware integrated into user routes
+- Permission-aware user policies implemented
+- Authorization tests updated
+- Existing authentication/session tests passing
+
 ---
 
 ## CURRENT PHASE
 
-Phase 18 — Permission System
-
-Goals:
-- Permission constants
-- Role-permission mapping
-- Permission evaluation helper
-- Permission middleware
-- Permission-aware user policies
-- Replace route-level hardcoded role checks where appropriate
-
-## Success Criteria
-
-- Permission constants implemented
-- Role-permission mapping implemented
-- hasPermission helper implemented
-- Permission middleware implemented
-- User routes can use permission middleware
-- Policies can evaluate permissions without hardcoded role checks where practical
-- Authorization tests updated
-- Existing authentication/session tests continue passing
-
----
-
-## NEXT PHASE
-
 Phase 19 — Audit Logging
 
-Planned goals:
+Goals:
 - Audit log foundation
 - Audit log model
 - Audit log repository
@@ -92,6 +77,29 @@ Planned goals:
 - Security-sensitive action tracking
 - User/auth/admin activity audit preparation
 
+## Success Criteria
+
+- Audit log model implemented
+- Audit log repository implemented
+- Audit log service implemented
+- Sensitive metadata filtering implemented
+- Security-sensitive workflows can create audit entries
+- Existing authentication/session/permission behavior preserved
+- Audit tests added or updated
+- Full test suite passes
+
 ---
 
+## NEXT PHASE
+
+Phase 20 — File Upload Foundation
+
+Planned goals:
+- File upload middleware foundation
+- File metadata model preparation
+- Upload validation
+- Storage abstraction preparation
+- User-owned file workflow preparation
+
+---
 

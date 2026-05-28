@@ -87,20 +87,21 @@ src/
 
 ---
 
-## Target Structure After Phase 18
+## Target Structure After Phase 19
 
-Phase 18 introduces a centralized permission module:
+Phase 19 introduces an audit logging module:
 
 src/
-├── permissions/
-│   ├── hasPermission.js
-│   ├── index.js
-│   ├── rolePermissions.js
-│   └── userPermissions.js
+├── models/
+│   └── auditLogModel.js
 │
-└── middleware/
-    └── auth/
-        └── requirePermission.js
+├── repositories/
+│   └── audit/
+│       └── auditLogRepository.js
+│
+└── services/
+    └── audit/
+        └── auditLogService.js
 
 ---
 
@@ -340,7 +341,7 @@ Implemented:
 - Consistent authorization rules across modules
 
 ### Permission System Goals
-Phase 18 objectives:
+Implemented:
 - Centralized permission constants
 - Centralized role-to-permission mapping
 - Reusable permission evaluation helper
@@ -502,6 +503,80 @@ Rules:
 - Policies remain pure business authorization evaluators.
 - Services may orchestrate authorization decisions but must not depend on middleware.
 - Authorization utilities must remain dependency-light and reusable.
+
+---
+
+## Audit Logging Layer
+
+Responsible for recording security-sensitive actions and important account activity.
+
+Contains:
+models/auditLogModel.js
+repositories/audit/
+services/audit/
+
+Responsibilities:
+- Persist audit log entries
+- Normalize audit event payloads
+- Capture actor, action, resource, result, and request metadata
+- Support future audit review workflows
+
+Rules:
+- Controllers must not write audit logs directly.
+- Repositories own audit log database writes.
+- Services orchestrate audit logging as part of business workflows.
+- Audit logging must not expose sensitive secrets, passwords, or tokens.
+- Audit logging must not depend on event infrastructure during Phase 19.
+
+Recommended audit entry shape:
+
+actor
+↓
+action
+↓
+resource
+↓
+metadata
+↓
+result
+↓
+timestamp
+
+Examples:
+- auth.login
+- auth.logout
+- auth.refresh
+- user.profile.update
+- user.read.admin
+
+---
+
+## Phase 19 Audit Logging Flow
+
+Service-level audit logging:
+
+Request
+↓
+Authentication / Authorization
+↓
+Controller
+↓
+Domain Service
+↓
+Business Action
+↓
+Audit Log Service
+↓
+Audit Log Repository
+↓
+Database
+
+Rules:
+- Audit logging is orchestrated from services, not controllers or routes.
+- Audit repository owns all audit log persistence.
+- Audit logs should capture enough context for security review without storing secrets.
+- Audit failures should be handled deliberately and consistently by the audit service.
+- Phase 19 must use direct service orchestration, not event-driven infrastructure.
 
 ---
 

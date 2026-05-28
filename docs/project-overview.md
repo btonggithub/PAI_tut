@@ -108,11 +108,19 @@ The project currently implements:
 - Expired session TTL cleanup
 
 ### Permission Foundation
-- Planned for Phase 18
-- Permission-based authorization preparation
-- Role-to-permission mapping preparation
-- Fine-grained access control preparation
-- Permission-aware policy preparation
+- Permission constants
+- Role-to-permission mapping
+- Permission evaluation helper
+- Permission middleware
+- Permission-aware policy checks
+- Fine-grained authorization preparation
+
+### Audit Logging Foundation
+- Planned for Phase 19
+- Audit log model preparation
+- Audit repository preparation
+- Audit service preparation
+- Security-sensitive action tracking preparation
 
 ---
 
@@ -160,30 +168,28 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 18 — Permission System
-
-Current goals:
-- Permission abstraction
-- Permission constants
-- Role-permission mapping
-- Permission evaluation helper
-- Permission middleware abstraction
-- Permission-aware authorization policies
-- Fine-grained authorization
-
----
-
-## Planned Next Phase
-
 Phase 19 — Audit Logging
 
-Future goals:
+Current goals:
 - Audit log foundation
 - Audit log model
 - Audit log repository
 - Audit log service
 - Security-sensitive action tracking
 - User/auth/admin activity audit preparation
+
+---
+
+## Planned Next Phase
+
+Phase 20 — File Upload Foundation
+
+Future goals:
+- File upload middleware foundation
+- File metadata model preparation
+- Upload validation
+- Storage abstraction preparation
+- User-owned file workflow preparation
 
 ---
 
