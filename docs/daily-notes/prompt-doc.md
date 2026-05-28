@@ -80,14 +80,14 @@ Read project context from:
 - docs/coding-rules.md
 - docs/progress.md
 - docs/prompts/current-task.md
-- docs/review-checklist.md 
+- docs/review-checklist.md
 
 Ignore:
 - docs/changelog/*
 - docs/daily-notes/*
 - docs/archive/*
 
-Then implement current-task.md.
+Then implement docs/prompts/current-task.md.
 
 Follow:
 - existing architecture
@@ -105,6 +105,14 @@ Architecture rules MUST remain enforced:
 - No business logic inside routes
 - No response formatting outside response utility/error middleware
 
+Permission phase constraints:
+- Implement static in-code permissions only.
+- Do not implement dynamic permissions, role management APIs, database-backed permissions, ABAC, ACL, audit logging, caching, or event-driven authorization.
+- Existing authorize(role) middleware may coexist with requirePermission(permission); do not force complete RBAC removal.
+- Permission checks must not replace ownership checks.
+- Role-to-permission mapping must be server-controlled.
+- Do not trust client-provided permissions or JWT permission arrays.
+
 Repository rules:
 - Prefer domain-oriented repository methods
 - Avoid leaking query logic into services
@@ -115,21 +123,6 @@ Testing rules:
 - Reuse fixtures/helpers when appropriate
 - Keep tests isolated
 - Preserve standardized response assertions
-
-Do not:
-- change folder structure unless required
-- introduce unnecessary abstractions
-- introduce premature optimization
-- rewrite unrelated modules
-- break existing response contracts
-
-Before modifying files:
-- inspect existing implementation first
-- preserve current architecture patterns
-- avoid conflicting with recently modified files
-
-After implementation:
-- run diagnostics/tests when possible
-- summarize changes against current-task success criteria
+- Add/update tests required by current-task.md
 
 ---
