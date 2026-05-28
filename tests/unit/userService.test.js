@@ -6,9 +6,14 @@ jest.mock('../../src/repositories/user/userRepository', () => ({
   findUsers: jest.fn(),
 }));
 
+jest.mock('../../src/services/audit/auditLogService', () => ({
+  recordAuditEvent: jest.fn().mockResolvedValue({}),
+}));
+
 const AppError = require('../../src/utils/AppError');
 const userService = require('../../src/services/user/userService');
 const userRepository = require('../../src/repositories/user/userRepository');
+const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 
 const userActor = {
   id: 'u1',

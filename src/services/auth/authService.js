@@ -9,6 +9,9 @@ const {
 const authRepository = require('../../repositories/auth/authRepository');
 const { toSafeUser } = require('../user/userMapper');
 const sessionService = require('../session/sessionService');
+const { recordAuditEvent } = require('../audit/auditLogService');
+const AUDIT_ACTIONS = require('../audit/auditActions');
+const AUDIT_RESULTS = require('../audit/auditResults');
 
 const toRefreshExpiryDate = (payload) => {
   return new Date(payload.exp * 1000);
@@ -64,20 +67,54 @@ const register = async ({ name, email, password }) => {
   };
 };
 
-const login = async ({ email, password }) => {
+const login = async ({ email, password }, requestContext = {}) => {
   const user = await authRepository.findUserByEmail(email);
 
   if (!user) {
+    // Record failed login audit event
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_LOGIN,
+      result: AUDIT_RESULTS.FAILED,
+      resourceType: 'user',
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { reason: 'user_not_found' },
+    });
+
     throw new AppError('Invalid email or password', 401);
   }
 
   const isPasswordValid = await comparePassword(password, user.password);
 
   if (!isPasswordValid) {
+    // Record failed login audit event
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_LOGIN,
+      result: AUDIT_RESULTS.FAILED,
+      resourceType: 'user',
+      resourceId: user._id.toString(),
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { reason: 'invalid_password' },
+    });
+
     throw new AppError('Invalid email or password', 401);
   }
 
   const tokens = await issueSessionTokens(user.id);
+
+  // Record successful login audit event
+  await recordAuditEvent({
+    action: AUDIT_ACTIONS.AUTH_LOGIN,
+    result: AUDIT_RESULTS.SUCCEEDED,
+    actorId: user._id.toString(),
+    actorRole: user.role,
+    resourceType: 'user',
+    resourceId: user._id.toString(),
+    ipAddress: requestContext.ipAddress || null,
+    userAgent: requestContext.userAgent || null,
+    metadata: { email: email.toLowerCase() },
+  });
 
   return {
     user: toSafeUser(user),
@@ -85,7 +122,7 @@ const login = async ({ email, password }) => {
   };
 };
 
-const refresh = async ({ refreshToken }) => {
+const refresh = async ({ refreshToken }, requestContext = {}) => {
   let payload;
 
   try {
@@ -124,6 +161,21 @@ const refresh = async ({ refreshToken }) => {
     expiresAt: toRefreshExpiryDate(nextRefreshPayload),
   });
 
+  // Record successful refresh audit event
+  const user = await authRepository.findUserById(payload.sub);
+  if (user) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_REFRESH,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: payload.sub,
+      actorRole: user.role,
+      resourceType: 'session',
+      resourceId: payload.sid,
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+    });
+  }
+
   const token = signAccessToken({ sub: payload.sub });
 
   return {
@@ -132,7 +184,7 @@ const refresh = async ({ refreshToken }) => {
   };
 };
 
-const logout = async ({ refreshToken }) => {
+const logout = async ({ refreshToken }, requestContext = {}) => {
   let payload;
 
   try {
@@ -159,6 +211,21 @@ const logout = async ({ refreshToken }) => {
     sessionId: payload.sid,
     userId: payload.sub,
   });
+
+  // Record successful logout audit event
+  const user = await authRepository.findUserById(payload.sub);
+  if (user) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_LOGOUT,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: payload.sub,
+      actorRole: user.role,
+      resourceType: 'session',
+      resourceId: payload.sid,
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+    });
+  }
 
   return {
     loggedOut: true,

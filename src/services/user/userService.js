@@ -2,6 +2,9 @@ const AppError = require('../../utils/AppError');
 const userRepository = require('../../repositories/user/userRepository');
 const { toSafeUser, toSafeUsers } = require('./userMapper');
 const { canViewUser, canUpdateUser, canManageUsers } = require('../../policies/userPolicy');
+const { recordAuditEvent } = require('../audit/auditLogService');
+const AUDIT_ACTIONS = require('../audit/auditActions');
+const AUDIT_RESULTS = require('../audit/auditResults');
 
 const getMe = async (userId) => {
   const user = await userRepository.findUserProfile(userId);
@@ -48,6 +51,17 @@ const updateMe = async (userId, payload, actor) => {
     throw new AppError('User not found', 404);
   }
 
+  // Record successful profile update audit event
+  await recordAuditEvent({
+    action: AUDIT_ACTIONS.USER_PROFILE_UPDATE,
+    result: AUDIT_RESULTS.SUCCEEDED,
+    actorId: actor.id,
+    actorRole: actor.role,
+    resourceType: 'user',
+    resourceId: userId,
+    metadata: { fields: Object.keys(updatePayload) },
+  });
+
   return toSafeUser(updatedUser);
 };
 
@@ -58,6 +72,16 @@ const listUsers = async (query = {}, actor) => {
   }
 
   const result = await userRepository.findUsers(query);
+
+  // Record audit event for admin user listing
+  await recordAuditEvent({
+    action: AUDIT_ACTIONS.USER_READ_ADMIN,
+    result: AUDIT_RESULTS.SUCCEEDED,
+    actorId: actor.id,
+    actorRole: actor.role,
+    resourceType: 'users',
+    metadata: { count: result.items.length, page: query.page || 1 },
+  });
 
   return {
     users: toSafeUsers(result.items),
@@ -75,6 +99,18 @@ const getUserById = async (userId, actor) => {
 
   if (!user) {
     throw new AppError('User not found', 404);
+  }
+
+  // Record audit event for admin user read
+  if (actor.role === 'admin' && actor.id !== userId) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.USER_READ_ADMIN,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: actor.id,
+      actorRole: actor.role,
+      resourceType: 'user',
+      resourceId: userId,
+    });
   }
 
   return toSafeUser(user);

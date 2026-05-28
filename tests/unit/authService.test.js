@@ -23,12 +23,17 @@ jest.mock('../../src/utils/jwt', () => ({
   verifyRefreshToken: jest.fn(),
 }));
 
+jest.mock('../../src/services/audit/auditLogService', () => ({
+  recordAuditEvent: jest.fn().mockResolvedValue({}),
+}));
+
 const AppError = require('../../src/utils/AppError');
 const authService = require('../../src/services/auth/authService');
 const authRepository = require('../../src/repositories/auth/authRepository');
 const sessionService = require('../../src/services/session/sessionService');
 const { hashPassword, comparePassword } = require('../../src/utils/password');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../src/utils/jwt');
+const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 const crypto = require('crypto');
 
 describe('authService', () => {
@@ -171,6 +176,7 @@ describe('authService', () => {
     it('returns safe user and tokens on valid credentials', async () => {
       authRepository.findUserByEmail.mockResolvedValue({
         id: 'u1',
+        _id: { toString: () => 'u1' },
         name: 'John',
         email: 'john@example.com',
         role: 'user',

@@ -12,6 +12,10 @@ jest.mock('../../src/repositories/user/userRepository', () => ({
   updateUserProfile: jest.fn(),
 }));
 
+jest.mock('../../src/services/audit/auditLogService', () => ({
+  recordAuditEvent: jest.fn().mockResolvedValue({}),
+}));
+
 const app = require('../../src/app');
 const { toAuthHeader } = require('../helpers/authHeader');
 const { signAccessToken } = require('../../src/utils/jwt');
