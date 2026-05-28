@@ -4,6 +4,7 @@ const {
   canDeleteUser,
   canManageUsers,
 } = require('../../src/policies/userPolicy');
+const { hasPermission, USER_PERMISSIONS } = require('../../src/permissions');
 
 describe('userPolicy', () => {
   describe('canViewUser', () => {
@@ -13,12 +14,14 @@ describe('userPolicy', () => {
 
     it('returns true when admin views any user', () => {
       const admin = { id: 'admin-1', role: 'admin' };
+      expect(hasPermission(admin, USER_PERMISSIONS.READ)).toBe(true);
       expect(canViewUser(admin, 'user-123')).toBe(true);
       expect(canViewUser(admin, 'user-456')).toBe(true);
     });
 
     it('returns true when user views own profile', () => {
       const user = { id: 'user-123', role: 'user' };
+      expect(hasPermission(user, USER_PERMISSIONS.READ_SELF)).toBe(true);
       expect(canViewUser(user, 'user-123')).toBe(true);
     });
 
@@ -35,12 +38,14 @@ describe('userPolicy', () => {
 
     it('returns true when admin updates any user', () => {
       const admin = { id: 'admin-1', role: 'admin' };
+      expect(hasPermission(admin, USER_PERMISSIONS.UPDATE)).toBe(true);
       expect(canUpdateUser(admin, 'user-123')).toBe(true);
       expect(canUpdateUser(admin, 'user-456')).toBe(true);
     });
 
     it('returns true when user updates own profile', () => {
       const user = { id: 'user-123', role: 'user' };
+      expect(hasPermission(user, USER_PERMISSIONS.UPDATE_SELF)).toBe(true);
       expect(canUpdateUser(user, 'user-123')).toBe(true);
     });
 
@@ -57,6 +62,7 @@ describe('userPolicy', () => {
 
     it('returns true when admin deletes user', () => {
       const admin = { id: 'admin-1', role: 'admin' };
+      expect(hasPermission(admin, USER_PERMISSIONS.DELETE)).toBe(true);
       expect(canDeleteUser(admin)).toBe(true);
     });
 
@@ -78,6 +84,7 @@ describe('userPolicy', () => {
 
     it('returns true when admin manages users', () => {
       const admin = { id: 'admin-1', role: 'admin' };
+      expect(hasPermission(admin, USER_PERMISSIONS.MANAGE)).toBe(true);
       expect(canManageUsers(admin)).toBe(true);
     });
 

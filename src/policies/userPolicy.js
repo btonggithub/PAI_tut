@@ -8,8 +8,7 @@
  * Returns boolean: true if action is allowed, false otherwise.
  */
 
-const isAdmin = (actor) =>
-  actor?.role === 'admin';
+const { USER_PERMISSIONS, hasPermission } = require('../permissions');
 
 const isOwner = (actor, userId) =>
   actor?.id === userId;
@@ -20,7 +19,8 @@ const isOwner = (actor, userId) =>
  * User can view own profile
  */
 const canViewUser = (actor, userId) =>
-  isAdmin(actor) || isOwner(actor, userId);
+  hasPermission(actor, USER_PERMISSIONS.READ) ||
+  (hasPermission(actor, USER_PERMISSIONS.READ_SELF) && isOwner(actor, userId));
 
 /**
  * Check if actor can update target user
@@ -28,7 +28,8 @@ const canViewUser = (actor, userId) =>
  * User can update own profile
  */
 const canUpdateUser = (actor, userId) =>
-  isAdmin(actor) || isOwner(actor, userId);
+  hasPermission(actor, USER_PERMISSIONS.UPDATE) ||
+  (hasPermission(actor, USER_PERMISSIONS.UPDATE_SELF) && isOwner(actor, userId));
 
 /**
  * Check if actor can delete target user
@@ -39,8 +40,7 @@ const canDeleteUser = (actor) => {
     return false;
   }
 
-  // Only admin can delete users
-  return actor.role === 'admin';
+  return hasPermission(actor, USER_PERMISSIONS.DELETE);
 };
 
 /**
@@ -52,8 +52,7 @@ const canManageUsers = (actor) => {
     return false;
   }
 
-  // Only admin can manage users
-  return actor.role === 'admin';
+  return hasPermission(actor, USER_PERMISSIONS.MANAGE);
 };
 
 module.exports = {
