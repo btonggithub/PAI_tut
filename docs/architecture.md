@@ -87,6 +87,23 @@ src/
 
 ---
 
+## Target Structure After Phase 18
+
+Phase 18 introduces a centralized permission module:
+
+src/
+├── permissions/
+│   ├── hasPermission.js
+│   ├── index.js
+│   ├── rolePermissions.js
+│   └── userPermissions.js
+│
+└── middleware/
+    └── auth/
+        └── requirePermission.js
+
+---
+
 ## Layers
 
 ### Transport Layer
@@ -450,3 +467,61 @@ Rules:
 - Services may orchestrate policy decisions with actor and resource data.
 - Policies must remain pure and return boolean only.
 - Permissions must be evaluated from server-controlled role mappings.
+
+Policies must not call middleware.
+
+Middleware must not call controllers.
+
+Permission helpers must not depend on policies.
+
+Keep authorization flow acyclic and layered.
+
+---
+
+### Authorization Dependency Rules
+
+Authorization components must not create circular dependencies.
+
+Allowed direction:
+
+Middleware may import permission helpers.
+Services may import policies.
+Policies may import permission helpers.
+Permission helpers must not import policies, services, repositories, or middleware.
+
+Disallowed examples:
+
+- Policy importing middleware
+- Permission helper importing repositories
+- Services importing middleware
+- Policies importing services for permission evaluation
+
+Rules:
+- Middleware orchestrates request authorization flow.
+- Permission helpers remain pure capability evaluators.
+- Policies remain pure business authorization evaluators.
+- Services may orchestrate authorization decisions but must not depend on middleware.
+- Authorization utilities must remain dependency-light and reusable.
+
+---
+
+### Authorization Source of Truth
+
+Authorization decisions must always originate from server-controlled state.
+
+Trusted authorization sources:
+- authenticated user identity
+- server-side role mapping
+- server-side permission mapping
+- database resources
+
+Untrusted authorization sources:
+- request body permissions
+- client-provided role lists
+- frontend authorization flags
+- JWT permission arrays
+
+Rules:
+- Clients may request actions but never define capabilities.
+- JWTs identify actors but do not become the permission source of truth.
+- Permissions are always resolved server-side.

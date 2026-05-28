@@ -32,7 +32,7 @@ The project focuses on:
 
 ---
 
-## Current Architecture Status
+## Current Architecture Status and Active Phase Preparation
 
 The project currently implements:
 
@@ -108,6 +108,7 @@ The project currently implements:
 - Expired session TTL cleanup
 
 ### Permission Foundation
+- Planned for Phase 18
 - Permission-based authorization preparation
 - Role-to-permission mapping preparation
 - Fine-grained access control preparation

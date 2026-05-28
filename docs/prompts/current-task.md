@@ -11,7 +11,8 @@ Introduce a centralized permission system that reduces hardcoded role checks whi
 Permissions become the stable authorization unit.
 Roles remain server-controlled collections of permissions.
 
-Existing API behavior and response contracts must remain unchanged.
+Existing authentication, refresh-token, session, and policy behavior
+must remain backward compatible unless explicitly required by this phase.
 
 ---
 
@@ -147,6 +148,14 @@ Rules:
 
 Where appropriate, replace hardcoded role middleware with permission middleware.
 
+Initial route targets:
+
+- GET /api/v1/users
+- GET /api/v1/users/:id
+
+These currently represent admin-only user access and should move from role-name checks
+to capability checks while preserving the existing 401/403 behavior and response contract.
+
 Example:
 
 Before:
@@ -179,6 +188,10 @@ Rules:
 - Preserve response contract
 - Protected routes must still use protect before authorization middleware
 - Do not remove authorize middleware unless it is no longer used
+- Existing authorize(role) middleware may temporarily coexist with
+requirePermission(permission) during migration.
+
+Do not force complete RBAC removal in this phase.
 
 ---
 
@@ -255,4 +268,28 @@ Do NOT implement:
 - audit log repository
 - audit log service
 
+Rules:
+- Prefer the simplest implementation that satisfies current requirements.
+- Avoid speculative abstractions for future distributed systems.
+- Do not introduce infrastructure that is not actively required by Phase 18.
+- Maintain readability and maintainability over extensibility.
+
 Use static in-code permission definitions only.
+
+---
+
+## Authorization Model
+
+Permissions determine capability.
+
+Policies determine contextual/resource ownership authorization.
+
+A request may require BOTH:
+- permission validation
+- ownership validation
+
+before access is granted.
+
+Examples:
+- user.read allows reading capability
+- canViewUser(actor, resource) determines whether the actor may read THIS resource

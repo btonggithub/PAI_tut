@@ -278,6 +278,9 @@ This phase will not introduce:
 
 Consequences:
 
+Design permission modules so future extraction to a dedicated authorization
+service remains possible without changing route/service contracts.
+
 Positive:
 - Reduces hardcoded role checks
 - Makes authorization rules easier to expand
@@ -320,3 +323,32 @@ hasPermission(actor, USER_PERMISSIONS.READ)
 Reason:
 Centralized permission evaluation prevents scattered string checks and keeps
 authorization rules consistent across routes, services, and policies.
+
+---
+
+### Future Scalability Note
+
+The Phase 18 permission system is intentionally implemented as a static in-code authorization layer.
+
+The current design prioritizes:
+- simplicity
+- maintainability
+- predictable authorization behavior
+- low operational complexity
+
+The architecture should remain compatible with future evolution such as:
+- database-backed permissions
+- role management APIs
+- audit logging
+- external policy engines
+- distributed authorization systems
+
+However, these capabilities are explicitly out of scope for the current phase.
+
+Current implementation remains:
+- server-controlled
+- synchronous
+- application remains MongoDB-backed
+- permission mapping remains static and in-code
+- single-service oriented
+- static permission mapping based

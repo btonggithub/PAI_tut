@@ -298,3 +298,24 @@ Policy
 Permission + Ownership
 ↓
 Business Logic
+
+---
+
+## Policy Boundary Convention
+
+Policies evaluate authorization decisions only.
+
+Policies must not:
+- mutate state
+- write to database
+- call external services
+- throw HTTP responses
+- create side effects
+
+Policies may:
+- evaluate ownership
+- evaluate capability combinations
+- evaluate actor-resource relationships
+
+Reason:
+Policies must remain deterministic and reusable.
