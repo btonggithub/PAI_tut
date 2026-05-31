@@ -1,18 +1,7 @@
 const asyncHandler = require('../../utils/asyncHandler');
 const { sendSuccess } = require('../../utils/response');
 const authService = require('../../services/auth/authService');
-
-/**
- * Extract request context for audit logging
- * @param {object} req - Express request object
- * @returns {object} Sanitized request context
- */
-const extractRequestContext = (req) => {
-  return {
-    ipAddress: req.ip || req.connection.remoteAddress || null,
-    userAgent: req.get('user-agent') || null,
-  };
-};
+const { extractRequestContext } = require('../../utils/requestContext');
 
 const register = asyncHandler(async (req, res) => {
   const data = await authService.register(req.body);

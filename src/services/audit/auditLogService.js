@@ -65,7 +65,7 @@ const sanitizeMetadata = (metadata = {}) => {
  *   - userAgent: optional user agent string
  *   - metadata: optional additional context
  *
- * @returns {Promise<object>} The created audit log
+ * @returns {Promise<object|null>} The created audit log, or null when audit persistence fails
  */
 const recordAuditEvent = async (payload = {}) => {
   const normalized = {
@@ -80,7 +80,15 @@ const recordAuditEvent = async (payload = {}) => {
     metadata: sanitizeMetadata(payload.metadata),
   };
 
-  return auditLogRepository.recordAuditLog(normalized);
+  try {
+    return await auditLogRepository.recordAuditLog(normalized);
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('[audit] Failed to record audit event:', error.message);
+    }
+
+    return null;
+  }
 };
 
 module.exports = {

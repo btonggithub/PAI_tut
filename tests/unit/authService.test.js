@@ -34,6 +34,8 @@ const sessionService = require('../../src/services/session/sessionService');
 const { hashPassword, comparePassword } = require('../../src/utils/password');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../src/utils/jwt');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const AUDIT_ACTIONS = require('../../src/services/audit/auditActions');
+const AUDIT_RESULTS = require('../../src/services/audit/auditResults');
 const crypto = require('crypto');
 
 describe('authService', () => {
@@ -209,6 +211,16 @@ describe('authService', () => {
         token: 'access-token',
         refreshToken: 'refresh-token',
       });
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AUDIT_ACTIONS.AUTH_LOGIN,
+          result: AUDIT_RESULTS.SUCCEEDED,
+          actorId: 'u1',
+          actorRole: 'user',
+          resourceType: 'user',
+          resourceId: 'u1',
+        })
+      );
     });
 
     it('throws AppError on invalid credentials', async () => {
@@ -225,6 +237,29 @@ describe('authService', () => {
         statusCode: 401,
       });
     });
+
+    it('records failed login audit event when user is not found', async () => {
+      authRepository.findUserByEmail.mockResolvedValue(null);
+
+      await expect(
+        authService.login(
+          { email: 'missing@example.com', password: 'wrongpass' },
+          { ipAddress: '127.0.0.1', userAgent: 'Jest' }
+        )
+      ).rejects.toMatchObject({
+        message: 'Invalid email or password',
+        statusCode: 401,
+      });
+
+      expect(recordAuditEvent).toHaveBeenCalledWith({
+        action: AUDIT_ACTIONS.AUTH_LOGIN,
+        result: AUDIT_RESULTS.FAILED,
+        resourceType: 'user',
+        ipAddress: '127.0.0.1',
+        userAgent: 'Jest',
+        metadata: { reason: 'user_not_found' },
+      });
+    });
   });
 
   describe('refresh', () => {
@@ -238,6 +273,10 @@ describe('authService', () => {
       });
       signRefreshToken.mockReturnValue('next-refresh-token');
       signAccessToken.mockReturnValue('next-access-token');
+      authRepository.findUserById.mockResolvedValue({
+        id: 'u1',
+        role: 'user',
+      });
 
       const result = await authService.refresh({ refreshToken: 'old-refresh-token' });
 
@@ -268,6 +307,16 @@ describe('authService', () => {
         token: 'next-access-token',
         refreshToken: 'next-refresh-token',
       });
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AUDIT_ACTIONS.AUTH_REFRESH,
+          result: AUDIT_RESULTS.SUCCEEDED,
+          actorId: 'u1',
+          actorRole: 'user',
+          resourceType: 'session',
+          resourceId: 'session-1',
+        })
+      );
     });
 
     it('throws AppError when refresh token signature is invalid', async () => {
@@ -279,6 +328,14 @@ describe('authService', () => {
         message: 'Invalid or expired refresh token',
         statusCode: 401,
       });
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AUDIT_ACTIONS.AUTH_REFRESH,
+          result: AUDIT_RESULTS.FAILED,
+          resourceType: 'session',
+          metadata: { reason: 'invalid_or_expired_token' },
+        })
+      );
     });
 
     it('throws AppError when token type is not refresh', async () => {
@@ -293,6 +350,16 @@ describe('authService', () => {
         message: 'Invalid token type',
         statusCode: 401,
       });
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AUDIT_ACTIONS.AUTH_REFRESH,
+          result: AUDIT_RESULTS.FAILED,
+          actorId: 'u1',
+          resourceType: 'session',
+          resourceId: 'session-1',
+          metadata: { reason: 'invalid_token_type' },
+        })
+      );
     });
   });
 
@@ -304,6 +371,10 @@ describe('authService', () => {
         jti: 'jti-1',
         type: 'refresh',
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      });
+      authRepository.findUserById.mockResolvedValue({
+        id: 'u1',
+        role: 'user',
       });
 
       const result = await authService.logout({ refreshToken: 'valid-refresh-token' });
@@ -318,6 +389,16 @@ describe('authService', () => {
         userId: 'u1',
       });
       expect(result).toEqual({ loggedOut: true });
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AUDIT_ACTIONS.AUTH_LOGOUT,
+          result: AUDIT_RESULTS.SUCCEEDED,
+          actorId: 'u1',
+          actorRole: 'user',
+          resourceType: 'session',
+          resourceId: 'session-1',
+        })
+      );
     });
 
     it('throws AppError when refresh token signature is invalid', async () => {

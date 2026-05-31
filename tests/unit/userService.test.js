@@ -14,6 +14,8 @@ const AppError = require('../../src/utils/AppError');
 const userService = require('../../src/services/user/userService');
 const userRepository = require('../../src/repositories/user/userRepository');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const AUDIT_ACTIONS = require('../../src/services/audit/auditActions');
+const AUDIT_RESULTS = require('../../src/services/audit/auditResults');
 
 const userActor = {
   id: 'u1',
@@ -82,7 +84,8 @@ describe('userService', () => {
         name: 'Next Name',
         ignored: 'field',
       },
-      adminActor
+      adminActor,
+      { ipAddress: '127.0.0.1', userAgent: 'Jest' }
     );
 
     expect(userRepository.findUserByEmailExcludingId).toHaveBeenCalledWith('NEXT@EXAMPLE.COM', updated._id);
@@ -97,6 +100,17 @@ describe('userService', () => {
       role: 'user',
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
       updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+    });
+    expect(recordAuditEvent).toHaveBeenCalledWith({
+      action: AUDIT_ACTIONS.USER_PROFILE_UPDATE,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: adminActor.id,
+      actorRole: adminActor.role,
+      resourceType: 'user',
+      resourceId: updated._id,
+      ipAddress: '127.0.0.1',
+      userAgent: 'Jest',
+      metadata: { fields: ['name', 'email'] },
     });
   });
 
@@ -126,7 +140,10 @@ describe('userService', () => {
     };
     userRepository.findUsers.mockResolvedValue(repoResult);
 
-    const result = await userService.listUsers(query, adminActor);
+    const result = await userService.listUsers(query, adminActor, {
+      ipAddress: '127.0.0.1',
+      userAgent: 'Jest',
+    });
 
     expect(userRepository.findUsers).toHaveBeenCalledWith(query);
     expect(result).toEqual({
@@ -142,6 +159,16 @@ describe('userService', () => {
       ],
       meta: repoResult.meta,
     });
+    expect(recordAuditEvent).toHaveBeenCalledWith({
+      action: AUDIT_ACTIONS.USER_READ_ADMIN,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: adminActor.id,
+      actorRole: adminActor.role,
+      resourceType: 'users',
+      ipAddress: '127.0.0.1',
+      userAgent: 'Jest',
+      metadata: { count: 1, page: 2 },
+    });
   });
 
   it('getUserById returns normalized user DTO', async () => {
@@ -156,7 +183,10 @@ describe('userService', () => {
       updatedAt: new Date('2026-01-02T00:00:00.000Z'),
     });
 
-    const result = await userService.getUserById('64b7f5b9f1d2c3a4b5c6d7e8', adminActor);
+    const result = await userService.getUserById('64b7f5b9f1d2c3a4b5c6d7e8', adminActor, {
+      ipAddress: '127.0.0.1',
+      userAgent: 'Jest',
+    });
 
     expect(result).toEqual({
       id: '64b7f5b9f1d2c3a4b5c6d7e8',
@@ -165,6 +195,16 @@ describe('userService', () => {
       role: 'user',
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
       updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+    });
+    expect(recordAuditEvent).toHaveBeenCalledWith({
+      action: AUDIT_ACTIONS.USER_READ_ADMIN,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: adminActor.id,
+      actorRole: adminActor.role,
+      resourceType: 'user',
+      resourceId: '64b7f5b9f1d2c3a4b5c6d7e8',
+      ipAddress: '127.0.0.1',
+      userAgent: 'Jest',
     });
   });
 

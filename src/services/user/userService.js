@@ -16,7 +16,7 @@ const getMe = async (userId) => {
   return toSafeUser(user);
 };
 
-const updateMe = async (userId, payload, actor) => {
+const updateMe = async (userId, payload, actor, requestContext = {}) => {
   // Check if actor has permission to update this user
   if (!canUpdateUser(actor, userId)) {
     throw new AppError('Forbidden', 403);
@@ -59,13 +59,15 @@ const updateMe = async (userId, payload, actor) => {
     actorRole: actor.role,
     resourceType: 'user',
     resourceId: userId,
+    ipAddress: requestContext.ipAddress || null,
+    userAgent: requestContext.userAgent || null,
     metadata: { fields: Object.keys(updatePayload) },
   });
 
   return toSafeUser(updatedUser);
 };
 
-const listUsers = async (query = {}, actor) => {
+const listUsers = async (query = {}, actor, requestContext = {}) => {
   // Check if actor has permission to list users
   if (!canManageUsers(actor)) {
     throw new AppError('Forbidden', 403);
@@ -80,6 +82,8 @@ const listUsers = async (query = {}, actor) => {
     actorId: actor.id,
     actorRole: actor.role,
     resourceType: 'users',
+    ipAddress: requestContext.ipAddress || null,
+    userAgent: requestContext.userAgent || null,
     metadata: { count: result.items.length, page: query.page || 1 },
   });
 
@@ -89,7 +93,7 @@ const listUsers = async (query = {}, actor) => {
   };
 };
 
-const getUserById = async (userId, actor) => {
+const getUserById = async (userId, actor, requestContext = {}) => {
   // Check if actor has permission to view this user
   if (!canViewUser(actor, userId)) {
     throw new AppError('Forbidden', 403);
@@ -110,6 +114,8 @@ const getUserById = async (userId, actor) => {
       actorRole: actor.role,
       resourceType: 'user',
       resourceId: userId,
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
     });
   }
 

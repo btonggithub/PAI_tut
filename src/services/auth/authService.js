@@ -128,22 +128,66 @@ const refresh = async ({ refreshToken }, requestContext = {}) => {
   try {
     payload = verifyRefreshToken(refreshToken);
   } catch (error) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_REFRESH,
+      result: AUDIT_RESULTS.FAILED,
+      resourceType: 'session',
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { reason: 'invalid_or_expired_token' },
+    });
+
     throw new AppError('Invalid or expired refresh token', 401);
   }
 
   if (!payload || !payload.sub || !payload.sid) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_REFRESH,
+      result: AUDIT_RESULTS.FAILED,
+      resourceType: 'session',
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { reason: 'invalid_payload' },
+    });
+
     throw new AppError('Invalid refresh token payload', 401);
   }
 
   if (payload.type !== 'refresh') {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_REFRESH,
+      result: AUDIT_RESULTS.FAILED,
+      actorId: payload.sub,
+      resourceType: 'session',
+      resourceId: payload.sid,
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { reason: 'invalid_token_type' },
+    });
+
     throw new AppError('Invalid token type', 401);
   }
 
-  await sessionService.validateRefreshSession({
-    sessionId: payload.sid,
-    userId: payload.sub,
-    refreshToken,
-  });
+  try {
+    await sessionService.validateRefreshSession({
+      sessionId: payload.sid,
+      userId: payload.sub,
+      refreshToken,
+    });
+  } catch (error) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.AUTH_REFRESH,
+      result: AUDIT_RESULTS.FAILED,
+      actorId: payload.sub,
+      resourceType: 'session',
+      resourceId: payload.sid,
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { reason: 'invalid_session' },
+    });
+
+    throw error;
+  }
 
   const nextRefreshToken = signRefreshToken({
     sub: payload.sub,

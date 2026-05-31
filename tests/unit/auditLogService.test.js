@@ -226,6 +226,17 @@ describe('auditLogService', () => {
       expect(result).toEqual(expectedAuditLog);
     });
 
+    it('returns null when audit persistence fails', async () => {
+      auditLogRepository.recordAuditLog.mockRejectedValue(new Error('database unavailable'));
+
+      const result = await recordAuditEvent({
+        action: 'auth.login',
+        result: AUDIT_RESULTS.SUCCEEDED,
+      });
+
+      expect(result).toBeNull();
+    });
+
     it('normalizes all payload fields', async () => {
       const payload = {
         action: 'user.profile.update',
