@@ -18,7 +18,7 @@ const verify = asyncHandler(async (req, res) => {
   }
 
   const requestContext = extractRequestContext(req);
-  const result = await verificationService.verifyEmail(req.user.id, token, requestContext);
+  const result = await verificationService.verifyEmail(token, requestContext);
   return sendSuccess(res, result, 200, 'Email verified successfully');
 });
 

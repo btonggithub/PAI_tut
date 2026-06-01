@@ -28,7 +28,7 @@ describe('Verification repository', () => {
   });
 
   describe('findValidVerificationToken', () => {
-    it('finds a valid verification token', async () => {
+    it('finds a valid verification token by userId and hash', async () => {
       const userId = 'user123';
       const tokenHash = 'hashedtoken';
       const mockToken = {
@@ -78,6 +78,47 @@ describe('Verification repository', () => {
 
       const result = await verificationRepository.findValidVerificationToken(
         userId,
+        tokenHash,
+        VERIFICATION_TOKEN_TYPES.EMAIL
+      );
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findVerificationTokenByHash', () => {
+    it('finds a valid verification token by hash only (no userId required)', async () => {
+      const tokenHash = 'hashedtoken';
+      const userId = 'user123';
+      const mockToken = {
+        _id: 'token123',
+        userId,
+        tokenHash,
+        type: VERIFICATION_TOKEN_TYPES.EMAIL,
+        usedAt: null,
+        expiresAt: new Date(Date.now() + 86400000),
+      };
+      VerificationToken.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue(mockToken) });
+
+      const result = await verificationRepository.findVerificationTokenByHash(
+        tokenHash,
+        VERIFICATION_TOKEN_TYPES.EMAIL
+      );
+
+      expect(VerificationToken.findOne).toHaveBeenCalledWith({
+        tokenHash,
+        type: VERIFICATION_TOKEN_TYPES.EMAIL,
+        usedAt: null,
+        expiresAt: { $gt: expect.any(Date) },
+      });
+      expect(result).toEqual(mockToken);
+    });
+
+    it('returns null for invalid token hash', async () => {
+      const tokenHash = 'invalidhash';
+      VerificationToken.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue(null) });
+
+      const result = await verificationRepository.findVerificationTokenByHash(
         tokenHash,
         VERIFICATION_TOKEN_TYPES.EMAIL
       );

@@ -51,3 +51,4 @@
     event contracts
     domain ownership
     bounded contexts 
+30+ Mongo Transaction

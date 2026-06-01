@@ -75,7 +75,7 @@ const sendVerificationEmail = async (user, requestContext = {}) => {
 
     // Generate cryptographically secure token
     const rawToken = generateToken();
-    const tokenHash = await hashToken(rawToken);
+    const tokenHash = hashToken(rawToken);
 
     // Calculate expiry time
     const expiresAt = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRY_MS);
@@ -138,33 +138,31 @@ const sendVerificationEmail = async (user, requestContext = {}) => {
 
 /**
  * Verify user email using token
- * @param {string} userId - User ID
  * @param {string} rawToken - Raw verification token from email
  * @param {object} requestContext - Request context for audit logging
  * @returns {Promise<object>} Success metadata
  */
-const verifyEmail = async (userId, rawToken, requestContext = {}) => {
-  if (!userId || !rawToken) {
+const verifyEmail = async (rawToken, requestContext = {}) => {
+  if (!rawToken) {
     throw new AppError('Invalid verification request', 400);
   }
 
+  let userId = null;
   try {
     // Hash the provided token to match against stored hash
-    const tokenHash = await hashToken(rawToken);
+    const tokenHash = hashToken(rawToken);
 
-    // Find valid token (not yet used, not expired)
-    const tokenRecord = await verificationRepository.findValidVerificationToken(
-      userId,
+    // Find valid token (not yet used, not expired) - searches by tokenHash only
+    const tokenRecord = await verificationRepository.findVerificationTokenByHash(
       tokenHash,
       VERIFICATION_TOKEN_TYPES.EMAIL
     );
 
     if (!tokenRecord) {
-      // Record failed verification audit event
+      // Record failed verification audit event (actorId unknown at this point)
       await recordAuditEvent({
         action: AUDIT_ACTIONS.EMAIL_VERIFY,
         result: AUDIT_RESULTS.FAILED,
-        actorId: userId,
         resourceType: 'verification_token',
         ipAddress: requestContext.ipAddress || null,
         userAgent: requestContext.userAgent || null,
@@ -173,6 +171,10 @@ const verifyEmail = async (userId, rawToken, requestContext = {}) => {
 
       throw new AppError('Invalid or expired verification token', 400);
     }
+
+    // Extract userId from token record
+    userId = tokenRecord.userId;
+
 
     // Mark token as used
     await verificationRepository.markTokenUsed(tokenRecord._id);
@@ -203,20 +205,18 @@ const verifyEmail = async (userId, rawToken, requestContext = {}) => {
     };
   } catch (err) {
     // If error is already an AppError, rethrow it
-    if (err.statusCode) {
-      throw err;
-    }
-
     // Record failed verification audit event
-    await recordAuditEvent({
-      action: AUDIT_ACTIONS.EMAIL_VERIFY,
-      result: AUDIT_RESULTS.FAILED,
-      actorId: userId,
-      resourceType: 'verification_token',
-      ipAddress: requestContext.ipAddress || null,
-      userAgent: requestContext.userAgent || null,
-      metadata: { reason: err.message },
-    }).catch(() => {});
+    if (!(err instanceof AppError)) {
+      await recordAuditEvent({
+        action: AUDIT_ACTIONS.EMAIL_VERIFY,
+        result: AUDIT_RESULTS.FAILED,
+        actorId: userId,
+        resourceType: 'verification_token',
+        ipAddress: requestContext.ipAddress || null,
+        userAgent: requestContext.userAgent || null,
+        metadata: { reason: err.message },
+      }).catch(() => {});
+    }
 
     throw err;
   }
@@ -234,13 +234,7 @@ const resendVerificationEmail = async (user, requestContext = {}) => {
   }
 
   try {
-    // Invalidate all previous unverified tokens
-    await verificationRepository.invalidatePreviousTokens(
-      user.id,
-      VERIFICATION_TOKEN_TYPES.EMAIL
-    );
-
-    // Generate and send new verification email
+    // Generate and send new verification email (which handles token invalidation)
     return await sendVerificationEmail(user, requestContext);
   } catch (err) {
     // Record failed resend verification audit event

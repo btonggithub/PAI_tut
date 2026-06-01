@@ -20,7 +20,6 @@ router.post(
 
 router.post(
   '/verify',
-  protect,
   validateRequest({ query: verifyQuerySchema }),
   emailController.verify
 );

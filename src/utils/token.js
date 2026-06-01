@@ -1,7 +1,4 @@
 const crypto = require('crypto');
-const bcrypt = require('bcrypt');
-
-const SALT_ROUNDS = 10;
 
 /**
  * Generate a cryptographically secure random token
@@ -12,22 +9,23 @@ const generateToken = () => {
 };
 
 /**
- * Hash a token for secure storage
+ * Hash a token using SHA256 deterministic hashing
  * @param {string} token - Raw token
- * @returns {Promise<string>} Hashed token
+ * @returns {string} Hashed token
  */
-const hashToken = async (token) => {
-  return bcrypt.hash(token, SALT_ROUNDS);
+const hashToken = (token) => {
+  return crypto.createHash('sha256').update(token).digest('hex');
 };
 
 /**
- * Compare raw token against hashed token
+ * Compare raw token against hashed token using SHA256
  * @param {string} rawToken - Raw token to verify
  * @param {string} hashedToken - Previously hashed token from storage
- * @returns {Promise<boolean>} True if tokens match
+ * @returns {boolean} True if tokens match
  */
-const compareToken = async (rawToken, hashedToken) => {
-  return bcrypt.compare(rawToken, hashedToken);
+const compareToken = (rawToken, hashedToken) => {
+  const hash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  return hash === hashedToken;
 };
 
 module.exports = {

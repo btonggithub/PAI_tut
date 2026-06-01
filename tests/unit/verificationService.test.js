@@ -29,7 +29,7 @@ describe('Verification service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     generateToken.mockReturnValue('raw-token-string');
-    hashToken.mockResolvedValue('hashed-token-string');
+    hashToken.mockReturnValue('hashed-token-string'); // Synchronous now
   });
 
   describe('sendVerificationEmail', () => {
@@ -89,9 +89,10 @@ describe('Verification service', () => {
   });
 
   describe('verifyEmail', () => {
-    it('verifies email successfully', async () => {
+    it('verifies email successfully using token alone (without userId)', async () => {
       const mockTokenRecord = {
         _id: 'token123',
+        userId: mockUser.id,
         tokenHash: 'hashed-token-string',
         usedAt: null,
         expiresAt: new Date(Date.now() + 86400000),
@@ -105,16 +106,15 @@ describe('Verification service', () => {
         emailVerifiedAt: expect.any(Date),
       };
 
-      verificationRepository.findValidVerificationToken.mockResolvedValue(mockTokenRecord);
+      verificationRepository.findVerificationTokenByHash.mockResolvedValue(mockTokenRecord);
       verificationRepository.markTokenUsed.mockResolvedValue({});
       userRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser);
       recordAuditEvent.mockResolvedValue({});
 
-      const result = await verificationService.verifyEmail(mockUser.id, 'raw-token', mockRequestContext);
+      const result = await verificationService.verifyEmail('raw-token', mockRequestContext);
 
       expect(hashToken).toHaveBeenCalledWith('raw-token');
-      expect(verificationRepository.findValidVerificationToken).toHaveBeenCalledWith(
-        mockUser.id,
+      expect(verificationRepository.findVerificationTokenByHash).toHaveBeenCalledWith(
         'hashed-token-string',
         VERIFICATION_TOKEN_TYPES.EMAIL
       );
@@ -129,50 +129,53 @@ describe('Verification service', () => {
     });
 
     it('throws error if token is invalid', async () => {
-      verificationRepository.findValidVerificationToken.mockResolvedValue(null);
+      verificationRepository.findVerificationTokenByHash.mockResolvedValue(null);
 
-      await expect(verificationService.verifyEmail(mockUser.id, 'invalid-token', mockRequestContext)).rejects.toThrow(
+      await expect(verificationService.verifyEmail('invalid-token', mockRequestContext)).rejects.toThrow(
         /invalid or expired/i
       );
     });
 
     it('throws error if token is expired', async () => {
-      verificationRepository.findValidVerificationToken.mockResolvedValue(null);
+      verificationRepository.findVerificationTokenByHash.mockResolvedValue(null);
 
-      await expect(verificationService.verifyEmail(mockUser.id, 'expired-token', mockRequestContext)).rejects.toThrow(
+      await expect(verificationService.verifyEmail('expired-token', mockRequestContext)).rejects.toThrow(
         /invalid or expired/i
       );
     });
 
-    it('throws error if userId or token is missing', async () => {
-      await expect(verificationService.verifyEmail(null, 'token', mockRequestContext)).rejects.toThrow();
+    it('throws error if token is missing', async () => {
+      await expect(verificationService.verifyEmail(null, mockRequestContext)).rejects.toThrow();
     });
 
     it('records audit event on successful verification', async () => {
       const mockTokenRecord = {
         _id: 'token123',
+        userId: mockUser.id,
         tokenHash: 'hashed-token-string',
         metadata: { email: mockUser.email },
       };
 
-      verificationRepository.findValidVerificationToken.mockResolvedValue(mockTokenRecord);
+      verificationRepository.findVerificationTokenByHash.mockResolvedValue(mockTokenRecord);
       verificationRepository.markTokenUsed.mockResolvedValue({});
       userRepository.updateUserProfile.mockResolvedValue({});
       recordAuditEvent.mockResolvedValue({});
 
-      await verificationService.verifyEmail(mockUser.id, 'raw-token', mockRequestContext);
+      await verificationService.verifyEmail('raw-token', mockRequestContext);
 
-      expect(recordAuditEvent).toHaveBeenCalled();
-      const callArgs = recordAuditEvent.mock.calls[recordAuditEvent.mock.calls.length - 1][0];
-      expect(callArgs.action).toContain('email.verify');
-      expect(callArgs.result).toBe('succeeded');
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: expect.stringContaining('email.verify'),
+          result: 'succeeded',
+        })
+      );
     });
 
     it('records audit event on failed verification', async () => {
-      verificationRepository.findValidVerificationToken.mockResolvedValue(null);
+      verificationRepository.findVerificationTokenByHash.mockResolvedValue(null);
       recordAuditEvent.mockResolvedValue({});
 
-      await expect(verificationService.verifyEmail(mockUser.id, 'invalid-token', mockRequestContext)).rejects.toThrow();
+      await expect(verificationService.verifyEmail('invalid-token', mockRequestContext)).rejects.toThrow();
 
       expect(recordAuditEvent).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -179,6 +179,52 @@ Test Coverage:
 * 352 total tests (↑ from 291, from Phase 20.5)
 * All tests passing with zero failures
 
+### phase 20.5 Improve verify email
+
+**Task A: SHA256 Deterministic Hashing ✅
+Replaced bcrypt token hashing with synchronous SHA256:
+
+hashToken(token) → uses crypto.createHash('sha256').update(token).digest('hex')
+compareToken(rawToken, hashedToken) → direct comparison of SHA256 hashes
+Benefit: Deterministic hashing (same input = same hash), synchronous (no async overhead)
+
+**Task B: TTL Index on expiresAt ✅
+Fixed MongoDB TTL index to use explicit expiration field:
+
+Before: { createdAt: 1 }, { expireAfterSeconds: 86400 } (24 hours after creation)
+After: { expiresAt: 1 }, { expireAfterSeconds: 0 } (expires immediately when expiresAt reached)
+Benefit: Exact expiration control, documents auto-deleted when time expires
+
+**Task C: Verify Endpoint Authentication Review ✅
+Removed authentication requirement - token is self-identifying:
+
+Before: POST /api/v1/email/verify required protect middleware + userId from session
+After: No authentication required, token alone identifies the user
+Changed: verifyEmail(userId, token) → verifyEmail(token) - extracts userId from token record
+Benefit: Users can verify email by clicking link without being logged in; token hash lookup finds the owner
+
+**Task D: Remove Duplicate Invalidation ✅
+Cleaned up resend workflow:
+
+Before: resendVerificationEmail called invalidatePreviousTokens then sendVerificationEmail (which also called it)
+After: resendVerificationEmail directly calls sendVerificationEmail (single invalidation)
+Benefit: No redundant database calls
+
+Implementation Summary:
+Component	    Changes
+Token Util	  SHA256 hashing, synchronous
+Model	TTL     index on expiresAt (immediate expiry)
+Repository	  Added findVerificationTokenByHash()
+Service	      verifyEmail(token) - no userId param, extracts from token
+Routes	      Removed protect from /verify endpoint
+Controller	  Updated verify() to call service without userId
+Tests	        Updated 8 test files, added 4 new tests
+
+Test Results:
+- 36 test suites ✅ all passing
+- 356 tests ✅ all passing (↑ from 352, added token.test verification cases)
+- 0 failures ✅
+
 ## CURRENT STATUS
 
 Current Architecture Health:

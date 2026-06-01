@@ -18,6 +18,16 @@ const findValidVerificationToken = async (userId, tokenHash, type = VERIFICATION
   }).lean();
 };
 
+const findVerificationTokenByHash = async (tokenHash, type = VERIFICATION_TOKEN_TYPES.EMAIL) => {
+  const now = new Date();
+  return VerificationToken.findOne({
+    tokenHash,
+    type,
+    usedAt: null,
+    expiresAt: { $gt: now },
+  }).lean();
+};
+
 const markTokenUsed = async (tokenId) => {
   return VerificationToken.findByIdAndUpdate(
     tokenId,
@@ -54,6 +64,7 @@ const findTokenById = async (tokenId) => {
 module.exports = {
   createVerificationToken,
   findValidVerificationToken,
+  findVerificationTokenByHash,
   markTokenUsed,
   deleteExpiredTokens,
   invalidatePreviousTokens,

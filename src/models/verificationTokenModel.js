@@ -49,10 +49,10 @@ verificationTokenSchema.index({
   expiresAt: 1,
 });
 
-// TTL index to auto-delete expired documents (24 hours after expiration)
+// TTL index to auto-delete expired documents immediately after expiry
 verificationTokenSchema.index(
-  { createdAt: 1 },
-  { expireAfterSeconds: 86400 }
+  { expiresAt: 1 },
+  { expireAfterSeconds: 0 }
 );
 
 const VerificationToken = mongoose.models.VerificationToken || 

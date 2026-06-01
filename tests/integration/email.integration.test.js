@@ -78,19 +78,25 @@ describe('Email verification API integration', () => {
   });
 
   describe('POST /api/v1/email/verify', () => {
-    it('requires authentication', async () => {
+    it('does not require authentication (token self-identifies user)', async () => {
+      const mockResult = {
+        userId: regularUser.id,
+        verifiedAt: new Date(),
+        email: regularUser.email,
+      };
+      verificationService.verifyEmail.mockResolvedValue(mockResult);
+
       const response = await request(app)
         .post('/api/v1/email/verify')
-        .query({ token: 'some-token' });
+        .query({ token: 'verification-token' });
 
-      expect(response.status).toBe(401);
-      expect(response.body.success).toBe(false);
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
     });
 
     it('requires token query parameter', async () => {
       const response = await request(app)
-        .post('/api/v1/email/verify')
-        .set(accessHeaderFor(regularUser.id));
+        .post('/api/v1/email/verify');
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -106,14 +112,12 @@ describe('Email verification API integration', () => {
 
       const response = await request(app)
         .post('/api/v1/email/verify')
-        .set(accessHeaderFor(regularUser.id))
         .query({ token: 'verification-token' });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toContain('Email verified');
       expect(verificationService.verifyEmail).toHaveBeenCalledWith(
-        regularUser.id,
         'verification-token',
         expect.any(Object)
       );
@@ -126,7 +130,6 @@ describe('Email verification API integration', () => {
 
       const response = await request(app)
         .post('/api/v1/email/verify')
-        .set(accessHeaderFor(regularUser.id))
         .query({ token: 'invalid-token' });
 
       expect(response.status).toBe(400);
