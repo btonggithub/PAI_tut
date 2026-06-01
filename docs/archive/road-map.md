@@ -23,6 +23,7 @@
 18. Permission System
 19. Audit Logging
 20. File Upload Foundation
+20.5 Storage Abstraction & Upload Hardening
 21. Email Verification
 22. Cache Layer Foundation
 23. Event Foundation

@@ -1,326 +1,209 @@
-# Current Task
-
-## Phase
-
-Phase 20 — File Upload Foundation
+# Phase 20.5 - Storage Abstraction & Upload Hardening
 
 ## Objective
 
-Introduce a safe file upload foundation for authenticated, user-owned uploads
-while preserving existing authentication, authorization, audit logging, and
-standardized response behavior.
+Improve the existing File Upload Foundation implementation without changing public API behavior.
 
-This phase should prepare upload handling, file metadata persistence, validation,
-and storage abstraction without over-building a full file management product.
+This phase focuses on architecture hardening, storage abstraction, reliability, and operational readiness.
 
-Existing API behavior and response contracts must remain unchanged unless
-explicitly required by this phase.
+No new endpoints should be introduced.
+
+Existing upload functionality must continue to work exactly as before.
 
 ---
 
-## Requirements
+## Task 1 - Storage Provider Pattern
 
-### File Upload Module
+### Goal
 
-Create:
+Decouple storage implementation from storage orchestration.
 
-src/models/fileModel.js
-src/repositories/file/
-src/services/file/
-src/middleware/upload/
+### Requirements
 
-Recommended files:
+Refactor current storage implementation into provider-based architecture.
 
-- src/models/fileModel.js
-- src/repositories/file/fileRepository.js
-- src/services/file/fileService.js
-- src/services/file/storageService.js
-- src/middleware/upload/uploadFile.js
+Target structure:
 
-Optional files if they improve clarity without over-engineering:
+src/services/file/storage/
+├── storageService.js
+├── providers/
+│   ├── localStorageProvider.js
 
-- src/services/file/fileStatus.js
-- src/services/file/fileTypes.js
-- src/controllers/file/fileController.js
-- src/routes/fileRoutes.js
-- src/middleware/upload/uploadErrors.js
+StorageService must delegate all filesystem operations to LocalStorageProvider.
 
-Rules:
+FileService must continue communicating only with StorageService.
 
-- Follow existing model/repository/service patterns.
-- Repositories own all file metadata database access.
-- Storage service owns storage-specific behavior.
-- Controllers and routes must not write file metadata directly.
-- Do not introduce cloud storage unless explicitly required.
-- Do not introduce public file sharing, search, or CDN workflows in this phase.
+### Rules
 
-### File Metadata Model
+* Controllers must not access filesystem.
+* Services other than StorageService must not access filesystem.
+* StorageService becomes orchestration layer.
+* LocalStorageProvider owns filesystem implementation details.
+* No behavior change.
 
-Define a file metadata model for uploaded files.
+### Out of Scope
 
-Recommended fields:
-
-- ownerId
-- originalName
-- storedName
-- mimeType
-- size
-- extension
-- storageKey
-- storageProvider
-- status
-- metadata
-- createdAt
-- updatedAt
-
-Rules:
-
-- ownerId must come from the authenticated actor, not request body.
-- originalName may be stored for display/reference only.
-- storedName or storageKey must be server-generated.
-- mimeType and size must be recorded from upload processing.
-- metadata must default to an empty object.
-- status should default to active or pending.
-- Do not store raw file buffers in MongoDB during this phase.
-- Do not expose local filesystem paths as public API values.
-
-### Upload Middleware
-
-Implement middleware for multipart upload handling.
-
-Responsibilities:
-
-- Accept file upload input.
-- Enforce maximum file size.
-- Enforce allowed MIME types.
-- Normalize upload errors into AppError/standard response flow where practical.
-- Attach upload result for controller/service orchestration.
-
-Rules:
-
-- Upload parsing belongs in middleware, not controllers.
-- Middleware must remain reusable.
-- Middleware must not create file metadata.
-- Middleware must not assign ownership.
-- Middleware must not call repositories.
-
-### File Repository
-
-Implement a repository for file metadata persistence.
-
-Recommended results:
-
-- createFileMetadata(payload)
-- findFileById(fileId)
-- findFilesByOwner(ownerId, query)
-- updateFileStatus(fileId, payload)
-
-Responsibilities:
-
-- Create file metadata records.
-- Query file metadata by id/owner.
-- Own Mongoose model usage.
-- Keep persistence details out of services.
-
-Rules:
-
-- No HTTP logic.
-- No response formatting.
-- No controller responsibilities.
-- No business workflow orchestration.
-
-### Storage Service
-
-Implement a storage service abstraction.
-
-Recommended API:
-
-- storeFile(file)
-- removeFile(storageKey)
-
-Responsibilities:
-
-- Generate safe stored names or storage keys.
-- Hide local/provider-specific storage behavior.
-- Return storage metadata needed by fileService.
-
-Rules:
-
-- Do not trust original file names as storage keys.
-- Do not expose local filesystem paths in API responses.
-- Keep implementation simple for Phase 20.
-- Do not add external storage provider integration unless required.
-
-### File Service
-
-Implement a reusable file service.
-
-Recommended API:
-
-- createUserFile({ actor, file, metadata })
-- listUserFiles({ actor, query })
-- getUserFile({ actor, fileId })
-
-Responsibilities:
-
-- Assign ownerId from authenticated actor.
-- Normalize metadata.
-- Call storage service.
-- Call file repository.
-- Return safe file DTOs.
-- Coordinate audit logging where security-relevant and practical.
-
-Rules:
-
-- Do not depend on raw Express request objects.
-- Do not trust ownerId from request body.
-- Do not store secrets or internal filesystem paths.
-- Preserve existing API response contracts.
-
-### Integration Targets
-
-Add upload workflow endpoints only where needed to prove the foundation.
-
-Recommended initial targets:
-
-- Authenticated user uploads one file.
-- Authenticated user lists own uploaded files.
-- Authenticated user reads own file metadata.
-
-Rules:
-
-- Keep integration minimal and focused.
-- Do not rewrite existing auth/session/user flows.
-- Do not add file sharing or public file serving.
-- Do not add image processing.
-- Do not add virus scanning in this phase.
-- Existing auth/permission/error response shapes must remain unchanged.
+* S3
+* MinIO
+* Azure Blob
+* Cloud storage integration
 
 ---
 
-## Testing
+## Task 2 - Storage Provider Constants
 
-Add or update tests for:
+### Goal
 
-### File Model
+Centralize storage provider definitions.
 
-- Required fields are enforced.
-- Metadata defaults to an empty object.
-- Status defaults correctly.
-- Timestamps are available.
-- Raw file buffers are not part of the schema.
+### Requirements
 
-### Upload Middleware
+Create storage provider constants.
 
-- Missing required file is rejected.
-- Disallowed MIME type is rejected.
-- Oversized file is rejected.
-- Upload errors use standardized error handling.
+Example:
 
-### File Repository
+STORAGE_PROVIDERS.LOCAL
 
-- createFileMetadata creates metadata records.
-- findFileById retrieves file metadata.
-- findFilesByOwner scopes results by owner.
-- Repository tests isolate persistence behavior.
+Replace hardcoded provider strings across the file module.
 
-### Storage Service
+### Rules
 
-- Generates safe storage keys/stored names.
-- Does not use originalName directly as storage key.
-- Returns normalized storage metadata.
+* No magic strings.
+* Use constants throughout model, service, repository, and tests.
 
-### File Service
+### Out of Scope
 
-- Assigns ownerId from actor.
-- Ignores client-provided ownerId.
-- Calls storage service before metadata persistence where appropriate.
-- Returns safe file DTOs.
-- Does not expose internal filesystem paths.
-
-### Workflow Integration
-
-- Upload endpoint requires authentication.
-- Upload endpoint rejects invalid files.
-- Upload endpoint creates file metadata for authenticated user.
-- List/read endpoints return only actor-owned files where implemented.
-- Existing response contracts remain unchanged.
-
-### Regression
-
-- Existing authentication/session tests continue passing.
-- Existing permission tests continue passing.
-- Existing audit tests continue passing.
-- Full test suite passes.
+* Dynamic provider selection
+* Runtime provider registration
 
 ---
 
-## Success Criteria
+## Task 3 - Upload Configuration Centralization
 
-1. File upload middleware implemented
-2. File metadata model implemented
-3. File repository implemented
-4. File service implemented
-5. Storage abstraction implemented
-6. Upload validation implemented
-7. User-owned file metadata workflow implemented
-8. Client-provided owner/path data is not trusted
-9. Existing auth/permission/audit behavior preserved
-10. Tests added or updated
-11. Full test suite passes
+### Goal
 
----
+Centralize upload-related configuration.
 
-## Non Goals
+### Requirements
 
-Do NOT implement:
+Create upload configuration module.
 
-- cloud storage provider integration
-- CDN integration
-- public file serving
-- signed URLs
-- file sharing
-- file search/export APIs
-- image resizing or optimization
-- virus scanning
-- resumable uploads
-- chunked uploads
-- file permission management UI
-- analytics dashboards
-- external event publishing
+Move values such as:
 
-Rules:
+* Maximum file size
+* Allowed MIME types
+* Upload directory settings
 
-- Prefer the simplest implementation that satisfies current requirements.
-- Avoid speculative abstractions for advanced file management.
-- Keep storage abstraction thin and replaceable.
-- Maintain readability and maintainability over extensibility.
+into centralized configuration.
+
+Example:
+
+src/config/upload.js
+
+### Rules
+
+* Middleware must consume configuration.
+* No duplicated upload constants.
+* Existing behavior must remain unchanged.
+
+### Out of Scope
+
+* Environment-specific upload tuning
+* Dynamic configuration management
 
 ---
 
-## File Upload Model
+## Task 4 - Upload Compensation Logic
 
-File upload records what file was accepted and who owns it.
+### Goal
 
-Authorization still determines whether an actor may access file metadata.
+Prevent orphaned files.
 
-Authentication still determines the owner of user-owned uploads.
+### Problem
 
-File upload must not change existing auth, permission, audit, or response
-contracts.
+If file storage succeeds but metadata persistence fails, uploaded files may remain on disk without database records.
 
-Flow:
+### Requirements
 
-Upload request
-↓
-Authentication
-↓
-Upload middleware
-↓
-File service ownership assignment
-↓
-Storage service
-↓
-File repository persistence
-↓
-Safe file response
+Implement compensation logic.
+
+Example flow:
+
+Store File
+→ Save Metadata
+→ Failure
+→ Remove Stored File
+
+### Rules
+
+* Database consistency takes priority.
+* Failed uploads must not leave orphaned files.
+* Cleanup must be tested.
+
+### Test Cases
+
+* Storage succeeds + metadata succeeds
+* Storage succeeds + metadata fails
+* Cleanup succeeds
+* Cleanup failure handling
+
+---
+
+## Task 5 - Audit Logging Integration
+
+### Goal
+
+Integrate file operations into existing audit infrastructure.
+
+### Requirements
+
+Record audit events for:
+
+* file.upload
+* file.list
+* file.view
+
+Use existing audit architecture.
+
+Follow existing audit conventions.
+
+### Rules
+
+* Do not introduce new audit infrastructure.
+* Reuse existing audit services.
+* Audit failures must not break file operations.
+
+### Out of Scope
+
+* File delete auditing
+* Download auditing
+* Event streaming
+* External logging systems
+
+---
+
+## Architecture Rules
+
+The following rules remain mandatory:
+
+* Controllers are HTTP-only.
+* Services contain business logic only.
+* Repositories own database access.
+* Validation exists in middleware only.
+* No direct Mongoose usage outside repositories.
+* No business logic inside routes.
+* No filesystem access outside storage provider layer.
+* No response formatting outside response utilities.
+
+---
+
+## Definition of Done
+
+* Existing file upload endpoints remain unchanged.
+* All tests pass.
+* New tests added where appropriate.
+* Storage implementation is provider-based.
+* Upload configuration is centralized.
+* Compensation logic prevents orphaned files.
+* Audit logging is integrated.
+* Architecture boundaries remain enforced.

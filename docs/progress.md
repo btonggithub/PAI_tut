@@ -3,100 +3,138 @@
 ## DONE
 
 ### Infrastructure
-- Environment validation implemented
-- MongoDB connection module implemented
-- Security middleware foundation implemented
+
+* Environment validation implemented
+* MongoDB connection module implemented
+* MongoDB local connection verified
+* Development workflow configured with nodemon
 
 ### Application Bootstrap
-- Express app bootstrap completed
-- Server startup flow completed
+
+* Express app bootstrap completed
+* Server startup flow completed
 
 ### Error Handling
-- Centralized Express error handling implemented
-- AppError operational error system implemented
-- Standardized JSON response contract implemented
 
-### Architecture
-- Modular route structure implemented
-- Controller layer implemented
-- Service layer implemented
-- Repository layer implemented
-- Scalable repository foundation implemented
+* Centralized Express error handling implemented
+* 404 route handling implemented
+* Standardized JSON error responses implemented
 
-### User Management
-- User module implemented
-- Protected user endpoints implemented
-- Pagination-ready user listing implemented
+### Routing Foundation
 
-### Testing
-- Jest testing foundation implemented
-- Integration testing structure implemented
-- Unit testing structure implemented
-- Helpers/fixtures testing structure implemented
+* Modular route structure implemented
+* API versioning enabled
+* Centralized route registration implemented
 
-### Authorization
-- RBAC middleware implemented
-- Role-aware authentication
-- Authorization policy layer implemented
-- Resource ownership policies implemented
+### Application Layer
 
-### Authentication
-- JWT access token authentication
-- Protected route middleware
-- Authenticated request context
-- Refresh token endpoint implemented
-- Logout endpoint implemented
-- Persistent session storage implemented
-- Refresh token rotation implemented
-- Refresh token replay protection implemented
-- Session revocation implemented
-- Storage-independent sessionId implemented
-- Access/refresh token type enforcement implemented
+* Controller layer implemented
+* Controller stabilization completed
+* Response utilities standardized
 
-### Permission System
-- Permission constants implemented
-- Role-permission mapping implemented
-- Permission evaluation helper implemented
-- Permission middleware implemented
-- Permission middleware integrated into user routes
-- Permission-aware user policies implemented
-- Authorization tests updated
-- Existing authentication/session tests passing
+### Service Layer
+
+* Service layer foundation implemented
+
+### Validation Layer
+
+* Validation middleware foundation implemented
+* Request validation schema pattern implemented
+
+### Repository Layer
+
+* Repository pattern foundation implemented
+* BaseRepository implemented
+* Repository abstraction enforced
+
+### Authentication Foundation
+
+* JWT authentication implemented
+* Refresh token flow implemented
+* Session management implemented
+* Protected route support implemented
+
+### Authorization Foundation
+
+* RBAC foundation implemented
+* Permission system implemented
+* Authorization policy system implemented
+* Ownership enforcement patterns implemented
 
 ### Audit Logging
-- Audit log model implemented (schema with security constraints)
-- Audit log repository implemented
-- Audit log service with metadata sanitization implemented
-- Audit actions constants defined (AUTH_LOGIN, AUTH_REFRESH, AUTH_LOGOUT, USER_PROFILE_UPDATE, USER_READ_ADMIN)
-- Audit results constants defined (SUCCEEDED, FAILED, FORBIDDEN)
-- Login audit events integrated (failed/successful login)
-- Token refresh audit events integrated
-- Logout audit events integrated
-- User profile update audit events integrated
-- Admin user listing audit events integrated
-- Admin user view audit events integrated
-- Request context extraction in controllers
-- Request context extraction shared via requestContext utility
-- Failed refresh token audit events integrated where practical
-- Audit persistence failure handled without breaking existing response contracts
-- Audit service properly mocked in unit tests
-- Integration tests updated with audit mocks
-- Full test suite passing (22 suites, 205 tests)
 
----
+* Audit log model implemented
+* Audit repository implemented
+* Audit service implemented
+* Audit test coverage completed
 
-## CURRENT PHASE
+### Testing Foundation
 
-Phase 20 — File Upload Foundation
+* Unit testing foundation implemented
+* Integration testing foundation implemented
+* Shared fixtures implemented
+* Shared test helpers implemented
 
-Planned goals:
-- File upload middleware foundation
-- File metadata model preparation
-- File repository preparation
-- File service preparation
-- Upload validation
-- Storage abstraction preparation
-- User-owned file workflow preparation
+### Phase 20 - File Upload Foundation
 
----
+Status: Completed
 
+Implemented:
+
+* File metadata model
+* File repository layer
+* File service layer
+* Storage service
+* Upload middleware (Multer)
+* File controller
+* File routes
+* File ownership enforcement
+* File metadata persistence
+* MIME type validation
+* File size validation
+* Safe file DTO responses
+* File integration tests
+* File unit tests
+
+Key Design Decisions:
+
+* Local filesystem storage used as initial implementation
+* Storage access abstracted through StorageService
+* Ownership derived from authenticated actor
+* Internal storage details hidden from API consumers
+* Validation handled in middleware
+* Database access restricted to repository layer
+
+API Endpoints:
+
+* POST /api/v1/files
+* GET /api/v1/files
+* GET /api/v1/files/:id
+
+Test Results:
+
+* 27 test suites passing
+* 260 tests passing
+
+## CURRENT STATUS
+
+Current Architecture Health:
+
+* Layered architecture enforced
+* Repository pattern enforced
+* Validation boundary enforced
+* Authorization boundary enforced
+* Audit infrastructure available
+* File upload foundation completed
+
+## NEXT
+
+Phase 20.5 - Storage Abstraction & Upload Hardening
+
+Planned Improvements:
+
+* Storage provider abstraction
+* Upload configuration centralization
+* Upload compensation logic
+* Audit logging integration
+* Storage provider constants
