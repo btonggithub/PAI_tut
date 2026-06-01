@@ -384,3 +384,75 @@ Audit logging belongs to:
 Controllers and routes must not write audit logs directly.
 
 Services may orchestrate audit logging after security-sensitive actions.
+
+---
+
+## File Upload Convention
+
+Upload middleware should use action-oriented naming.
+
+Preferred:
+- uploadSingleFile
+- uploadUserFile
+- validateUploadedFile
+
+Avoid:
+- handleFileStuff
+- processUploadThing
+- saveReqFile
+
+Rules:
+- Upload middleware belongs in middleware/upload/.
+- File metadata model should be named File or FileMetadata.
+- File repository should be named fileRepository.
+- File service should be named fileService.
+- Storage abstraction should be named storageService.
+- Route handlers should not access storage implementation details.
+
+### File Metadata Naming Convention
+
+Use server-owned names for persisted metadata.
+
+Preferred fields:
+- ownerId
+- originalName
+- storedName
+- mimeType
+- size
+- extension
+- storageKey
+- storageProvider
+- status
+
+Rules:
+- Use ownerId for authenticated file ownership.
+- Use originalName only for display/reference, not storage lookup.
+- Use storageKey for provider/local storage lookup.
+- Do not persist client-provided paths as trusted paths.
+- Keep file status values lowercase.
+
+### File Status Convention
+
+Preferred status values:
+- active
+- pending
+- deleted
+
+Rules:
+- Avoid free-form status strings.
+- Keep status values centralized where practical.
+- Do not use physical deletion as the only deletion state if metadata is needed later.
+
+### Upload Validation Convention
+
+Upload validation should define:
+- allowed MIME types
+- maximum file size
+- required file presence
+- single-file or multi-file mode
+
+Rules:
+- Validate upload constraints before service workflow logic.
+- Do not trust file extension without MIME/type validation.
+- Do not trust MIME type without server-side constraints.
+- Do not accept ownerId from request body for user-owned uploads.

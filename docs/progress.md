@@ -76,9 +76,12 @@
 - Admin user listing audit events integrated
 - Admin user view audit events integrated
 - Request context extraction in controllers
+- Request context extraction shared via requestContext utility
+- Failed refresh token audit events integrated where practical
+- Audit persistence failure handled without breaking existing response contracts
 - Audit service properly mocked in unit tests
 - Integration tests updated with audit mocks
-- Full test suite passing (22 suites, 203 tests)
+- Full test suite passing (22 suites, 205 tests)
 
 ---
 
@@ -89,6 +92,8 @@ Phase 20 — File Upload Foundation
 Planned goals:
 - File upload middleware foundation
 - File metadata model preparation
+- File repository preparation
+- File service preparation
 - Upload validation
 - Storage abstraction preparation
 - User-owned file workflow preparation

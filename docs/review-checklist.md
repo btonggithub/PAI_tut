@@ -237,3 +237,118 @@ Testing:
 - No message queue added
 - No external log shipping added
 - Full test suite passes
+
+---
+
+## File Upload Review
+
+File Upload Design:
+- File metadata model exists
+- File repository exists
+- File service exists
+- Storage service abstraction exists
+- Upload middleware exists
+- Upload validation is explicit and reusable
+
+Architecture:
+- Controllers do not parse multipart data directly
+- Controllers do not write file metadata directly
+- Routes do not call repositories directly
+- Services orchestrate file ownership, storage, and metadata persistence
+- File repository owns database access
+- Storage service owns storage-specific details
+- Existing response contract remains unchanged
+
+Security:
+- Upload endpoint requires authentication
+- ownerId is assigned from authenticated actor
+- ownerId from request body is ignored or rejected
+- File size limit is enforced
+- File type allowlist is enforced
+- Original file name is not trusted as storage key
+- Client-provided paths are not trusted
+- Internal filesystem paths are not exposed in responses
+- Raw file buffers are not stored in MongoDB
+
+Testing:
+- File model tests added
+- File repository tests added
+- File service tests added
+- Storage service tests added where useful
+- Upload middleware tests added
+- Invalid upload integration tests added where practical
+- Existing auth/session/permission/audit tests continue passing
+
+---
+
+## Phase 20 Review
+
+### File Module
+
+- src/models/fileModel.js exists
+- src/repositories/file exists
+- src/services/file exists
+- src/middleware/upload exists
+- File exports/imports follow existing module patterns
+
+### File Model
+
+- Required fields are enforced
+- ownerId is required
+- metadata defaults safely
+- status defaults correctly
+- timestamps are available
+- raw file buffer fields are excluded from schema
+
+### Upload Middleware
+
+- Missing file is handled consistently
+- Oversized file is rejected
+- Disallowed file type is rejected
+- Upload errors flow through centralized error handling
+- Middleware does not contain business ownership logic
+- Middleware does not call repositories
+
+### File Repository
+
+- Repository creates file metadata
+- Repository can retrieve file metadata by id
+- Repository can query files by owner
+- Repository owns file model usage
+- Repository does not contain HTTP logic
+- Repository has focused tests
+
+### Storage Service
+
+- Storage keys or stored names are server-generated
+- Original file names are not used directly as trusted paths
+- Provider/local storage details are hidden behind the service
+- Internal paths are not returned as public API fields
+
+### File Service
+
+- Service assigns ownerId from actor
+- Service ignores client-provided ownerId
+- Service calls storage service and repository in the correct order
+- Service returns safe file DTOs
+- Service does not depend on raw Express request objects
+- Service has focused tests
+
+### Workflow Integration
+
+- Upload route requires authentication
+- Upload route applies upload middleware before controller workflow
+- File list/read routes are owner-scoped where implemented
+- Existing response contracts are preserved
+- Existing audit behavior is preserved
+
+### Scope Control
+
+- No cloud storage provider added unless explicitly required
+- No CDN integration added
+- No public file serving added
+- No file sharing added
+- No image processing added
+- No virus scanning added
+- No resumable/chunked upload added
+- Full test suite passes

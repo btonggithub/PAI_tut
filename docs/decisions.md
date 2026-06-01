@@ -444,3 +444,99 @@ Rules:
 Reason:
 Service-level orchestration keeps HTTP concerns out of audit persistence while
 allowing business workflows to decide which actions are security-sensitive.
+
+---
+
+## Decision 020 — File Upload Foundation Scope
+
+Status:
+Accepted
+
+Context:
+The backend now has authentication, authorization, session management,
+permissions, user workflows, and audit logging. The next step is to prepare a
+safe foundation for user-owned file uploads without coupling the application to
+a specific external storage provider too early.
+
+Examples:
+- user uploads a profile-related file
+- authenticated user owns uploaded file metadata
+- backend validates file size and type
+- future modules can reuse the upload/storage boundary
+
+Decision:
+Phase 20 introduces a file upload foundation.
+
+The system will include:
+- upload middleware for multipart parsing and transport-level constraints
+- file metadata model
+- file repository
+- file service
+- storage service abstraction
+- user-owned upload workflow preparation
+
+File ownership must be assigned from authenticated server-side user context.
+Client-provided owner IDs, storage paths, MIME types, and file extensions must
+not be trusted as the source of truth.
+
+Recommended metadata fields:
+- ownerId
+- originalName
+- storedName
+- mimeType
+- size
+- extension
+- storageKey
+- storageProvider
+- status
+- createdAt
+- updatedAt
+
+This phase will not introduce:
+- public file CDN integration
+- cloud object storage
+- image processing
+- virus scanning
+- resumable uploads
+- chunked uploads
+- file sharing
+- file permission management
+- file search/export APIs
+
+Consequences:
+
+Positive:
+- Establishes a reusable upload boundary
+- Keeps file metadata persistence separated from controllers
+- Prepares future storage providers without committing to one now
+- Supports user-owned file workflows safely
+
+Trade-offs:
+- Adds multipart upload handling complexity
+- Requires careful validation and test coverage
+- Storage abstraction may look simple until a real provider is introduced
+
+---
+
+## File Storage Strategy
+
+Status:
+Accepted
+
+Decision:
+Phase 20 should use a storage abstraction even if the first implementation is
+local or metadata-only.
+
+Rules:
+- Controllers must not write files directly.
+- Controllers must not create file metadata directly.
+- Upload middleware handles multipart parsing and basic upload constraints.
+- File services orchestrate storage and metadata workflows.
+- File repositories own file metadata database access.
+- Storage service owns provider-specific storage details.
+- File paths and storage keys must be generated server-side.
+- Existing response contracts must remain standardized.
+
+Reason:
+A thin storage boundary keeps the file module reusable when the project later
+adds cloud storage, scanning, processing, or file-serving policies.

@@ -299,3 +299,108 @@ Tests must verify:
 - audit service metadata sanitization
 - security-sensitive workflows create audit entries where required
 - existing response contracts remain unchanged
+
+---
+
+## File Upload Rules
+
+File upload handling must not be implemented directly inside controllers or routes.
+
+Bad:
+    await fs.writeFile(req.file.originalname, req.file.buffer)
+
+inside a controller.
+
+Good:
+    await fileService.createUserFile({ actor, file, metadata })
+
+inside a controller workflow.
+
+### Upload Middleware Rules
+
+Upload middleware owns:
+- multipart parsing
+- file size constraints
+- file count constraints
+- basic file presence handling
+- upload-specific transport errors
+
+Upload middleware must not:
+- create file metadata records
+- assign business ownership
+- call repositories directly
+- trust request body ownerId
+- expose raw storage paths in responses
+
+### File Repository Rules
+
+File repositories own:
+- file metadata persistence
+- file metadata lookup
+- file metadata update helpers
+- file listing query helpers
+
+Services must NOT:
+- import file Mongoose models directly
+- construct raw file metadata queries
+- format HTTP responses from file metadata results
+
+### File Service Rules
+
+File services may:
+- normalize upload metadata
+- assign ownerId from authenticated actor
+- call storage services
+- call file repositories
+- orchestrate user-owned upload workflows
+- coordinate audit logging where security-relevant
+
+File services must not:
+- depend on raw Express request objects
+- trust client-provided ownerId
+- trust client-provided storage paths
+- expose local filesystem paths as public API
+- bypass repository or storage abstractions
+
+### Storage Service Rules
+
+Storage services own:
+- storage key generation
+- provider/local storage details
+- file persistence details
+- file removal details where implemented
+
+Storage services must not:
+- perform authorization decisions
+- format HTTP responses
+- access controllers or routes
+- trust original file names as storage keys
+
+### Upload Security Rules
+
+Never trust:
+- req.body.ownerId
+- client-provided file path
+- client-provided storage key
+- file extension alone
+- MIME type without server constraints
+- original file name as a safe storage name
+
+Uploaded files must:
+- be associated with the authenticated user server-side
+- enforce maximum size
+- enforce allowed type rules
+- use server-generated storage keys or stored names
+- avoid returning internal filesystem paths
+
+### File Upload Testing Rules
+
+Tests must verify:
+- upload middleware rejects missing files where required
+- upload middleware rejects disallowed file types
+- upload middleware rejects files over size limit
+- file model required fields and defaults
+- file repository owns metadata persistence
+- file service assigns ownerId from actor
+- file service does not trust body ownerId
+- existing auth/permission/response behavior remains unchanged

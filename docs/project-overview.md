@@ -116,11 +116,21 @@ The project currently implements:
 - Fine-grained authorization preparation
 
 ### Audit Logging Foundation
-- Planned for Phase 19
-- Audit log model preparation
-- Audit repository preparation
-- Audit service preparation
-- Security-sensitive action tracking preparation
+- Audit log model
+- Audit repository
+- Audit service with metadata sanitization
+- Security-sensitive action tracking
+- Auth/user/admin activity audit events
+- Non-blocking audit persistence behavior
+
+### File Upload Foundation
+- Active Phase 20 preparation
+- File upload middleware preparation
+- File metadata model preparation
+- File repository preparation
+- File service preparation
+- Storage abstraction preparation
+- User-owned file workflow preparation
 
 ---
 
@@ -168,28 +178,29 @@ JSON Response
 
 ## Current Development Phase
 
-Phase 19 — Audit Logging
+Phase 20 — File Upload Foundation
 
 Current goals:
-- Audit log foundation
-- Audit log model
-- Audit log repository
-- Audit log service
-- Security-sensitive action tracking
-- User/auth/admin activity audit preparation
+- File upload middleware foundation
+- File metadata model
+- File repository
+- File service
+- Upload validation
+- Storage abstraction
+- User-owned file workflow preparation
 
 ---
 
 ## Planned Next Phase
 
-Phase 20 — File Upload Foundation
+Phase 21 — Email Verification
 
 Future goals:
-- File upload middleware foundation
-- File metadata model preparation
-- Upload validation
-- Storage abstraction preparation
-- User-owned file workflow preparation
+- Email verification token workflow
+- Email verification model preparation
+- Verification email orchestration
+- Account verification state preparation
+- Auth flow integration preparation
 
 ---
 

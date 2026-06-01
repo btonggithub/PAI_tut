@@ -2,118 +2,123 @@
 
 ## Phase
 
-Phase 19 — Audit Logging
+Phase 20 — File Upload Foundation
 
 ## Objective
 
-Introduce an audit logging foundation for security-sensitive backend activity while preserving existing authentication, session, permission, policy, and response behavior.
+Introduce a safe file upload foundation for authenticated, user-owned uploads
+while preserving existing authentication, authorization, audit logging, and
+standardized response behavior.
 
-Audit logs provide a server-controlled record of important actions.
-They must not become analytics, reporting, alerting, or event infrastructure in this phase.
+This phase should prepare upload handling, file metadata persistence, validation,
+and storage abstraction without over-building a full file management product.
 
-Existing API behavior and response contracts must remain unchanged unless explicitly required by this phase.
+Existing API behavior and response contracts must remain unchanged unless
+explicitly required by this phase.
 
 ---
 
 ## Requirements
 
-### Audit Module
+### File Upload Module
 
 Create:
 
-src/models/auditLogModel.js
-src/repositories/audit/
-src/services/audit/
+src/models/fileModel.js
+src/repositories/file/
+src/services/file/
+src/middleware/upload/
 
 Recommended files:
 
-- src/models/auditLogModel.js
-- src/repositories/audit/auditLogRepository.js
-- src/services/audit/auditLogService.js
+- src/models/fileModel.js
+- src/repositories/file/fileRepository.js
+- src/services/file/fileService.js
+- src/services/file/storageService.js
+- src/middleware/upload/uploadFile.js
 
 Optional files if they improve clarity without over-engineering:
 
-- src/services/audit/auditActions.js
-- src/services/audit/auditResults.js
+- src/services/file/fileStatus.js
+- src/services/file/fileTypes.js
+- src/controllers/file/fileController.js
+- src/routes/fileRoutes.js
+- src/middleware/upload/uploadErrors.js
 
 Rules:
 
 - Follow existing model/repository/service patterns.
-- Repositories own all audit log database access.
-- Controllers and routes must not write audit logs directly.
-- Do not introduce audit routes or public audit APIs during this phase.
+- Repositories own all file metadata database access.
+- Storage service owns storage-specific behavior.
+- Controllers and routes must not write file metadata directly.
+- Do not introduce cloud storage unless explicitly required.
+- Do not introduce public file sharing, search, or CDN workflows in this phase.
 
-### Audit Log Model
+### File Metadata Model
 
-Define an audit log model for security-sensitive actions.
+Define a file metadata model for uploaded files.
 
 Recommended fields:
 
-- actorId
-- actorRole
-- action
-- resourceType
-- resourceId
-- result
-- ipAddress
-- userAgent
+- ownerId
+- originalName
+- storedName
+- mimeType
+- size
+- extension
+- storageKey
+- storageProvider
+- status
 - metadata
 - createdAt
+- updatedAt
 
 Rules:
 
-- actorId may be absent for unauthenticated events such as failed login.
-- action must be required.
-- result must be required.
+- ownerId must come from the authenticated actor, not request body.
+- originalName may be stored for display/reference only.
+- storedName or storageKey must be server-generated.
+- mimeType and size must be recorded from upload processing.
 - metadata must default to an empty object.
-- createdAt must be available for audit ordering.
-- Do not store passwords, raw tokens, refresh token hashes, Authorization headers, or secrets.
+- status should default to active or pending.
+- Do not store raw file buffers in MongoDB during this phase.
+- Do not expose local filesystem paths as public API values.
 
-### Audit Actions
+### Upload Middleware
 
-Use stable action names.
-
-Recommended initial actions:
-
-- auth.login
-- auth.refresh
-- auth.logout
-- user.profile.update
-- user.read.admin
-
-Rules:
-
-- Action names must be centralized where practical.
-- Action names must stay separate from result values.
-- Do not build action names dynamically from request input.
-- Keep names lowercase and dot-separated.
-
-### Audit Results
-
-Use predictable result values.
-
-Recommended results:
-
-- succeeded
-- failed
-- forbidden
-
-Rules:
-
-- Result values should be centralized where practical.
-- Use metadata for additional details instead of creating arbitrary result strings.
-
-### Audit Repository
-
-Implement a repository for audit log persistence.
-
-Recommended API:
-
-recordAuditLog(payload)
+Implement middleware for multipart upload handling.
 
 Responsibilities:
 
-- Create audit log records.
+- Accept file upload input.
+- Enforce maximum file size.
+- Enforce allowed MIME types.
+- Normalize upload errors into AppError/standard response flow where practical.
+- Attach upload result for controller/service orchestration.
+
+Rules:
+
+- Upload parsing belongs in middleware, not controllers.
+- Middleware must remain reusable.
+- Middleware must not create file metadata.
+- Middleware must not assign ownership.
+- Middleware must not call repositories.
+
+### File Repository
+
+Implement a repository for file metadata persistence.
+
+Recommended results:
+
+- createFileMetadata(payload)
+- findFileById(fileId)
+- findFilesByOwner(ownerId, query)
+- updateFileStatus(fileId, payload)
+
+Responsibilities:
+
+- Create file metadata records.
+- Query file metadata by id/owner.
 - Own Mongoose model usage.
 - Keep persistence details out of services.
 
@@ -124,70 +129,72 @@ Rules:
 - No controller responsibilities.
 - No business workflow orchestration.
 
-### Audit Service
+### Storage Service
 
-Implement a reusable audit service.
+Implement a storage service abstraction.
 
 Recommended API:
 
-recordAuditEvent(payload)
+- storeFile(file)
+- removeFile(storageKey)
 
 Responsibilities:
 
-- Normalize audit payloads.
-- Sanitize metadata.
-- Call audit repository.
-- Provide a reusable audit entry point for domain services.
+- Generate safe stored names or storage keys.
+- Hide local/provider-specific storage behavior.
+- Return storage metadata needed by fileService.
+
+Rules:
+
+- Do not trust original file names as storage keys.
+- Do not expose local filesystem paths in API responses.
+- Keep implementation simple for Phase 20.
+- Do not add external storage provider integration unless required.
+
+### File Service
+
+Implement a reusable file service.
+
+Recommended API:
+
+- createUserFile({ actor, file, metadata })
+- listUserFiles({ actor, query })
+- getUserFile({ actor, fileId })
+
+Responsibilities:
+
+- Assign ownerId from authenticated actor.
+- Normalize metadata.
+- Call storage service.
+- Call file repository.
+- Return safe file DTOs.
+- Coordinate audit logging where security-relevant and practical.
 
 Rules:
 
 - Do not depend on raw Express request objects.
-- Do not store secrets or token values.
-- Keep the service reusable across auth, user, and future admin workflows.
+- Do not trust ownerId from request body.
+- Do not store secrets or internal filesystem paths.
 - Preserve existing API response contracts.
 
 ### Integration Targets
 
-Add audit logging to selected security-sensitive workflows where practical.
+Add upload workflow endpoints only where needed to prove the foundation.
 
-Initial targets:
+Recommended initial targets:
 
-- Successful login
-- Failed login
-- Successful refresh token rotation
-- Failed refresh token attempt where practical
-- Successful logout/session revocation
-- Successful profile update
-- Admin user listing or admin user read where practical
+- Authenticated user uploads one file.
+- Authenticated user lists own uploaded files.
+- Authenticated user reads own file metadata.
 
 Rules:
 
 - Keep integration minimal and focused.
 - Do not rewrite existing auth/session/user flows.
-- Do not add event infrastructure.
-- Do not let audit logging expose sensitive request data.
-- Existing success/error response shape must remain unchanged.
-
-### Request Metadata
-
-When available, capture request metadata without coupling services to Express.
-
-Allowed metadata:
-
-- ipAddress
-- userAgent
-
-Recommended approach:
-
-- Controllers may pass sanitized request context into services when needed.
-- Services pass normalized audit context into auditLogService.
-- AuditLogService persists only safe fields.
-
-Rules:
-
-- Services must not receive raw req objects.
-- Do not store Authorization headers.
-- Do not store request bodies wholesale.
+- Do not add file sharing or public file serving.
+- Do not add image processing.
+- Do not add virus scanning in this phase.
+- Existing auth/permission/error response shapes must remain unchanged.
 
 ---
 
@@ -195,52 +202,72 @@ Rules:
 
 Add or update tests for:
 
-### Audit Log Model
+### File Model
 
 - Required fields are enforced.
 - Metadata defaults to an empty object.
+- Status defaults correctly.
 - Timestamps are available.
-- Sensitive fields are not part of the schema.
+- Raw file buffers are not part of the schema.
 
-### Audit Repository
+### Upload Middleware
 
-- recordAuditLog creates audit entries.
-- Repository owns model interaction.
+- Missing required file is rejected.
+- Disallowed MIME type is rejected.
+- Oversized file is rejected.
+- Upload errors use standardized error handling.
+
+### File Repository
+
+- createFileMetadata creates metadata records.
+- findFileById retrieves file metadata.
+- findFilesByOwner scopes results by owner.
 - Repository tests isolate persistence behavior.
 
-### Audit Service
+### Storage Service
 
-- recordAuditEvent calls the repository with normalized payload.
-- Missing optional actor fields are handled.
-- Sensitive metadata is removed.
-- Raw tokens, passwords, refresh token hashes, and Authorization headers are not persisted.
+- Generates safe storage keys/stored names.
+- Does not use originalName directly as storage key.
+- Returns normalized storage metadata.
+
+### File Service
+
+- Assigns ownerId from actor.
+- Ignores client-provided ownerId.
+- Calls storage service before metadata persistence where appropriate.
+- Returns safe file DTOs.
+- Does not expose internal filesystem paths.
 
 ### Workflow Integration
 
-- Successful login records an audit event.
-- Failed login records an audit event where practical.
-- Refresh/logout/profile update audit events are covered where implementation touches those workflows.
+- Upload endpoint requires authentication.
+- Upload endpoint rejects invalid files.
+- Upload endpoint creates file metadata for authenticated user.
+- List/read endpoints return only actor-owned files where implemented.
 - Existing response contracts remain unchanged.
 
 ### Regression
 
 - Existing authentication/session tests continue passing.
 - Existing permission tests continue passing.
+- Existing audit tests continue passing.
 - Full test suite passes.
 
 ---
 
 ## Success Criteria
 
-1. Audit log model implemented
-2. Audit log repository implemented
-3. Audit log service implemented
-4. Audit action/result names centralized where practical
-5. Sensitive metadata sanitization implemented
-6. Security-sensitive workflows create audit entries where practical
-7. Existing authentication/session/permission behavior preserved
-8. Tests added or updated
-9. Full test suite passes
+1. File upload middleware implemented
+2. File metadata model implemented
+3. File repository implemented
+4. File service implemented
+5. Storage abstraction implemented
+6. Upload validation implemented
+7. User-owned file metadata workflow implemented
+8. Client-provided owner/path data is not trusted
+9. Existing auth/permission/audit behavior preserved
+10. Tests added or updated
+11. Full test suite passes
 
 ---
 
@@ -248,47 +275,52 @@ Add or update tests for:
 
 Do NOT implement:
 
-- audit log UI
-- audit log search API
-- audit export/reporting
+- cloud storage provider integration
+- CDN integration
+- public file serving
+- signed URLs
+- file sharing
+- file search/export APIs
+- image resizing or optimization
+- virus scanning
+- resumable uploads
+- chunked uploads
+- file permission management UI
 - analytics dashboards
-- alerting
-- event-driven audit logging
-- message queues
-- external log shipping
-- SIEM integration
-- audit log retention policies
-- audit log permission management
-- dynamic audit configuration
+- external event publishing
 
 Rules:
 
 - Prefer the simplest implementation that satisfies current requirements.
-- Avoid speculative abstractions for external audit systems.
-- Do not introduce infrastructure that is not actively required by Phase 19.
+- Avoid speculative abstractions for advanced file management.
+- Keep storage abstraction thin and replaceable.
 - Maintain readability and maintainability over extensibility.
-- Use direct service orchestration only.
 
 ---
 
-## Audit Model
+## File Upload Model
 
-Audit logging records what happened.
+File upload records what file was accepted and who owns it.
 
-Authorization still determines whether an action may happen.
+Authorization still determines whether an actor may access file metadata.
 
-Authentication still determines who the actor is.
+Authentication still determines the owner of user-owned uploads.
 
-Audit logs must not change business behavior or API response contracts.
+File upload must not change existing auth, permission, audit, or response
+contracts.
 
 Flow:
 
-Business action
+Upload request
 ↓
-Audit event payload
+Authentication
 ↓
-Audit service sanitization
+Upload middleware
 ↓
-Audit repository persistence
+File service ownership assignment
 ↓
-Audit log record
+Storage service
+↓
+File repository persistence
+↓
+Safe file response

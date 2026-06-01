@@ -30,6 +30,7 @@ src/
 │   └── user/
 │
 ├── services/
+│   ├── audit/
 │   ├── auth/
 │   ├── health/
 │   ├── session/
@@ -37,6 +38,7 @@ src/
 │   └── user/
 │
 ├── repositories/
+│   ├── audit/
 │   ├── auth/
 │   ├── base/
 │   ├── health/
@@ -51,6 +53,7 @@ src/
 │   └── errorHandler.js
 │
 ├── models/
+│   ├── auditLogModel.js
 │   ├── sessionModel.js
 │   └── userModel.js
 │
@@ -77,6 +80,7 @@ src/
 │   ├── pagination.js
 │   ├── password.js
 │   ├── query.js
+│   ├── requestContext.js
 │   └── response.js
 │
 └── tests/
@@ -87,21 +91,26 @@ src/
 
 ---
 
-## Target Structure After Phase 19
+## Target Structure After Phase 20
 
-Phase 19 introduces an audit logging module:
+Phase 20 introduces a file upload foundation:
 
 src/
 ├── models/
-│   └── auditLogModel.js
+│   └── fileModel.js
+│
+├── middleware/
+│   └── upload/
+│       └── uploadFile.js
 │
 ├── repositories/
-│   └── audit/
-│       └── auditLogRepository.js
+│   └── file/
+│       └── fileRepository.js
 │
 └── services/
-    └── audit/
-        └── auditLogService.js
+    └── file/
+        ├── fileService.js
+        └── storageService.js
 
 ---
 
@@ -577,6 +586,84 @@ Rules:
 - Audit logs should capture enough context for security review without storing secrets.
 - Audit failures should be handled deliberately and consistently by the audit service.
 - Phase 19 must use direct service orchestration, not event-driven infrastructure.
+
+---
+
+## File Upload Layer
+
+Responsible for accepting validated uploads, storing file metadata, and preparing
+storage abstraction for future storage backends.
+
+Contains:
+middleware/upload/
+models/fileModel.js
+repositories/file/
+services/file/
+
+Responsibilities:
+- Parse multipart upload requests
+- Validate file size, type, and required file presence
+- Persist file metadata
+- Associate uploaded files with the authenticated owner
+- Keep storage-specific details behind a service boundary
+
+Rules:
+- Controllers must not access multipart parser internals directly.
+- Controllers must not write file metadata directly.
+- Repositories own file metadata database access.
+- Services orchestrate file ownership, metadata normalization, and storage calls.
+- Upload middleware validates transport-level upload constraints.
+- File upload must not trust client-provided ownerId, path, extension, or MIME type blindly.
+
+Recommended file metadata shape:
+
+owner
+↓
+originalName
+↓
+storedName
+↓
+mimeType
+↓
+size
+↓
+storageKey
+↓
+status
+↓
+createdAt
+
+---
+
+## Phase 20 File Upload Flow
+
+Request
+↓
+Authentication Middleware
+↓
+Permission / Ownership Middleware When Needed
+↓
+Upload Middleware
+↓
+Validation Middleware
+↓
+Controller
+↓
+File Service
+↓
+Storage Service
+↓
+File Repository
+↓
+Database
+
+Rules:
+- Upload parsing belongs in middleware, not controllers.
+- File metadata persistence belongs in repositories.
+- File business workflows belong in services.
+- Uploaded files must be associated with the authenticated user server-side.
+- Phase 20 should prepare storage abstraction without adding cloud storage unless required.
+- Existing authentication, authorization, audit, and response contracts must remain stable.
 
 ---
 
