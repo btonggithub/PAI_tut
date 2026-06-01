@@ -52,3 +52,20 @@
     domain ownership
     bounded contexts 
 30+ Mongo Transaction
+
+## Phase 21 Completed: Email Verification
+
+- Email verification fully implemented.
+- User records now include verified status.
+- REST API endpoints enforce verification where required.
+
+## Phase 22 : Cache Layer Foundation
+
+- Introduce caching for frequently accessed resources (e.g., user profiles, file metadata).
+- Decide on cache technology (Redis/Memcached or in-memory cache).
+- Define TTL policies and invalidation strategies.
+- Update REST API endpoints to check cache before database queries.
+- Ensure cache consistency with write operations (create/update/delete).
+- Add monitoring/logging for cache hit/miss rates.
+- Update architecture diagrams and documentation to reflect cache layer.
+

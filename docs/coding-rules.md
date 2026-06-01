@@ -432,3 +432,33 @@ Verification tokens must be generated using cryptographically secure random valu
 Raw verification tokens must never be stored in MongoDB.
 
 ---
+
+### Cache Rules
+
+Rules for caching layer:
+- Always check cache before DB query
+- Update cache on create/update/delete
+- Fallback to DB if cache unavailable
+- TTL: default 5 min
+
+// Example: Redis cache setup
+const redis = require('redis');
+const client = redis.createClient({ url: 'redis://localhost:6379' });
+await client.connect();
+
+// Wrapper for cache get/set
+async function cacheWrapper(key, fetchFunction, ttl = 300) { // 300 sec default TTL
+  const cached = await client.get(key);
+  if (cached) return JSON.parse(cached);
+
+  const data = await fetchFunction();
+  await client.set(key, JSON.stringify(data), { EX: ttl });
+  return data;
+}
+
+// Usage in Service
+async function getUserProfile(userId) {
+  return cacheWrapper(`user:${userId}`, async () => {
+    return db.query('SELECT * FROM users WHERE id=?', [userId]);
+  });
+}

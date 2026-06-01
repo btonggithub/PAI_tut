@@ -480,3 +480,13 @@ Do not use:
 - token
 - rawToken
 - plainToken
+
+---
+
+## Cache Moule Conventions 
+
+- Cacheable endpoints: GET /api/users/:id, GET /api/files/:id
+- Non-cacheable: POST/PUT/DELETE endpoints
+- Key format: resourceType:id
+- TTL default: 5 min (adjustable)
+- Invalidate cache on create/update/delete

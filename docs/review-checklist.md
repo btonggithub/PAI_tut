@@ -376,3 +376,13 @@ Testing:
 - Verify expired token
 - Verify reused token
 - Resend verification
+
+### Cache layer
+
+- Cache layer implemented
+- TTLs applied
+- Invalidation on updates
+- API endpoints return cached data correctly
+- Logging of cache hit/miss
+- Fallback to DB if cache unavailable
+- Unit & integration tests for cache

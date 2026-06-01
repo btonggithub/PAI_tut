@@ -664,6 +664,13 @@ Rules:
 - Uploaded files must be associated with the authenticated user server-side.
 - Phase 20 should prepare storage abstraction without adding cloud storage unless required.
 - Existing authentication, authorization, audit, and response contracts must remain stable.
+- Add Cache Layer between Service and Database
+- Flow for cached endpoints:
+  Client -> Controller -> Service -> Cache -> Database
+- Cache Options:
+  - Redis (preferred)
+  - In-memory Node.js cache (node-cache)
+- TTL and Invalidation strategy integrated
 
 ---
 
@@ -729,3 +736,12 @@ SendGridProvider
 EmailService
     ↓
 SesProvider
+
+# Phase 22 Cache Layer Foundation (Appended)
+- Add Cache Layer between Service and Database
+- Flow for cached endpoints:
+  Client -> Controller -> Service -> Cache -> Database
+- Cache Options:
+  - Redis (preferred)
+  - In-memory Node.js cache (node-cache)
+- TTL and Invalidation strategy integrated

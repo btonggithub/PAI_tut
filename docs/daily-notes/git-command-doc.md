@@ -4,6 +4,10 @@
 
 npm run dev
 
+## merge file
+
+node mergePhase.js . changelog/updated_context_phase22.md
+
 #### Git add all file and commit 
 git checkout -b docs/add-notes
 

@@ -543,7 +543,7 @@ adds cloud storage, scanning, processing, or file-serving policies.
 
 ---
 
-## Decision 021 - Email Provider Abstraction
+## Decision 021 - Email Verification Provider Abstraction
 
 Status:
 Accepted
@@ -568,15 +568,10 @@ Negative:
 
 ---
 
-## Decision 022 - Verification Tokens Are Stored Hashed
+## Decision 022 - Cache Layer Foundation
 
-Status:
-Accepted
-
-Decision:
-Raw verification tokens must never be persisted.
-
-Only token hashes may be stored.
-
-Rationale:
-Prevents token disclosure if database contents are exposed.
+- Cache Technology: Redis (preferred)
+- Key format: resourceType:id
+- Default TTL: 5 min
+- Invalidation: on create/update/delete
+- Fallback: DB query if cache miss
