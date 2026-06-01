@@ -10,10 +10,24 @@ jest.mock('../../src/services/audit/auditLogService', () => ({
   recordAuditEvent: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../src/services/cache/cacheService', () => ({
+  withCache: jest.fn((key, fetcher, ttl) => fetcher()),
+  buildCacheKey: jest.fn((baseKey, params) => {
+    if (!params || Object.keys(params).length === 0) return baseKey;
+    const paramStr = Object.keys(params)
+      .sort()
+      .map((k) => `${k}=${JSON.stringify(params[k])}`)
+      .join(':');
+    return `${baseKey}:${paramStr}`;
+  }),
+  invalidateUserCache: jest.fn(),
+}));
+
 const AppError = require('../../src/utils/AppError');
 const userService = require('../../src/services/user/userService');
 const userRepository = require('../../src/repositories/user/userRepository');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const cacheService = require('../../src/services/cache/cacheService');
 const AUDIT_ACTIONS = require('../../src/services/audit/auditActions');
 const AUDIT_RESULTS = require('../../src/services/audit/auditResults');
 
@@ -308,6 +322,81 @@ describe('userService', () => {
 
       expect(result.id).toBe('u1');
       expect(result.name).toBe('Updated Name');
+    });
+  });
+
+  describe('Cache Integration', () => {
+    it('getMe uses cache service with correct cache key', async () => {
+      const user = {
+        _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+      };
+      userRepository.findUserProfile.mockResolvedValue(user);
+
+      await userService.getMe('64b7f5b9f1d2c3a4b5c6d7e8');
+
+      expect(cacheService.withCache).toHaveBeenCalledWith(
+        expect.stringContaining('user:profile'),
+        expect.any(Function),
+        3600
+      );
+    });
+
+    it('listUsers uses cache service with correct cache key', async () => {
+      const query = { page: 1, limit: 10 };
+      const repoResult = {
+        items: [],
+        meta: { total: 0, page: 1, limit: 10, totalPages: 0 },
+      };
+      userRepository.findUsers.mockResolvedValue(repoResult);
+
+      await userService.listUsers(query, adminActor);
+
+      expect(cacheService.withCache).toHaveBeenCalledWith(
+        expect.stringContaining('users:list'),
+        expect.any(Function),
+        1800
+      );
+    });
+
+    it('getUserById uses cache service with correct cache key', async () => {
+      userRepository.findUserById.mockResolvedValue({
+        _id: '64b7f5b9f1d2c3a4b5c6d7e8',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+      });
+
+      await userService.getUserById('64b7f5b9f1d2c3a4b5c6d7e8', adminActor);
+
+      expect(cacheService.withCache).toHaveBeenCalledWith(
+        expect.stringContaining('user:id'),
+        expect.any(Function),
+        3600
+      );
+    });
+
+    it('updateMe invalidates user cache after update', async () => {
+      const updated = {
+        _id: 'u1',
+        name: 'Updated Name',
+        email: 'user@example.com',
+        role: 'user',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+      };
+      userRepository.findUserByEmailExcludingId.mockResolvedValue(null);
+      userRepository.updateUserProfile.mockResolvedValue(updated);
+
+      await userService.updateMe('u1', { name: 'Updated Name' }, userActor);
+
+      expect(cacheService.invalidateUserCache).toHaveBeenCalledWith('u1');
     });
   });
 });

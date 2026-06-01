@@ -5,15 +5,20 @@ const { canViewUser, canUpdateUser, canManageUsers } = require('../../policies/u
 const { recordAuditEvent } = require('../audit/auditLogService');
 const AUDIT_ACTIONS = require('../audit/auditActions');
 const AUDIT_RESULTS = require('../audit/auditResults');
+const cacheService = require('../cache/cacheService');
 
 const getMe = async (userId) => {
-  const user = await userRepository.findUserProfile(userId);
+  const cacheKey = cacheService.buildCacheKey('user:profile', { userId });
 
-  if (!user) {
-    throw new AppError('User not found', 404);
-  }
+  return cacheService.withCache(cacheKey, async () => {
+    const user = await userRepository.findUserProfile(userId);
 
-  return toSafeUser(user);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    return toSafeUser(user);
+  }, 3600); // Cache for 1 hour
 };
 
 const updateMe = async (userId, payload, actor, requestContext = {}) => {
@@ -51,6 +56,9 @@ const updateMe = async (userId, payload, actor, requestContext = {}) => {
     throw new AppError('User not found', 404);
   }
 
+  // Invalidate caches after update
+  cacheService.invalidateUserCache(userId);
+
   // Record successful profile update audit event
   await recordAuditEvent({
     action: AUDIT_ACTIONS.USER_PROFILE_UPDATE,
@@ -73,24 +81,28 @@ const listUsers = async (query = {}, actor, requestContext = {}) => {
     throw new AppError('Forbidden', 403);
   }
 
-  const result = await userRepository.findUsers(query);
+  const cacheKey = cacheService.buildCacheKey('users:list', query);
 
-  // Record audit event for admin user listing
-  await recordAuditEvent({
-    action: AUDIT_ACTIONS.USER_READ_ADMIN,
-    result: AUDIT_RESULTS.SUCCEEDED,
-    actorId: actor.id,
-    actorRole: actor.role,
-    resourceType: 'users',
-    ipAddress: requestContext.ipAddress || null,
-    userAgent: requestContext.userAgent || null,
-    metadata: { count: result.items.length, page: query.page || 1 },
-  });
+  return cacheService.withCache(cacheKey, async () => {
+    const result = await userRepository.findUsers(query);
 
-  return {
-    users: toSafeUsers(result.items),
-    meta: result.meta,
-  };
+    // Record audit event for admin user listing
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.USER_READ_ADMIN,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: actor.id,
+      actorRole: actor.role,
+      resourceType: 'users',
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+      metadata: { count: result.items.length, page: query.page || 1 },
+    });
+
+    return {
+      users: toSafeUsers(result.items),
+      meta: result.meta,
+    };
+  }, 1800); // Cache for 30 minutes
 };
 
 const getUserById = async (userId, actor, requestContext = {}) => {
@@ -99,27 +111,31 @@ const getUserById = async (userId, actor, requestContext = {}) => {
     throw new AppError('Forbidden', 403);
   }
 
-  const user = await userRepository.findUserById(userId);
+  const cacheKey = cacheService.buildCacheKey('user:id', { userId });
 
-  if (!user) {
-    throw new AppError('User not found', 404);
-  }
+  return cacheService.withCache(cacheKey, async () => {
+    const user = await userRepository.findUserById(userId);
 
-  // Record audit event for admin user read
-  if (actor.role === 'admin' && actor.id !== userId) {
-    await recordAuditEvent({
-      action: AUDIT_ACTIONS.USER_READ_ADMIN,
-      result: AUDIT_RESULTS.SUCCEEDED,
-      actorId: actor.id,
-      actorRole: actor.role,
-      resourceType: 'user',
-      resourceId: userId,
-      ipAddress: requestContext.ipAddress || null,
-      userAgent: requestContext.userAgent || null,
-    });
-  }
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
 
-  return toSafeUser(user);
+    // Record audit event for admin user read
+    if (actor.role === 'admin' && actor.id !== userId) {
+      await recordAuditEvent({
+        action: AUDIT_ACTIONS.USER_READ_ADMIN,
+        result: AUDIT_RESULTS.SUCCEEDED,
+        actorId: actor.id,
+        actorRole: actor.role,
+        resourceType: 'user',
+        resourceId: userId,
+        ipAddress: requestContext.ipAddress || null,
+        userAgent: requestContext.userAgent || null,
+      });
+    }
+
+    return toSafeUser(user);
+  }, 3600); // Cache for 1 hour
 };
 
 module.exports = {

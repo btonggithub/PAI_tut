@@ -433,32 +433,138 @@ Raw verification tokens must never be stored in MongoDB.
 
 ---
 
-### Cache Rules
+## Cache Layer Rules
 
-Rules for caching layer:
-- Always check cache before DB query
-- Update cache on create/update/delete
-- Fallback to DB if cache unavailable
-- TTL: default 5 min
+### Cache Service Rules
 
-// Example: Redis cache setup
-const redis = require('redis');
-const client = redis.createClient({ url: 'redis://localhost:6379' });
-await client.connect();
+Cache service owns:
+- Cache key generation
+- TTL management
+- Cache hit/miss logging
+- Pattern-based cache invalidation
+- Abstraction for future cache providers
 
-// Wrapper for cache get/set
-async function cacheWrapper(key, fetchFunction, ttl = 300) { // 300 sec default TTL
-  const cached = await client.get(key);
-  if (cached) return JSON.parse(cached);
+Cache service must NOT:
+- access repositories directly
+- depend on Express request objects
+- contain business logic
+- format HTTP responses
 
-  const data = await fetchFunction();
-  await client.set(key, JSON.stringify(data), { EX: ttl });
-  return data;
-}
+### Cache Integration Rules
 
-// Usage in Service
-async function getUserProfile(userId) {
-  return cacheWrapper(`user:${userId}`, async () => {
-    return db.query('SELECT * FROM users WHERE id=?', [userId]);
-  });
-}
+Services may invoke cache service methods.
+
+Good:
+    const result = await cacheService.withCache(
+      cacheKey,
+      () => repository.findUser(userId),
+      3600
+    );
+
+Bad:
+    await cacheStore.set(key, value) // inside service
+
+Controllers must NOT:
+- access cache layer directly
+- manage cache keys
+- call cache service
+
+Repositories must NOT:
+- be aware of caching
+- manage cache invalidation
+- contain cache logic
+
+### Cache Key Rules
+
+Cache keys must:
+- use consistent naming patterns
+- include entity type prefix (user:, post:, etc.)
+- include identifiers in path (user:123, users:list:page=1)
+- be deterministic (same inputs = same key)
+
+Good:
+    user:profile:{userId}
+    user:id:{userId}
+    users:list:{page}:{limit}
+
+Bad:
+    cache_key_user_123
+    user-info-123
+
+### Cache Invalidation Rules
+
+Invalidation must occur:
+- on create operations (invalidate list caches)
+- on update operations (invalidate item + list caches)
+- on delete operations (invalidate item + list caches)
+
+Correct:
+    const updated = await repository.update(id, payload);
+    cacheService.invalidateUserCache(id);
+    return toDTO(updated);
+
+Bad:
+    // Updates without invalidation
+    const updated = await repository.update(id, payload);
+    return toDTO(updated);
+
+### Cache Testing Rules
+
+Tests must verify:
+- cache hits return same value as database
+- cache misses fetch from database
+- cache invalidation removes stale data
+- cache TTL expires values correctly
+- pattern-based invalidation works correctly
+- service layer remains testable without cache
+
+Good:
+    jest.mock('../../src/services/cache/cacheService', () => ({
+      withCache: jest.fn((key, fetcher) => fetcher()),
+      buildCacheKey: jest.fn((base, params) => ...),
+      invalidateUserCache: jest.fn(),
+    }));
+
+### Cache TTL Guidelines
+
+Default TTL values:
+- User profiles: 3600s (1 hour)
+- User lists: 1800s (30 minutes)
+- Frequently accessed data: 3600s
+- Infrequently accessed data: 1800s
+- Short-lived data: 300s (5 minutes)
+
+Adjust based on:
+- Update frequency
+- Data staleness tolerance
+- Memory constraints
+
+### Cache Provider Abstraction
+
+Current implementation:
+- In-memory cache store (utils/cache.js)
+
+Future implementations can provide:
+- Redis cache
+- Memcached
+- node-cache package
+
+To add new provider:
+1. Implement same interface as current CacheStore
+2. Create new provider module
+3. Update cacheService to use new provider
+4. No changes required to service layer
+
+### Cache Logging Rules
+
+Cache service must log:
+- [CACHE_HIT] key - when value found in cache
+- [CACHE_MISS] key - when value not in cache
+- [CACHE_INVALIDATE] key - when value removed
+- [CACHE_INVALIDATE_ALL] - when all cache cleared
+
+Example output:
+    [CACHE_HIT] user:profile:123
+    [CACHE_MISS] user:list:page=1
+    [CACHE_INVALIDATE] user:id:456
+    [CACHE_INVALIDATE_ALL] All caches cleared}

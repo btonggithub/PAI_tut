@@ -32,6 +32,8 @@ src/
 ├── services/
 │   ├── audit/
 │   ├── auth/
+│   ├── cache/
+│   ├── email/
 │   ├── health/
 │   ├── session/
 │   ├── system/
@@ -76,6 +78,7 @@ src/
 ├── utils/
 │   ├── AppError.js
 │   ├── asyncHandler.js
+│   ├── cache.js
 │   ├── jwt.js
 │   ├── pagination.js
 │   ├── password.js
@@ -737,11 +740,128 @@ EmailService
     ↓
 SesProvider
 
-# Phase 22 Cache Layer Foundation (Appended)
-- Add Cache Layer between Service and Database
-- Flow for cached endpoints:
-  Client -> Controller -> Service -> Cache -> Database
-- Cache Options:
-  - Redis (preferred)
-  - In-memory Node.js cache (node-cache)
-- TTL and Invalidation strategy integrated
+---
+
+## Cache Layer Architecture
+
+Responsible for performance optimization through caching.
+
+Contains:
+- utils/cache.js (In-memory cache store)
+- services/cache/cacheService.js (Cache orchestration)
+
+Responsibilities:
+- TTL-based value caching
+- Automatic cache expiration
+- Pattern-based cache invalidation
+- Transparent caching integration
+- Cache hit/miss logging
+
+### Cache Flow
+
+Request
+    ↓
+Service Layer
+    ↓
+Cache Check
+    ↓
+Cache Hit: Return cached value
+    ↓
+Cache Miss: Fetch from database
+    ↓
+Store in cache with TTL
+    ↓
+Return value
+
+### Cache Integration Points
+
+Current Integration:
+- User service GET endpoints (getMe, getUserById, listUsers)
+- Automatic invalidation on updates
+
+Cache Keys:
+- user:profile:{userId} (3600s TTL)
+- user:id:{userId} (3600s TTL)
+- users:list:{page,limit,...} (1800s TTL)
+
+### In-Memory Cache Implementation
+
+Features:
+- Singleton CacheStore instance
+- TTL-based automatic expiration using setTimeout
+- Pattern matching for bulk invalidation (exact string or regex)
+- No external dependencies
+
+Methods:
+- get(key): Retrieve cached value
+- set(key, value, ttl): Store value with TTL
+- delete(key): Remove value and clear timer
+- has(key): Check if key exists
+- clear(): Clear all cache
+- getStats(): Retrieve cache statistics
+
+### Future Extensibility
+
+Cache abstraction allows migration to:
+- Redis (distributed caching)
+- node-cache (npm package)
+- Memcached
+
+To implement alternative cache backend:
+1. Create new cache provider implementing same interface
+2. Update cacheService to use new provider
+3. No changes required to service layer
+
+### Cache Invalidation Strategy
+
+Automatic invalidation on:
+- User profile updates
+- User role/permission changes
+- Bulk user operations
+
+Pattern-based invalidation:
+- Exact string matching: `invalidateByPattern('user:1')`
+- Regex pattern matching: `invalidateByPattern(/^user:/)`
+- Wildcard patterns: `invalidateByPattern(/^users:list/)`
+
+### Architecture Rules for Cache
+
+Service Layer:
+- Services call cache service methods
+- Services remain business-logic focused
+- Cache is transparent to callers
+
+Cache Service:
+- No direct repository access
+- No HTTP logic
+- No response formatting
+- Pure cache orchestration
+
+Repositories:
+- Unchanged by cache layer
+- No cache awareness
+- No cache logic
+
+Controllers:
+- Unchanged by cache layer
+- Same API contracts
+- No cache awareness
+
+---
+
+## Architecture Evolution Summary
+
+Phase 1-18: Core foundation
+- Authentication, authorization, permissions, policy-based access control
+
+Phase 19: Audit logging
+- Security event tracking
+
+Phase 20-20.5: File upload and email verification
+- User-initiated operations with verification flow
+
+Phase 21: Email verification refinement
+- Public verification endpoints, deterministic token hashing
+
+Phase 22: Cache layer foundation
+- Performance optimization through transparent caching
