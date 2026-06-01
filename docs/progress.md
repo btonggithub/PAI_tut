@@ -95,19 +95,102 @@ Architecture Compliance
 
 ---
 
+### Phase 21 - Email Verification Foundation
+
+Status: Completed
+
+Implemented:
+
+**Task 1 - Verification Token Foundation**
+* Created verification token model with fields: userId, tokenHash, type, expiresAt, usedAt, metadata
+* Tokens stored hashed using bcrypt (never raw tokens)
+* Cryptographically secure token generation using crypto.randomBytes
+* Single-use tokens with expiration support
+* TTL indexes for automatic cleanup
+
+**Task 2 - Verification Repository**
+* Created repository layer for verification token persistence
+* Methods: createVerificationToken, findValidVerificationToken, markTokenUsed, deleteExpiredTokens, invalidatePreviousTokens, findTokenById
+* All database access isolated to repository layer
+* No Mongoose usage outside repository
+* No business logic in repository
+
+**Task 3 - Email Provider Abstraction**
+* Created email service orchestration layer at `src/services/email/emailService.js`
+* Created console email provider at `src/services/email/providers/consoleEmailProvider.js`
+* Email service delegates to providers
+* Console provider logs to console/output for development visibility
+* Initial behavior: all emails logged to console (no SMTP/SendGrid/SES integration)
+
+**Task 4 - Verification Service**
+* Implemented email verification business workflow
+* sendVerificationEmail: Generate token, store hashed token, send email through EmailService
+* verifyEmail: Validate token, check expiration, check used status, mark token used, update user email verification state
+* resendVerificationEmail: Invalidate previous tokens, send new verification email
+* Proper error handling and audit logging integrated
+
+**Task 5 - User Verification State**
+* Extended user model with emailVerified (boolean) and emailVerifiedAt (date) fields
+* Verification state updated only through service layer (verifyEmail)
+* No direct model manipulation from controllers
+
+**Task 6 - Verification Endpoints**
+* POST /api/v1/email/send-verification: Send verification email to authenticated user
+* POST /api/v1/email/verify: Verify email using token from query parameter
+* POST /api/v1/email/resend-verification: Resend verification email to authenticated user
+* All endpoints protected with authentication middleware
+* Validation in middleware layer only
+* Controllers remain HTTP-only
+
+Key Design Decisions:
+
+* Token hashing: bcrypt used to hash tokens for secure storage
+* Token generation: crypto.randomBytes for cryptographically secure tokens
+* Token lifecycle: 24-hour expiration, single-use, invalidate-on-resend
+* Email delivery: Provider pattern allows future SMTP/SendGrid/SES integration
+* Compensation logic: Automatic token invalidation on resend prevents stale tokens
+* Audit integration: All operations logged (send_verification, verify, resend_verification)
+* Error handling: AppError for validation, proper HTTP status codes, detailed error messages
+
+Architecture Rules Enforced:
+
+* Controllers remain HTTP-only
+* Services contain business logic only
+* Repositories own database access
+* Validation in middleware only
+* No Mongoose usage outside repositories
+* No response formatting outside utilities
+* Token generation server-side only
+* User verification state updated through service layer
+
+Test Coverage:
+
+* 5 new test suites added:
+  - token.test.js: Token generation and hashing (4 tests)
+  - verificationTokenModel.test.js: Model schema validation (8 tests)
+  - verificationRepository.test.js: Repository operations (6 tests)
+  - emailService.test.js: Email service abstraction (4 tests)
+  - verificationService.test.js: Verification business logic (19 tests)
+  - consoleEmailProvider.test.js: Console provider implementation (5 tests)
+  - email.integration.test.js: Endpoint integration (8 tests)
+  - auditActionsResults.test.js: Updated to include email audit actions (3 new tests)
+
+* 36 total test suites (↑ from 36)
+* 352 total tests (↑ from 291, from Phase 20.5)
+* All tests passing with zero failures
+
+## CURRENT STATUS
+
+Current Architecture Health:
+
+* Layered architecture enforced
+* Repository pattern enforced
+* Validation boundary enforced
+* Authorization boundary enforced
+* Audit infrastructure integrated
+* File upload foundation completed (Phase 20.5)
+* Email verification foundation completed (Phase 21)
+
 ## NEXT
 
-Phase 21 - Email Verification Foundation
-
-Planned Features:
-
-- Verification token model
-- Verification repository
-- Email service
-- Email provider abstraction
-- Console email provider
-- Verification workflow
-- Verification endpoints
-- Audit integration
-- Validation schemas
-- Automated tests
+Phase 22 - [To be determined based on current-task.md update]

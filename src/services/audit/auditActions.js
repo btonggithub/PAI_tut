@@ -26,6 +26,11 @@ const AUDIT_ACTIONS = {
   FILE_UPLOAD: 'file.upload',
   FILE_LIST: 'file.list',
   FILE_VIEW: 'file.view',
+
+  // Email verification actions
+  EMAIL_SEND_VERIFICATION: 'email.send_verification',
+  EMAIL_VERIFY: 'email.verify',
+  EMAIL_RESEND_VERIFICATION: 'email.resend_verification',
 };
 
 module.exports = AUDIT_ACTIONS;

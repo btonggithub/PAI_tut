@@ -34,9 +34,21 @@ describe('AUDIT_ACTIONS constants', () => {
     expect(AUDIT_ACTIONS.FILE_VIEW).toBe('file.view');
   });
 
+  it('defines EMAIL_SEND_VERIFICATION action', () => {
+    expect(AUDIT_ACTIONS.EMAIL_SEND_VERIFICATION).toBe('email.send_verification');
+  });
+
+  it('defines EMAIL_VERIFY action', () => {
+    expect(AUDIT_ACTIONS.EMAIL_VERIFY).toBe('email.verify');
+  });
+
+  it('defines EMAIL_RESEND_VERIFICATION action', () => {
+    expect(AUDIT_ACTIONS.EMAIL_RESEND_VERIFICATION).toBe('email.resend_verification');
+  });
+
   it('action names are lowercase and dot-separated', () => {
     Object.values(AUDIT_ACTIONS).forEach((action) => {
-      expect(action).toMatch(/^[a-z.]+$/);
+      expect(action).toMatch(/^[a-z_.]+$/);
       expect(action.toLowerCase()).toBe(action);
     });
   });

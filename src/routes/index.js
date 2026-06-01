@@ -4,6 +4,7 @@ const systemRoutes = require('./systemRoutes');
 const authRoutes = require('./authRoutes');
 const userRoutes = require('./userRoutes');
 const fileRoutes = require('./fileRoutes');
+const emailRoutes = require('./emailRoutes');
 
 const router = express.Router();
 
@@ -12,6 +13,7 @@ router.use('/system', systemRoutes);
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/files', fileRoutes);
+router.use('/email', emailRoutes);
 
 const registerRoutes = (app) => {
   app.use('/api/v1', router);
