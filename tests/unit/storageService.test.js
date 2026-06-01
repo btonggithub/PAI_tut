@@ -1,52 +1,42 @@
-const fs = require('fs');
-const path = require('path');
+jest.mock('../../src/services/file/storage/providers/localStorageProvider', () => ({
+  storeFile: jest.fn().mockResolvedValue({
+    storageKey: 'mock-uuid.txt',
+    storedName: 'mock-uuid.txt',
+  }),
+  removeFile: jest.fn().mockResolvedValue(undefined),
+}));
 
-jest.mock('fs', () => ({
-  existsSync: jest.fn().mockReturnValue(true),
-  mkdirSync: jest.fn(),
-  promises: {
-    rename: jest.fn().mockResolvedValue(undefined),
-    unlink: jest.fn().mockResolvedValue(undefined),
+jest.mock('../../src/config/upload', () => ({
+  STORAGE_PROVIDERS: {
+    LOCAL: 'local',
   },
 }));
 
-const storageService = require('../../src/services/file/storageService');
+const storageService = require('../../src/services/file/storage/storageService');
+const localStorageProvider = require('../../src/services/file/storage/providers/localStorageProvider');
 
-describe('storageService', () => {
+describe('storageService (orchestration layer)', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('generateStorageKey', () => {
-    it('generates a key that does not use the original file name', () => {
-      const originalName = 'my-secret-file.txt';
-      const key = storageService.generateStorageKey('txt');
-      expect(key).not.toBe(originalName);
-      expect(key).not.toContain('my-secret-file');
-    });
-
-    it('includes the extension when provided', () => {
-      const key = storageService.generateStorageKey('pdf');
-      expect(key).toMatch(/\.pdf$/);
-    });
-
-    it('generates a key without extension when extension is empty', () => {
-      const key = storageService.generateStorageKey('');
-      expect(key).not.toMatch(/\./);
-    });
-
-    it('generates unique keys on repeated calls', () => {
-      const key1 = storageService.generateStorageKey('txt');
-      const key2 = storageService.generateStorageKey('txt');
-      expect(key1).not.toBe(key2);
-    });
-  });
-
   describe('storeFile', () => {
-    it('returns storageKey, storedName, and storageProvider', async () => {
+    it('delegates to local provider by default', async () => {
       const file = {
-        originalname: 'document.pdf',
-        path: '/tmp/upload-123.pdf',
+        originalname: 'test.txt',
+        path: '/tmp/upload-123.txt',
+      };
+
+      const result = await storageService.storeFile(file);
+
+      expect(localStorageProvider.storeFile).toHaveBeenCalledWith(file);
+      expect(result).toHaveProperty('storageProvider', 'local');
+    });
+
+    it('includes storageProvider in result', async () => {
+      const file = {
+        originalname: 'test.txt',
+        path: '/tmp/upload-123.txt',
       };
 
       const result = await storageService.storeFile(file);
@@ -56,70 +46,57 @@ describe('storageService', () => {
       expect(result).toHaveProperty('storageProvider', 'local');
     });
 
-    it('does not use originalname directly as storage key', async () => {
-      const file = {
-        originalname: 'dangerous-name.pdf',
-        path: '/tmp/upload-123.pdf',
-      };
-
-      const result = await storageService.storeFile(file);
-
-      expect(result.storageKey).not.toBe('dangerous-name.pdf');
-      expect(result.storedName).not.toBe('dangerous-name.pdf');
-      expect(result.storageKey).not.toContain('dangerous-name');
-    });
-
-    it('calls fs.promises.rename to move the temp file', async () => {
+    it('delegates to specified provider', async () => {
       const file = {
         originalname: 'test.txt',
-        path: '/tmp/upload-456.txt',
+        path: '/tmp/upload-123.txt',
       };
 
-      await storageService.storeFile(file);
+      await storageService.storeFile(file, 'local');
 
-      expect(fs.promises.rename).toHaveBeenCalledTimes(1);
-      const [srcArg] = fs.promises.rename.mock.calls[0];
-      expect(srcArg).toBe('/tmp/upload-456.txt');
+      expect(localStorageProvider.storeFile).toHaveBeenCalledWith(file);
     });
 
-    it('creates upload directory if it does not exist', async () => {
-      fs.existsSync.mockReturnValue(false);
-
+    it('throws error for unknown provider', async () => {
       const file = {
-        originalname: 'test.png',
-        path: '/tmp/upload-789.png',
+        originalname: 'test.txt',
+        path: '/tmp/upload-123.txt',
       };
 
-      await storageService.storeFile(file);
-
-      expect(fs.mkdirSync).toHaveBeenCalledWith(expect.any(String), { recursive: true });
+      await expect(storageService.storeFile(file, 'unknown')).rejects.toThrow(
+        'Unknown storage provider'
+      );
     });
   });
 
   describe('removeFile', () => {
-    it('calls fs.promises.unlink with the correct path', async () => {
+    it('delegates to local provider by default', async () => {
       await storageService.removeFile('uuid-key.txt');
 
-      expect(fs.promises.unlink).toHaveBeenCalledTimes(1);
-      const [filePath] = fs.promises.unlink.mock.calls[0];
-      expect(filePath).toContain('uuid-key.txt');
+      expect(localStorageProvider.removeFile).toHaveBeenCalledWith('uuid-key.txt');
     });
 
-    it('does not throw when file does not exist (ENOENT)', async () => {
-      const enoentError = Object.assign(new Error('not found'), { code: 'ENOENT' });
-      fs.promises.unlink.mockRejectedValueOnce(enoentError);
+    it('delegates to specified provider', async () => {
+      await storageService.removeFile('uuid-key.txt', 'local');
 
-      await expect(storageService.removeFile('missing-key.txt')).resolves.not.toThrow();
+      expect(localStorageProvider.removeFile).toHaveBeenCalledWith('uuid-key.txt');
     });
 
-    it('throws AppError when unlink fails with non-ENOENT error', async () => {
-      const ioError = Object.assign(new Error('permission denied'), { code: 'EACCES' });
-      fs.promises.unlink.mockRejectedValueOnce(ioError);
+    it('throws error for unknown provider', async () => {
+      await expect(storageService.removeFile('uuid-key.txt', 'unknown')).rejects.toThrow(
+        'Unknown storage provider'
+      );
+    });
+  });
 
-      await expect(storageService.removeFile('locked-key.txt')).rejects.toMatchObject({
-        message: 'Failed to remove file',
-        statusCode: 500,
-      });
+  describe('getProvider', () => {
+    it('returns provider for known name', () => {
+      const provider = storageService.getProvider('local');
+      expect(provider).toBeDefined();
+    });
+
+    it('throws error for unknown provider', () => {
+      expect(() => storageService.getProvider('unknown')).toThrow('Unknown storage provider');
     });
   });
 });

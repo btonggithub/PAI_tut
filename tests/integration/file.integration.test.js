@@ -1,5 +1,3 @@
-const request = require('supertest');
-
 jest.mock('../../src/services/auth/authService', () => ({
   getAuthUser: jest.fn(),
 }));
@@ -11,7 +9,7 @@ jest.mock('../../src/repositories/file/fileRepository', () => ({
   updateFileStatus: jest.fn(),
 }));
 
-jest.mock('../../src/services/file/storageService', () => ({
+jest.mock('../../src/services/file/storage/storageService', () => ({
   storeFile: jest.fn().mockResolvedValue({
     storageKey: 'mock-uuid.txt',
     storedName: 'mock-uuid.txt',
@@ -20,11 +18,17 @@ jest.mock('../../src/services/file/storageService', () => ({
   removeFile: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../src/services/audit/auditLogService', () => ({
+  recordAuditEvent: jest.fn().mockResolvedValue({}),
+}));
+
+const request = require('supertest');
 const app = require('../../src/app');
 const { toAuthHeader } = require('../helpers/authHeader');
 const { signAccessToken } = require('../../src/utils/jwt');
 const authService = require('../../src/services/auth/authService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
+const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 
 const regularUser = {
   id: '64b7f5b9f1d2c3a4b5c6d7b2',
@@ -135,6 +139,26 @@ describe('File API integration', () => {
         expect.objectContaining({ ownerId: regularUser.id })
       );
     });
+
+    it('records file upload audit event on success', async () => {
+      fileRepository.createFileMetadata.mockResolvedValue(mockFileRecord);
+
+      await request(app)
+        .post('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id))
+        .attach('file', Buffer.from('hello world'), {
+          filename: 'hello.txt',
+          contentType: 'text/plain',
+        });
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.upload',
+          result: 'succeeded',
+          actorId: regularUser.id,
+        })
+      );
+    });
   });
 
   describe('GET /api/v1/files', () => {
@@ -165,6 +189,25 @@ describe('File API integration', () => {
         expect.any(Object)
       );
     });
+
+    it('records file list audit event', async () => {
+      fileRepository.findFilesByOwner.mockResolvedValue({
+        items: [mockFileRecord],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      });
+
+      await request(app)
+        .get('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id));
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.list',
+          result: 'succeeded',
+          actorId: regularUser.id,
+        })
+      );
+    });
   });
 
   describe('GET /api/v1/files/:id', () => {
@@ -188,6 +231,22 @@ describe('File API integration', () => {
       expect(response.body.data.file).not.toHaveProperty('storageKey');
     });
 
+    it('records successful file view audit event', async () => {
+      fileRepository.findFileById.mockResolvedValue(mockFileRecord);
+
+      await request(app)
+        .get('/api/v1/files/64b7f5b9f1d2c3a4b5c6d7f1')
+        .set(accessHeaderFor(regularUser.id));
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.view',
+          result: 'succeeded',
+          actorId: regularUser.id,
+        })
+      );
+    });
+
     it('returns 403 when actor does not own the file', async () => {
       const otherOwnerFile = { ...mockFileRecord, ownerId: otherUser.id };
       fileRepository.findFileById.mockResolvedValue(otherOwnerFile);
@@ -198,6 +257,23 @@ describe('File API integration', () => {
 
       expect(response.status).toBe(403);
       expect(response.body.success).toBe(false);
+    });
+
+    it('records forbidden file view audit event on ownership failure', async () => {
+      const otherOwnerFile = { ...mockFileRecord, ownerId: otherUser.id };
+      fileRepository.findFileById.mockResolvedValue(otherOwnerFile);
+
+      await request(app)
+        .get('/api/v1/files/64b7f5b9f1d2c3a4b5c6d7f1')
+        .set(accessHeaderFor(regularUser.id));
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.view',
+          result: 'forbidden',
+          actorId: regularUser.id,
+        })
+      );
     });
 
     it('returns 404 when file is not found', async () => {

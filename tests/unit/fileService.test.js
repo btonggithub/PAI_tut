@@ -5,7 +5,7 @@ jest.mock('../../src/repositories/file/fileRepository', () => ({
   updateFileStatus: jest.fn(),
 }));
 
-jest.mock('../../src/services/file/storageService', () => ({
+jest.mock('../../src/services/file/storage/storageService', () => ({
   storeFile: jest.fn().mockResolvedValue({
     storageKey: 'uuid-key.txt',
     storedName: 'uuid-key.txt',
@@ -14,10 +14,15 @@ jest.mock('../../src/services/file/storageService', () => ({
   removeFile: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../src/services/audit/auditLogService', () => ({
+  recordAuditEvent: jest.fn().mockResolvedValue({}),
+}));
+
 const AppError = require('../../src/utils/AppError');
 const fileService = require('../../src/services/file/fileService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
-const storageService = require('../../src/services/file/storageService');
+const storageService = require('../../src/services/file/storage/storageService');
+const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 
 const actor = { id: 'actor-id-1', role: 'user' };
 const differentActor = { id: 'actor-id-2', role: 'user' };
@@ -43,6 +48,11 @@ const mockFile = {
   mimetype: 'text/plain',
   size: 512,
   path: '/tmp/upload-123.txt',
+};
+
+const mockRequestContext = {
+  ipAddress: '192.168.1.1',
+  userAgent: 'Mozilla/5.0',
 };
 
 describe('fileService', () => {
@@ -102,6 +112,58 @@ describe('fileService', () => {
       expect(result).not.toHaveProperty('storedName');
       expect(result).not.toHaveProperty('path');
     });
+
+    it('records successful upload audit event', async () => {
+      fileRepository.createFileMetadata.mockResolvedValue(mockFileRecord);
+
+      await fileService.createUserFile({
+        actor,
+        file: mockFile,
+        requestContext: mockRequestContext,
+      });
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.upload',
+          result: 'succeeded',
+          actorId: actor.id,
+          actorRole: actor.role,
+          resourceType: 'file',
+        })
+      );
+    });
+
+    it('implements compensation logic: removes stored file if metadata save fails', async () => {
+      fileRepository.createFileMetadata.mockRejectedValue(
+        new AppError('Database error', 500)
+      );
+
+      await expect(fileService.createUserFile({ actor, file: mockFile })).rejects.toThrow();
+
+      expect(storageService.removeFile).toHaveBeenCalledWith(
+        expect.any(String),
+        'local'
+      );
+    });
+
+    it('records failed upload audit event when metadata save fails', async () => {
+      fileRepository.createFileMetadata.mockRejectedValue(
+        new AppError('Database error', 500)
+      );
+
+      await expect(fileService.createUserFile({ actor, file: mockFile })).rejects.toThrow();
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.upload',
+          result: 'failed',
+          actorId: actor.id,
+          metadata: expect.objectContaining({
+            reason: 'metadata persistence failed',
+          }),
+        })
+      );
+    });
   });
 
   describe('listUserFiles', () => {
@@ -139,6 +201,28 @@ describe('fileService', () => {
 
       expect(result.files[0]).not.toHaveProperty('storageKey');
       expect(result.files[0]).not.toHaveProperty('storedName');
+    });
+
+    it('records file list audit event', async () => {
+      fileRepository.findFilesByOwner.mockResolvedValue({
+        items: [mockFileRecord],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      });
+
+      await fileService.listUserFiles({
+        actor,
+        query: {},
+        requestContext: mockRequestContext,
+      });
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.list',
+          result: 'succeeded',
+          actorId: actor.id,
+          resourceType: 'files',
+        })
+      );
     });
   });
 
@@ -180,6 +264,42 @@ describe('fileService', () => {
       const values = Object.values(result).map(String);
       const hasPath = values.some((v) => v.includes('/tmp') || v.includes('/uploads') || v.includes('\\'));
       expect(hasPath).toBe(false);
+    });
+
+    it('records successful file view audit event', async () => {
+      fileRepository.findFileById.mockResolvedValue(mockFileRecord);
+
+      await fileService.getUserFile({
+        actor,
+        fileId: 'file-id-1',
+        requestContext: mockRequestContext,
+      });
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.view',
+          result: 'succeeded',
+          actorId: actor.id,
+          resourceType: 'file',
+        })
+      );
+    });
+
+    it('records forbidden file view audit event on ownership failure', async () => {
+      fileRepository.findFileById.mockResolvedValue(mockFileRecord);
+
+      await expect(
+        fileService.getUserFile({ actor: differentActor, fileId: 'file-id-1' })
+      ).rejects.toThrow();
+
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.view',
+          result: 'forbidden',
+          actorId: differentActor.id,
+          resourceType: 'file',
+        })
+      );
     });
   });
 });

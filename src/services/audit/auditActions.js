@@ -21,6 +21,11 @@ const AUDIT_ACTIONS = {
   // User actions
   USER_PROFILE_UPDATE: 'user.profile.update',
   USER_READ_ADMIN: 'user.read.admin',
+
+  // File actions
+  FILE_UPLOAD: 'file.upload',
+  FILE_LIST: 'file.list',
+  FILE_VIEW: 'file.view',
 };
 
 module.exports = AUDIT_ACTIONS;

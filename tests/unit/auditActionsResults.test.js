@@ -22,6 +22,18 @@ describe('AUDIT_ACTIONS constants', () => {
     expect(AUDIT_ACTIONS.USER_READ_ADMIN).toBe('user.read.admin');
   });
 
+  it('defines FILE_UPLOAD action', () => {
+    expect(AUDIT_ACTIONS.FILE_UPLOAD).toBe('file.upload');
+  });
+
+  it('defines FILE_LIST action', () => {
+    expect(AUDIT_ACTIONS.FILE_LIST).toBe('file.list');
+  });
+
+  it('defines FILE_VIEW action', () => {
+    expect(AUDIT_ACTIONS.FILE_VIEW).toBe('file.view');
+  });
+
   it('action names are lowercase and dot-separated', () => {
     Object.values(AUDIT_ACTIONS).forEach((action) => {
       expect(action).toMatch(/^[a-z.]+$/);

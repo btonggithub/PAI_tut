@@ -116,25 +116,63 @@ Test Results:
 * 27 test suites passing
 * 260 tests passing
 
-## CURRENT STATUS
+### Phase 20.5 - Storage Abstraction & Upload Hardening
 
-Current Architecture Health:
+Status: Completed
 
-* Layered architecture enforced
-* Repository pattern enforced
-* Validation boundary enforced
-* Authorization boundary enforced
-* Audit infrastructure available
-* File upload foundation completed
+Implemented:
 
-## NEXT
+**Task 1 - Storage Provider Pattern**
+* Refactored storage into provider-based architecture
+* Created storage orchestration layer at `src/services/file/storage/storageService.js`
+* Created local provider at `src/services/file/storage/providers/localStorageProvider.js`
+* FileService delegates to StorageService only
+* No behavior change to public API
 
-Phase 20.5 - Storage Abstraction & Upload Hardening
+**Task 2 - Storage Provider Constants**
+* Centralized storage provider definitions in `src/config/upload.js`
+* STORAGE_PROVIDERS.LOCAL constant introduced
+* Replaced all hardcoded provider strings
 
-Planned Improvements:
+**Task 3 - Upload Configuration Centralization**
+* Created `src/config/upload.js` configuration module
+* Centralized maxFileSize (5MB) and allowedMimeTypes
+* Updated upload middleware to consume centralized config
+* No duplicated upload constants
 
-* Storage provider abstraction
-* Upload configuration centralization
-* Upload compensation logic
-* Audit logging integration
-* Storage provider constants
+**Task 4 - Upload Compensation Logic**
+* Implemented try/catch in fileService.createUserFile
+* If metadata persistence fails, stored file is automatically removed
+* Prevents orphaned files on database errors
+* Proper error propagation maintained
+
+**Task 5 - Audit Logging Integration**
+* Added FILE_UPLOAD, FILE_LIST, FILE_VIEW audit actions
+* Integrated audit logging into all file operations
+* Audit failures do not break main operations
+* Reused existing audit infrastructure
+
+Key Design Decisions:
+
+* Storage orchestration delegates to providers
+* Upload configuration is application-level, not environment-specific
+* Compensation logic prioritizes database consistency
+* Audit logging is non-blocking (failures logged but not blocking)
+* LocalStorageProvider uses fs.promises for async operations
+* Backward compatibility maintained via storageService.js wrapper
+
+Architecture Rules Enforced:
+
+* Controllers remain HTTP-only
+* Services contain business logic only
+* Repositories own database access
+* Validation in middleware only
+* No direct Mongoose outside repositories
+* No filesystem access outside storage provider layer
+* No response formatting outside response utilities
+
+Test Results:
+
+* 29 test suites passing (up from 27)
+* 291 tests passing (up from 260)
+* All tests covering provider pattern, config, compensation, and audit logging
