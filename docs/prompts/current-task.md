@@ -1,184 +1,286 @@
-# Phase 20.5 - Storage Abstraction & Upload Hardening
+# Phase 21 - Email Verification Foundation
 
 ## Objective
 
-Improve the existing File Upload Foundation implementation without changing public API behavior.
+Implement a secure and extensible Email Verification system.
 
-This phase focuses on architecture hardening, storage abstraction, reliability, and operational readiness.
+This phase establishes the foundation for email verification while preparing the architecture for future features such as:
 
-No new endpoints should be introduced.
+* Password Reset
+* Email Change Verification
+* Magic Login Links
+* Notification System
 
-Existing upload functionality must continue to work exactly as before.
+Public APIs introduced in this phase should focus only on email verification.
 
 ---
 
-## Task 1 - Storage Provider Pattern
+## Task 1 - Verification Token Foundation
 
 ### Goal
 
-Decouple storage implementation from storage orchestration.
+Introduce verification token lifecycle management.
 
 ### Requirements
 
-Refactor current storage implementation into provider-based architecture.
+Create verification token model.
+
+Suggested fields:
+
+* userId
+* tokenHash
+* type
+* expiresAt
+* usedAt
+* metadata
+* createdAt
+* updatedAt
+
+### Rules
+
+* Never store raw verification tokens.
+* Store only hashed tokens.
+* Tokens must be generated server-side.
+* Tokens must be cryptographically secure.
+* Tokens must be single-use.
+* Tokens must support expiration.
+
+### Out of Scope
+
+* Password reset tokens
+* Magic login tokens
+
+---
+
+## Task 2 - Verification Repository
+
+### Goal
+
+Introduce repository layer for verification token persistence.
+
+### Requirements
+
+Create repository methods such as:
+
+* createVerificationToken
+* findValidVerificationToken
+* markTokenUsed
+* deleteExpiredTokens
+
+### Rules
+
+* Repository owns all database access.
+* No Mongoose usage outside repository layer.
+* Business logic must not exist in repository.
+
+---
+
+## Task 3 - Email Provider Abstraction
+
+### Goal
+
+Create email delivery abstraction.
+
+### Requirements
+
+Implement provider-based email architecture.
 
 Target structure:
 
-src/services/file/storage/
-├── storageService.js
+src/services/email/
+├── emailService.js
 ├── providers/
-│   ├── localStorageProvider.js
+│   └── consoleEmailProvider.js
 
-StorageService must delegate all filesystem operations to LocalStorageProvider.
-
-FileService must continue communicating only with StorageService.
+EmailService delegates delivery to provider.
 
 ### Rules
 
-* Controllers must not access filesystem.
-* Services other than StorageService must not access filesystem.
-* StorageService becomes orchestration layer.
-* LocalStorageProvider owns filesystem implementation details.
-* No behavior change.
+* Controllers must not send emails.
+* VerificationService must not directly implement providers.
+* EmailService becomes orchestration layer.
+* ConsoleEmailProvider becomes initial provider.
+
+### Initial Behavior
+
+Email content may be written to console/log output instead of sending real emails.
 
 ### Out of Scope
 
-* S3
-* MinIO
-* Azure Blob
-* Cloud storage integration
+* SMTP integration
+* SendGrid integration
+* SES integration
+* Mailgun integration
 
 ---
 
-## Task 2 - Storage Provider Constants
+## Task 4 - Verification Service
 
 ### Goal
 
-Centralize storage provider definitions.
+Implement email verification business workflow.
 
 ### Requirements
 
-Create storage provider constants.
+Create service methods such as:
 
-Example:
+* sendVerificationEmail
+* verifyEmail
+* resendVerificationEmail
 
-STORAGE_PROVIDERS.LOCAL
+### Behavior
 
-Replace hardcoded provider strings across the file module.
+Send Verification:
+
+* Generate token
+* Store hashed token
+* Send email through EmailService
+
+Verify Email:
+
+* Validate token
+* Check expiration
+* Check used status
+* Mark token as used
+* Mark user email as verified
+
+Resend Verification:
+
+* Generate new token
+* Invalidate previous active token(s)
+* Send new verification email
 
 ### Rules
 
-* No magic strings.
-* Use constants throughout model, service, repository, and tests.
-
-### Out of Scope
-
-* Dynamic provider selection
-* Runtime provider registration
+* Business logic belongs in service layer.
+* VerificationService must not access Mongoose directly.
+* VerificationService must not send emails directly.
 
 ---
 
-## Task 3 - Upload Configuration Centralization
+## Task 5 - User Verification State
 
 ### Goal
 
-Centralize upload-related configuration.
+Track email verification status.
 
 ### Requirements
 
-Create upload configuration module.
+Extend user model.
 
-Move values such as:
+Suggested fields:
 
-* Maximum file size
-* Allowed MIME types
-* Upload directory settings
-
-into centralized configuration.
-
-Example:
-
-src/config/upload.js
+* emailVerified
+* emailVerifiedAt
 
 ### Rules
 
-* Middleware must consume configuration.
-* No duplicated upload constants.
-* Existing behavior must remain unchanged.
-
-### Out of Scope
-
-* Environment-specific upload tuning
-* Dynamic configuration management
+* Verification state owned by User model.
+* Verification state updated only through service layer.
 
 ---
 
-## Task 4 - Upload Compensation Logic
+## Task 6 - Verification Endpoints
 
 ### Goal
 
-Prevent orphaned files.
+Expose verification workflow APIs.
 
-### Problem
+### Endpoints
 
-If file storage succeeds but metadata persistence fails, uploaded files may remain on disk without database records.
+POST /api/v1/email/send-verification
 
-### Requirements
+POST /api/v1/email/verify
 
-Implement compensation logic.
-
-Example flow:
-
-Store File
-→ Save Metadata
-→ Failure
-→ Remove Stored File
+POST /api/v1/email/resend-verification
 
 ### Rules
 
-* Database consistency takes priority.
-* Failed uploads must not leave orphaned files.
-* Cleanup must be tested.
-
-### Test Cases
-
-* Storage succeeds + metadata succeeds
-* Storage succeeds + metadata fails
-* Cleanup succeeds
-* Cleanup failure handling
+* Controllers remain HTTP-only.
+* Validation handled through middleware.
+* Standardized response contract required.
 
 ---
 
-## Task 5 - Audit Logging Integration
+## Task 7 - Audit Logging Integration
 
 ### Goal
 
-Integrate file operations into existing audit infrastructure.
+Integrate verification workflow into audit infrastructure.
 
-### Requirements
+### Audit Events
 
-Record audit events for:
-
-* file.upload
-* file.list
-* file.view
-
-Use existing audit architecture.
-
-Follow existing audit conventions.
+* email.verification.sent
+* email.verification.verified
+* email.verification.resend
+* email.verification.failed
 
 ### Rules
 
-* Do not introduce new audit infrastructure.
-* Reuse existing audit services.
-* Audit failures must not break file operations.
+* Reuse existing audit architecture.
+* Audit failures must not break business operations.
 
-### Out of Scope
+---
 
-* File delete auditing
-* Download auditing
-* Event streaming
-* External logging systems
+## Task 8 - Validation Layer
+
+### Goal
+
+Introduce request validation.
+
+### Requirements
+
+Create validation schemas for:
+
+* send verification request
+* verify request
+* resend verification request
+
+### Rules
+
+* Validation exists only in middleware.
+* Services assume validated input.
+
+---
+
+## Task 9 - Test Coverage
+
+### Goal
+
+Provide comprehensive automated tests.
+
+### Required Coverage
+
+Verification Token
+
+* token creation
+* token expiration
+* token reuse prevention
+
+Verification Service
+
+* send verification
+* verify success
+* verify failure
+* verify expired token
+* verify used token
+
+Email Provider
+
+* provider invocation
+* email payload generation
+
+Integration
+
+* send verification endpoint
+* verify endpoint
+* resend endpoint
+
+### Rules
+
+* Reuse existing fixtures and helpers.
+* Preserve standardized response assertions.
+* Keep tests isolated.
 
 ---
 
@@ -192,18 +294,21 @@ The following rules remain mandatory:
 * Validation exists in middleware only.
 * No direct Mongoose usage outside repositories.
 * No business logic inside routes.
-* No filesystem access outside storage provider layer.
 * No response formatting outside response utilities.
+* No direct email provider usage outside email provider layer.
 
 ---
 
 ## Definition of Done
 
-* Existing file upload endpoints remain unchanged.
-* All tests pass.
-* New tests added where appropriate.
-* Storage implementation is provider-based.
-* Upload configuration is centralized.
-* Compensation logic prevents orphaned files.
-* Audit logging is integrated.
-* Architecture boundaries remain enforced.
+* Verification token model implemented.
+* Verification repository implemented.
+* Email provider abstraction implemented.
+* Console email provider implemented.
+* Verification service implemented.
+* User verification state implemented.
+* Verification endpoints implemented.
+* Audit integration implemented.
+* Validation schemas implemented.
+* Required tests implemented.
+* Existing test suite remains passing.

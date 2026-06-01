@@ -25,6 +25,22 @@
 20. File Upload Foundation
 20.5 Storage Abstraction & Upload Hardening
 21. Email Verification
+    Goals:
+
+    * Email verification workflow
+    * Verification token management
+    * Verification email delivery abstraction
+    * User email verification state
+    * Verification endpoint foundation
+
+    Out of Scope:
+
+    * Password reset
+    * Magic login links
+    * Email change verification
+    * Notification center
+    * Email templates management UI
+
 22. Cache Layer Foundation
 23. Event Foundation
 24. Admin Module

@@ -687,3 +687,45 @@ Rules:
 - Clients may request actions but never define capabilities.
 - JWTs identify actors but do not become the permission source of truth.
 - Permissions are always resolved server-side.
+
+---
+
+## Email Verification Architecture
+
+Controllers
+    ↓
+Verification Service
+    ↓
+Email Service
+    ↓
+Email Provider
+    ↓
+Console Email Provider
+
+Repositories
+    ↓
+Verification Repository
+
+Models
+    ↓
+Verification Token Model
+
+Future Provider Pattern
+
+EmailService
+    ↓
+ConsoleEmailProvider
+
+Future:
+
+EmailService
+    ↓
+SmtpProvider
+
+EmailService
+    ↓
+SendGridProvider
+
+EmailService
+    ↓
+SesProvider

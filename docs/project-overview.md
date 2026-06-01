@@ -176,34 +176,6 @@ JSON Response
 
 ---
 
-## Current Development Phase
-
-Phase 20 — File Upload Foundation
-
-Current goals:
-- File upload middleware foundation
-- File metadata model
-- File repository
-- File service
-- Upload validation
-- Storage abstraction
-- User-owned file workflow preparation
-
----
-
-## Planned Next Phase
-
-Phase 21 — Email Verification
-
-Future goals:
-- Email verification token workflow
-- Email verification model preparation
-- Verification email orchestration
-- Account verification state preparation
-- Auth flow integration preparation
-
----
-
 ## Database Layer
 
 Current database stack:
@@ -229,3 +201,32 @@ Controller
 → Authorization Policy
 → Repository
 → Database
+
+---
+
+### File Management
+
+- File metadata persistence
+- Local storage provider
+- Storage abstraction layer
+- Upload validation
+- Ownership enforcement
+
+---
+
+## Upcoming Phase
+
+### Phase 21 - Email Verification Foundation
+
+Goals:
+- Email verification workflow
+- Verification token lifecycle
+- Email provider abstraction
+- Verification endpoints
+- Verification audit integration
+
+Future Expansion:
+- Password reset
+- Magic login links
+- Email change verification
+- Notification services

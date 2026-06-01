@@ -404,3 +404,31 @@ Tests must verify:
 - file service assigns ownerId from actor
 - file service does not trust body ownerId
 - existing auth/permission/response behavior remains unchanged
+
+## Email Rules
+
+Controllers must never send emails.
+
+Controllers may only invoke services.
+
+VerificationService must never directly use providers.
+
+Correct:
+
+VerificationService
+    ↓
+EmailService
+    ↓
+Provider
+
+Incorrect:
+
+VerificationService
+    ↓
+SMTP
+
+Verification tokens must be generated using cryptographically secure random values.
+
+Raw verification tokens must never be stored in MongoDB.
+
+---

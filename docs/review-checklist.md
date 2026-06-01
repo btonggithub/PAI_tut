@@ -352,3 +352,27 @@ Testing:
 - No virus scanning added
 - No resumable/chunked upload added
 - Full test suite passes
+
+## Email Verification Review Checklist
+
+### Architecture
+- Email provider abstraction exists
+- Controllers do not send emails
+- Verification service does not use providers directly
+
+### Security
+
+- Raw tokens never stored
+- Token hashes stored
+- Tokens expire
+- Tokens are single-use
+- Tokens generated securely
+
+### Testing
+
+- Send verification success
+- Verify success
+- Verify invalid token
+- Verify expired token
+- Verify reused token
+- Resend verification

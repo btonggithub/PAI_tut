@@ -456,3 +456,27 @@ Rules:
 - Do not trust file extension without MIME/type validation.
 - Do not trust MIME type without server-side constraints.
 - Do not accept ownerId from request body for user-owned uploads.
+
+---
+
+## Email Module Conventions
+
+Naming:
+
+- emailService.js
+- verificationService.js
+- consoleEmailProvider.js
+- verificationRepository.js
+- verificationTokenModel.js
+
+Verification tokens:
+
+- tokenHash
+- expiresAt
+- usedAt
+
+Do not use:
+
+- token
+- rawToken
+- plainToken

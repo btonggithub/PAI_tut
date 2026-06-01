@@ -540,3 +540,43 @@ Rules:
 Reason:
 A thin storage boundary keeps the file module reusable when the project later
 adds cloud storage, scanning, processing, or file-serving policies.
+
+---
+
+## Decision 021 - Email Provider Abstraction
+
+Status:
+Accepted
+
+Context:
+Email verification requires delivery mechanisms that may change over time.
+
+Decision:
+Business logic must not depend directly on SMTP or vendor-specific implementations.
+
+Email delivery must occur through EmailService and provider abstractions.
+
+Consequences:
+
+Positive:
+- Easy provider replacement
+- Better testing
+- Reusable for future notification features
+
+Negative:
+- Additional abstraction layer
+
+---
+
+## Decision 022 - Verification Tokens Are Stored Hashed
+
+Status:
+Accepted
+
+Decision:
+Raw verification tokens must never be persisted.
+
+Only token hashes may be stored.
+
+Rationale:
+Prevents token disclosure if database contents are exposed.
