@@ -43,7 +43,9 @@
 
 22. Cache Layer Foundation
 23. Event Foundation
+23.5 Event Integration Hardening
 24. Admin Module
+24.5 Admin Audit & Activity Views
 25. Domain Events Foundation
 26. Notification Module
 27. Microservice Extraction Preparation
@@ -69,3 +71,87 @@
 - Add monitoring/logging for cache hit/miss rates.
 - Update architecture diagrams and documentation to reflect cache layer.
 
+## Phase 23. Event Foundation
+สร้าง infrastructure event แบบเบา ๆ ก่อน เช่น in-process event bus, publish/subscribe API, event naming convention, payload shape, handler failure policy
+เป้าหมายคือ “มีราง event” แต่ยังไม่ผูก business หนัก ๆ
+
+- Introduce lightweight in-process event bus.
+- Define publish/subscribe API.
+- Define event naming and payload conventions.
+- Define handler error behavior.
+- Keep controllers, routes, repositories, and models event-unaware.
+- Add unit tests for publish/subscribe, multiple handlers, no handlers, and handler failures.
+
+Out of Scope:
+- Distributed brokers
+- Event sourcing
+- Domain events
+- Notifications
+- Public event APIs
+
+## Phase 23.5 Event Integration Hardening
+เอา event bus ที่สร้างใน Phase 23 ไปลองใช้จริงกับ workflow เล็ก ๆ 1-2 จุด เช่น file.uploaded หรือ user.updated แบบ low-risk
+เป้าหมายคือพิสูจน์ว่า event ใช้ได้จริงโดยไม่ทำ response contract, audit, cache, email/file workflow เดิมพัง
+
+- Wire event bus into 1-2 low-risk service workflows.
+- Verify existing response contracts remain unchanged.
+- Verify audit/cache/email/file behavior does not regress.
+- Add integration tests for event-connected workflows.
+- Document event handler registration and failure behavior.
+
+Out of Scope:
+- Replacing existing audit logging
+- Replacing cache invalidation
+- Notification delivery
+- Cross-process event delivery
+
+## Phase 24. Admin Module
+สร้าง admin APIs เช่น manage users, view files metadata, system/admin endpoints, permission-protected admin routes
+อันนี้เหมาะมาหลัง event foundation เพราะ admin module อาจเริ่มต้องดู activity/system state มากขึ้น
+
+- Add admin-only API foundation.
+- Add admin route/controller/service structure.
+- Add admin permission checks.
+- Add user/file/system admin read workflows where appropriate.
+- Preserve existing user-facing API contracts.
+
+Out of Scope:
+- Admin UI
+- Audit analytics
+- Notification management
+
+## Phase 24.5 : Admin Audit & Activity Views
+แยกออกมาดีแล้วครับ เพราะถ้ารวมกับ Admin Module จะบวมมาก
+Phase นี้ควรเน้น audit/activity read APIs, filtering, pagination, admin-only access, ไม่ใช่สร้าง UI
+
+- Add admin-only audit/activity read APIs.
+- Add filtering, sorting, and pagination.
+- Protect all endpoints with admin permissions.
+- Keep audit writes unchanged.
+
+Out of Scope:
+- Audit dashboard UI
+- External log shipping
+- Alerting
+- Analytics pipelines
+
+## Phase 25. Domain Events Foundation
+ยกระดับจาก “event bus technical foundation” เป็น “business event contract” เช่น:
+
+- user.registered
+- user.emailVerified
+- file.uploaded
+- admin.userRoleChanged
+
+ตรงนี้ควรกำหนด owner ของ event, payload contract, versioning, naming, compatibility
+
+## Phase 26. Notification Module
+ใช้ domain events เพื่อ trigger notification เช่น verification follow-up, admin alerts, future in-app notification
+ดีที่อยู่หลัง Domain Events เพราะ notification ควร consume event ไม่ใช่ hardcode workflow กระจัดกระจาย
+
+## Phase 27. Microservice Extraction Preparation
+เตรียม bounded contexts, service contracts, event contracts, module ownership, dependency boundaries
+ควรอยู่หลัง domain events และ notification เพราะถึงตอนนั้นจะเห็น dependency จริงมากขึ้น
+
+## Phase 30+ Mongo Transaction
+ดีที่ยังอยู่ไกล ๆ ครับ เพราะ transaction ควรมาเมื่อมี use case ที่ต้อง atomic จริง เช่น update หลาย collection ที่ห้าม partial success ไม่ควรรีบใส่ก่อนเห็นปัญหา
