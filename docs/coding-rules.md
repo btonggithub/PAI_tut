@@ -455,11 +455,7 @@ Cache service must NOT:
 Services may invoke cache service methods.
 
 Good:
-    const result = await cacheService.withCache(
-      cacheKey,
-      () => repository.findUser(userId),
-      3600
-    );
+        const result = await cacheService.withCache(cacheKey, () => userRepository.findUserById(userId), 3600);
 
 Bad:
     await cacheStore.set(key, value) // inside service
@@ -478,14 +474,14 @@ Repositories must NOT:
 
 Cache keys must:
 - use consistent naming patterns
-- include entity type prefix (user:, post:, etc.)
-- include identifiers in path (user:123, users:list:page=1)
+- include entity type prefix (user:, users:list, file:, files:list, etc.)
+- be built through `cacheService.buildCacheKey(baseKey, params)`
 - be deterministic (same inputs = same key)
 
 Good:
-    user:profile:{userId}
-    user:id:{userId}
-    users:list:{page}:{limit}
+    cacheService.buildCacheKey('user:profile', { userId })
+    cacheService.buildCacheKey('user:id', { userId })
+    cacheService.buildCacheKey('files:list', { ownerId, page, limit })
 
 Bad:
     cache_key_user_123
@@ -503,6 +499,11 @@ Correct:
     cacheService.invalidateUserCache(id);
     return toDTO(updated);
 
+Correct:
+    const fileRecord = await fileRepository.createFileMetadata(payload);
+    cacheService.invalidateFileCache({ ownerId: actor.id });
+    return toSafeFile(fileRecord);
+
 Bad:
     // Updates without invalidation
     const updated = await repository.update(id, payload);
@@ -517,6 +518,7 @@ Tests must verify:
 - cache TTL expires values correctly
 - pattern-based invalidation works correctly
 - service layer remains testable without cache
+- audit events still run for every cached read when required
 
 Good:
     jest.mock('../../src/services/cache/cacheService', () => ({
@@ -530,6 +532,8 @@ Good:
 Default TTL values:
 - User profiles: 3600s (1 hour)
 - User lists: 1800s (30 minutes)
+- File metadata by id: 3600s (1 hour)
+- File lists: 1800s (30 minutes)
 - Frequently accessed data: 3600s
 - Infrequently accessed data: 1800s
 - Short-lived data: 300s (5 minutes)
@@ -564,7 +568,7 @@ Cache service must log:
 - [CACHE_INVALIDATE_ALL] - when all cache cleared
 
 Example output:
-    [CACHE_HIT] user:profile:123
-    [CACHE_MISS] user:list:page=1
-    [CACHE_INVALIDATE] user:id:456
-    [CACHE_INVALIDATE_ALL] All caches cleared}
+    [CACHE_HIT] user:profile:userId="123"
+    [CACHE_MISS] files:list:ownerId="u1":page=1
+    [CACHE_INVALIDATE] user:id:userId="456"
+    [CACHE_INVALIDATE_ALL] All caches cleared

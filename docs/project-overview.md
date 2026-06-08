@@ -124,13 +124,21 @@ The project currently implements:
 - Non-blocking audit persistence behavior
 
 ### File Upload Foundation
-- Active Phase 20 preparation
-- File upload middleware preparation
-- File metadata model preparation
-- File repository preparation
-- File service preparation
-- Storage abstraction preparation
-- User-owned file workflow preparation
+- File upload middleware
+- File metadata model
+- File repository
+- File service
+- Storage abstraction
+- User-owned file workflow
+
+### Cache Layer Foundation
+- In-memory cache store with TTL expiration
+- Cache service wrapper for read-through caching
+- Cache hit/miss/invalidation logging
+- User GET endpoint caching
+- File GET endpoint caching
+- Cache invalidation on user updates and file uploads
+- Redis-ready cache provider boundary for future distributed caching
 
 ---
 

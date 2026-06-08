@@ -380,9 +380,16 @@ Testing:
 ### Cache layer
 
 - Cache layer implemented
-- TTLs applied
-- Invalidation on updates
-- API endpoints return cached data correctly
-- Logging of cache hit/miss
-- Fallback to DB if cache unavailable
-- Unit & integration tests for cache
+- TTLs applied for item/profile caches and list caches
+- User GET endpoints use cache where applicable
+- File GET endpoints use cache where applicable
+- User updates invalidate profile, user-by-id, and user list caches
+- File uploads invalidate owner file list caches
+- Future file update/delete workflows invalidate item and list caches
+- API endpoints return the same response contract for cache hits and misses
+- Audit events for cached reads are recorded on every access when required
+- Authorization checks remain outside cache fetches when cached data can be shared across actors
+- Cache hit/miss/invalidation logging exists
+- Cache misses fall back to repository/database fetches
+- Unit tests cover cache store, cache service, and service-level cache use
+- Integration tests cover cached GET behavior or an explicit reason is documented

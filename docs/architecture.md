@@ -94,26 +94,39 @@ src/
 
 ---
 
-## Target Structure After Phase 20
+## Target Structure After Phase 22
 
-Phase 20 introduces a file upload foundation:
+Phase 22 includes the file, email verification, audit, permission, and cache foundations:
 
 src/
-├── models/
-│   └── fileModel.js
+├── controllers/
+│   ├── email/
+│   └── file/
 │
 ├── middleware/
 │   └── upload/
 │       └── uploadFile.js
 │
+├── models/
+│   ├── auditLogModel.js
+│   └── fileModel.js
+│
 ├── repositories/
+│   ├── audit/
+│   ├── email/
 │   └── file/
-│       └── fileRepository.js
+│
+├── routes/
+│   ├── emailRoutes.js
+│   └── fileRoutes.js
 │
 └── services/
+    ├── cache/
+    │   └── cacheService.js
+    ├── email/
     └── file/
         ├── fileService.js
-        └── storageService.js
+        └── storage/
 
 ---
 
@@ -667,13 +680,6 @@ Rules:
 - Uploaded files must be associated with the authenticated user server-side.
 - Phase 20 should prepare storage abstraction without adding cloud storage unless required.
 - Existing authentication, authorization, audit, and response contracts must remain stable.
-- Add Cache Layer between Service and Database
-- Flow for cached endpoints:
-  Client -> Controller -> Service -> Cache -> Database
-- Cache Options:
-  - Redis (preferred)
-  - In-memory Node.js cache (node-cache)
-- TTL and Invalidation strategy integrated
 
 ---
 
