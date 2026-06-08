@@ -483,10 +483,12 @@ Do not use:
 
 ---
 
-## Cache Moule Conventions 
+## Cache Module Conventions 
 
-- Cacheable endpoints: GET /api/users/:id, GET /api/files/:id
+- Cacheable endpoints: GET /api/v1/users/me, GET /api/v1/users, GET /api/v1/users/:id, GET /api/v1/files, GET /api/v1/files/:id
 - Non-cacheable: POST/PUT/DELETE endpoints
-- Key format: resourceType:id
-- TTL default: 5 min (adjustable)
-- Invalidate cache on create/update/delete
+- Key format: `baseKey:paramName=jsonValue`, built through `cacheService.buildCacheKey`
+- TTL defaults: item/profile caches 3600s; list caches 1800s
+- Invalidate cache on create/update/delete workflows that change cached data
+- Record audit events outside cache fetchers when every access must be logged
+- Keep authorization checks outside cache fetches when cached data may be reused across actors

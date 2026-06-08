@@ -29,6 +29,7 @@ const { signAccessToken } = require('../../src/utils/jwt');
 const authService = require('../../src/services/auth/authService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const cacheStore = require('../../src/utils/cache');
 
 const regularUser = {
   id: '64b7f5b9f1d2c3a4b5c6d7b2',
@@ -65,6 +66,7 @@ const mockFileRecord = {
 describe('File API integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cacheStore.clear();
     authService.getAuthUser.mockResolvedValue(regularUser);
   });
 
@@ -208,6 +210,32 @@ describe('File API integration', () => {
         })
       );
     });
+
+    it('uses cache on repeated requests while auditing each access', async () => {
+      fileRepository.findFilesByOwner.mockResolvedValue({
+        items: [mockFileRecord],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      });
+
+      await request(app)
+        .get('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id));
+
+      await request(app)
+        .get('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id));
+
+      expect(fileRepository.findFilesByOwner).toHaveBeenCalledTimes(1);
+      expect(recordAuditEvent).toHaveBeenCalledTimes(2);
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.list',
+          result: 'succeeded',
+          actorId: regularUser.id,
+          resourceType: 'files',
+        })
+      );
+    });
   });
 
   describe('GET /api/v1/files/:id', () => {
@@ -243,6 +271,29 @@ describe('File API integration', () => {
           action: 'file.view',
           result: 'succeeded',
           actorId: regularUser.id,
+        })
+      );
+    });
+
+    it('uses cache on repeated requests while auditing each access', async () => {
+      fileRepository.findFileById.mockResolvedValue(mockFileRecord);
+
+      await request(app)
+        .get('/api/v1/files/64b7f5b9f1d2c3a4b5c6d7f1')
+        .set(accessHeaderFor(regularUser.id));
+
+      await request(app)
+        .get('/api/v1/files/64b7f5b9f1d2c3a4b5c6d7f1')
+        .set(accessHeaderFor(regularUser.id));
+
+      expect(fileRepository.findFileById).toHaveBeenCalledTimes(1);
+      expect(recordAuditEvent).toHaveBeenCalledTimes(2);
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.view',
+          result: 'succeeded',
+          actorId: regularUser.id,
+          resourceType: 'file',
         })
       );
     });

@@ -23,6 +23,7 @@ const fileService = require('../../src/services/file/fileService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
 const storageService = require('../../src/services/file/storage/storageService');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const cacheStore = require('../../src/utils/cache');
 
 const actor = { id: 'actor-id-1', role: 'user' };
 const differentActor = { id: 'actor-id-2', role: 'user' };
@@ -58,6 +59,7 @@ const mockRequestContext = {
 describe('fileService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cacheStore.clear();
   });
 
   describe('createUserFile', () => {
@@ -224,6 +226,19 @@ describe('fileService', () => {
         })
       );
     });
+
+    it('uses cache for repeated file listing while auditing each access', async () => {
+      fileRepository.findFilesByOwner.mockResolvedValue({
+        items: [mockFileRecord],
+        meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      });
+
+      await fileService.listUserFiles({ actor, query: { page: 1 } });
+      await fileService.listUserFiles({ actor, query: { page: 1 } });
+
+      expect(fileRepository.findFilesByOwner).toHaveBeenCalledTimes(1);
+      expect(recordAuditEvent).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('getUserFile', () => {
@@ -300,6 +315,16 @@ describe('fileService', () => {
           resourceType: 'file',
         })
       );
+    });
+
+    it('uses cache for repeated file lookup while auditing each access', async () => {
+      fileRepository.findFileById.mockResolvedValue(mockFileRecord);
+
+      await fileService.getUserFile({ actor, fileId: 'file-id-1' });
+      await fileService.getUserFile({ actor, fileId: 'file-id-1' });
+
+      expect(fileRepository.findFileById).toHaveBeenCalledTimes(1);
+      expect(recordAuditEvent).toHaveBeenCalledTimes(2);
     });
   });
 });

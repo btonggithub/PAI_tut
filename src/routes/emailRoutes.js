@@ -10,7 +10,8 @@ const {
 
 const router = express.Router();
 
-// All email routes require authentication
+// POST /send-verification and /resend-verification require authentication.
+// GET /verify is intentionally public — token is self-identifying.
 router.post(
   '/send-verification',
   protect,
@@ -18,7 +19,7 @@ router.post(
   emailController.sendVerification
 );
 
-router.post(
+router.get(
   '/verify',
   validateRequest({ query: verifyQuerySchema }),
   emailController.verify

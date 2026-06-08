@@ -570,8 +570,9 @@ Negative:
 
 ## Decision 022 - Cache Layer Foundation
 
-- Cache Technology: Redis (preferred)
-- Key format: resourceType:id
-- Default TTL: 5 min
-- Invalidation: on create/update/delete
+- Cache Technology: Node.js in-memory cache for the foundation phase
+- Future Provider: Redis remains the preferred distributed cache option
+- Key format: `baseKey:paramName=jsonValue`, built by `cacheService.buildCacheKey`
+- TTL defaults: user profile/user by id/file by id = 3600s; user list/file list = 1800s
+- Invalidation: on user update and file upload, with create/update/delete hooks added as those workflows exist
 - Fallback: DB query if cache miss

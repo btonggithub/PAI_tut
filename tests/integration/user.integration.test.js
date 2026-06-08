@@ -21,6 +21,8 @@ const { toAuthHeader } = require('../helpers/authHeader');
 const { signAccessToken } = require('../../src/utils/jwt');
 const authService = require('../../src/services/auth/authService');
 const userRepository = require('../../src/repositories/user/userRepository');
+const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const cacheStore = require('../../src/utils/cache');
 
 const adminUser = {
   id: '64b7f5b9f1d2c3a4b5c6d7a1',
@@ -48,6 +50,7 @@ const accessHeaderFor = (userId) => toAuthHeader(signAccessToken({ sub: userId }
 describe('User API integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cacheStore.clear();
     authService.getAuthUser.mockImplementation(async (userId) => {
       if (userId === adminUser.id) {
         return adminUser;
@@ -128,6 +131,27 @@ describe('User API integration', () => {
     expect(userRepository.findUsers).toHaveBeenCalledWith({});
   });
 
+  it('GET /api/v1/users uses cache on repeated requests while auditing each access', async () => {
+    await request(app)
+      .get('/api/v1/users')
+      .set(accessHeaderFor(adminUser.id));
+
+    await request(app)
+      .get('/api/v1/users')
+      .set(accessHeaderFor(adminUser.id));
+
+    expect(userRepository.findUsers).toHaveBeenCalledTimes(1);
+    expect(recordAuditEvent).toHaveBeenCalledTimes(2);
+    expect(recordAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'user.read.admin',
+        result: 'succeeded',
+        actorId: adminUser.id,
+        resourceType: 'users',
+      })
+    );
+  });
+
   it('GET /api/v1/users/:id blocks authenticated users without user.read permission', async () => {
     const response = await request(app)
       .get(`/api/v1/users/${targetUser.id}`)
@@ -154,5 +178,27 @@ describe('User API integration', () => {
       role: targetUser.role,
     }));
     expect(userRepository.findUserById).toHaveBeenCalledWith(targetUser.id);
+  });
+
+  it('GET /api/v1/users/:id uses cache on repeated requests while auditing each access', async () => {
+    await request(app)
+      .get(`/api/v1/users/${targetUser.id}`)
+      .set(accessHeaderFor(adminUser.id));
+
+    await request(app)
+      .get(`/api/v1/users/${targetUser.id}`)
+      .set(accessHeaderFor(adminUser.id));
+
+    expect(userRepository.findUserById).toHaveBeenCalledTimes(1);
+    expect(recordAuditEvent).toHaveBeenCalledTimes(2);
+    expect(recordAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'user.read.admin',
+        result: 'succeeded',
+        actorId: adminUser.id,
+        resourceType: 'user',
+        resourceId: targetUser.id,
+      })
+    );
   });
 });

@@ -6,10 +6,14 @@
 
 const cacheStore = require('../../utils/cache');
 
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const CACHE_DEFAULTS = {
   USER_PROFILE: { ttl: 3600, key: 'user:profile' }, // 1 hour
   USER_LIST: { ttl: 1800, key: 'users:list' }, // 30 minutes
   USER_BY_ID: { ttl: 3600, key: 'user:id' }, // 1 hour
+  FILE_LIST: { ttl: 1800, key: 'files:list' }, // 30 minutes
+  FILE_BY_ID: { ttl: 3600, key: 'file:id' }, // 1 hour
 };
 
 /**
@@ -84,13 +88,30 @@ const invalidateByPattern = (pattern) => {
  */
 const invalidateUserCache = (userId) => {
   // Invalidate this user's profile cache
-  invalidateByPattern(`user:profile:${userId}`);
+  invalidateByPattern(buildCacheKey('user:profile', { userId }));
 
   // Invalidate this user's specific cache
-  invalidateByPattern(`user:id:${userId}`);
+  invalidateByPattern(buildCacheKey('user:id', { userId }));
 
   // Invalidate all user list caches (since user data may have changed)
   invalidateByPattern(/^users:list:/);
+};
+
+/**
+ * Invalidate all file-related caches
+ * @param {string} ownerId - File owner ID to invalidate list caches for
+ * @param {string} fileId - File ID to invalidate
+ */
+const invalidateFileCache = ({ ownerId, fileId } = {}) => {
+  if (fileId) {
+    invalidateByPattern(buildCacheKey('file:id', { fileId }));
+  }
+
+  if (ownerId) {
+    invalidateByPattern(new RegExp(`^files:list:.*ownerId=${escapeRegExp(JSON.stringify(ownerId))}`));
+  } else {
+    invalidateByPattern(/^files:list:/);
+  }
 };
 
 /**
@@ -114,6 +135,7 @@ module.exports = {
   buildCacheKey,
   invalidateByPattern,
   invalidateUserCache,
+  invalidateFileCache,
   invalidateAll,
   getStats,
   CACHE_DEFAULTS,

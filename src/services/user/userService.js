@@ -83,26 +83,27 @@ const listUsers = async (query = {}, actor, requestContext = {}) => {
 
   const cacheKey = cacheService.buildCacheKey('users:list', query);
 
-  return cacheService.withCache(cacheKey, async () => {
+  const data = await cacheService.withCache(cacheKey, async () => {
     const result = await userRepository.findUsers(query);
-
-    // Record audit event for admin user listing
-    await recordAuditEvent({
-      action: AUDIT_ACTIONS.USER_READ_ADMIN,
-      result: AUDIT_RESULTS.SUCCEEDED,
-      actorId: actor.id,
-      actorRole: actor.role,
-      resourceType: 'users',
-      ipAddress: requestContext.ipAddress || null,
-      userAgent: requestContext.userAgent || null,
-      metadata: { count: result.items.length, page: query.page || 1 },
-    });
-
     return {
       users: toSafeUsers(result.items),
       meta: result.meta,
     };
   }, 1800); // Cache for 30 minutes
+
+  // Record audit event outside cache — must log every access
+  await recordAuditEvent({
+    action: AUDIT_ACTIONS.USER_READ_ADMIN,
+    result: AUDIT_RESULTS.SUCCEEDED,
+    actorId: actor.id,
+    actorRole: actor.role,
+    resourceType: 'users',
+    ipAddress: requestContext.ipAddress || null,
+    userAgent: requestContext.userAgent || null,
+    metadata: { count: data.users.length, page: query.page || 1 },
+  });
+
+  return data;
 };
 
 const getUserById = async (userId, actor, requestContext = {}) => {
@@ -113,29 +114,31 @@ const getUserById = async (userId, actor, requestContext = {}) => {
 
   const cacheKey = cacheService.buildCacheKey('user:id', { userId });
 
-  return cacheService.withCache(cacheKey, async () => {
-    const user = await userRepository.findUserById(userId);
+  const user = await cacheService.withCache(cacheKey, async () => {
+    const found = await userRepository.findUserById(userId);
 
-    if (!user) {
+    if (!found) {
       throw new AppError('User not found', 404);
     }
 
-    // Record audit event for admin user read
-    if (actor.role === 'admin' && actor.id !== userId) {
-      await recordAuditEvent({
-        action: AUDIT_ACTIONS.USER_READ_ADMIN,
-        result: AUDIT_RESULTS.SUCCEEDED,
-        actorId: actor.id,
-        actorRole: actor.role,
-        resourceType: 'user',
-        resourceId: userId,
-        ipAddress: requestContext.ipAddress || null,
-        userAgent: requestContext.userAgent || null,
-      });
-    }
-
-    return toSafeUser(user);
+    return toSafeUser(found);
   }, 3600); // Cache for 1 hour
+
+  // Record audit event outside cache — must log every admin access
+  if (actor.role === 'admin' && actor.id !== userId) {
+    await recordAuditEvent({
+      action: AUDIT_ACTIONS.USER_READ_ADMIN,
+      result: AUDIT_RESULTS.SUCCEEDED,
+      actorId: actor.id,
+      actorRole: actor.role,
+      resourceType: 'user',
+      resourceId: userId,
+      ipAddress: requestContext.ipAddress || null,
+      userAgent: requestContext.userAgent || null,
+    });
+  }
+
+  return user;
 };
 
 module.exports = {

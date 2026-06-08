@@ -77,7 +77,7 @@ describe('Email verification API integration', () => {
     });
   });
 
-  describe('POST /api/v1/email/verify', () => {
+  describe('GET /api/v1/email/verify', () => {
     it('does not require authentication (token self-identifies user)', async () => {
       const mockResult = {
         userId: regularUser.id,
@@ -87,7 +87,7 @@ describe('Email verification API integration', () => {
       verificationService.verifyEmail.mockResolvedValue(mockResult);
 
       const response = await request(app)
-        .post('/api/v1/email/verify')
+        .get('/api/v1/email/verify')
         .query({ token: 'verification-token' });
 
       expect(response.status).toBe(200);
@@ -96,7 +96,7 @@ describe('Email verification API integration', () => {
 
     it('requires token query parameter', async () => {
       const response = await request(app)
-        .post('/api/v1/email/verify');
+        .get('/api/v1/email/verify');
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -111,7 +111,7 @@ describe('Email verification API integration', () => {
       verificationService.verifyEmail.mockResolvedValue(mockResult);
 
       const response = await request(app)
-        .post('/api/v1/email/verify')
+        .get('/api/v1/email/verify')
         .query({ token: 'verification-token' });
 
       expect(response.status).toBe(200);
@@ -129,7 +129,7 @@ describe('Email verification API integration', () => {
       verificationService.verifyEmail.mockRejectedValue(error);
 
       const response = await request(app)
-        .post('/api/v1/email/verify')
+        .get('/api/v1/email/verify')
         .query({ token: 'invalid-token' });
 
       expect(response.status).toBe(400);

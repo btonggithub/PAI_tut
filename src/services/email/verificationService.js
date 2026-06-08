@@ -7,6 +7,7 @@ const AUDIT_ACTIONS = require('../audit/auditActions');
 const AUDIT_RESULTS = require('../audit/auditResults');
 const { generateToken, hashToken } = require('../../utils/token');
 const { VERIFICATION_TOKEN_TYPES } = require('../../models/verificationTokenModel');
+const env = require('../../config/env');
 
 // Token configuration
 const VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -17,8 +18,9 @@ const VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
  * @returns {string} Full verification URL
  */
 const buildVerificationLink = (token) => {
-  const baseUrl = process.env.APP_URL || 'http://localhost:3000';
-  return `${baseUrl}/api/v1/email/verify?token=${token}`;
+  const url = new URL('/api/v1/email/verify', env.APP_URL);
+  url.searchParams.set('token', token);
+  return url.toString();
 };
 
 /**

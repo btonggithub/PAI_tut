@@ -6,6 +6,7 @@ const { recordAuditEvent } = require('../audit/auditLogService');
 const AUDIT_ACTIONS = require('../audit/auditActions');
 const AUDIT_RESULTS = require('../audit/auditResults');
 const { STORAGE_PROVIDERS } = require('../../config/upload');
+const cacheService = require('../cache/cacheService');
 
 const toSafeFile = (file) => ({
   id: file._id ? String(file._id) : String(file.id),
@@ -41,6 +42,8 @@ const createUserFile = async ({ actor, file, metadata = {}, requestContext = {} 
       status: 'active',
       metadata,
     });
+
+    cacheService.invalidateFileCache({ ownerId: actor.id });
 
     // Record successful upload audit event
     await recordAuditEvent({
@@ -79,7 +82,19 @@ const createUserFile = async ({ actor, file, metadata = {}, requestContext = {} 
 };
 
 const listUserFiles = async ({ actor, query = {}, requestContext = {} }) => {
-  const result = await fileRepository.findFilesByOwner(actor.id, query);
+  const cacheKey = cacheService.buildCacheKey('files:list', {
+    ownerId: actor.id,
+    ...query,
+  });
+
+  const data = await cacheService.withCache(cacheKey, async () => {
+    const result = await fileRepository.findFilesByOwner(actor.id, query);
+
+    return {
+      files: result.items.map(toSafeFile),
+      meta: result.meta,
+    };
+  }, 1800);
 
   // Record file list audit event
   await recordAuditEvent({
@@ -90,23 +105,26 @@ const listUserFiles = async ({ actor, query = {}, requestContext = {} }) => {
     resourceType: 'files',
     ipAddress: requestContext.ipAddress || null,
     userAgent: requestContext.userAgent || null,
-    metadata: { count: result.items.length, page: query.page || 1 },
+    metadata: { count: data.files.length, page: query.page || 1 },
   }).catch(() => {
     // Audit logging failures should not break file listing
   });
 
-  return {
-    files: result.items.map(toSafeFile),
-    meta: result.meta,
-  };
+  return data;
 };
 
 const getUserFile = async ({ actor, fileId, requestContext = {} }) => {
-  const file = await fileRepository.findFileById(fileId);
+  const cacheKey = cacheService.buildCacheKey('file:id', { fileId });
 
-  if (!file) {
-    throw new AppError('File not found', 404);
-  }
+  const file = await cacheService.withCache(cacheKey, async () => {
+    const found = await fileRepository.findFileById(fileId);
+
+    if (!found) {
+      throw new AppError('File not found', 404);
+    }
+
+    return toSafeFile(found);
+  }, 3600);
 
   if (String(file.ownerId) !== String(actor.id)) {
     // Record forbidden file access audit event
@@ -142,7 +160,7 @@ const getUserFile = async ({ actor, fileId, requestContext = {} }) => {
     // Audit logging failures should not break file view
   });
 
-  return toSafeFile(file);
+  return file;
 };
 
 module.exports = {

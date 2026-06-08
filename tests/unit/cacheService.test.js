@@ -152,17 +152,39 @@ describe('Cache Service', () => {
 
   describe('invalidateUserCache', () => {
     it('invalidates all user-related caches', () => {
-      cacheStore.set('user:profile:123', 'value1');
-      cacheStore.set('user:id:123', 'value2');
+      const profileKey = cacheService.buildCacheKey('user:profile', { userId: '123' });
+      const userKey = cacheService.buildCacheKey('user:id', { userId: '123' });
+      const otherProfileKey = cacheService.buildCacheKey('user:profile', { userId: '456' });
+
+      cacheStore.set(profileKey, 'value1');
+      cacheStore.set(userKey, 'value2');
       cacheStore.set('users:list:page=1', 'value3');
-      cacheStore.set('user:profile:456', 'value4');
+      cacheStore.set(otherProfileKey, 'value4');
 
       cacheService.invalidateUserCache('123');
 
-      expect(cacheStore.has('user:profile:123')).toBe(false);
-      expect(cacheStore.has('user:id:123')).toBe(false);
+      expect(cacheStore.has(profileKey)).toBe(false);
+      expect(cacheStore.has(userKey)).toBe(false);
       expect(cacheStore.has('users:list:page=1')).toBe(false);
-      expect(cacheStore.has('user:profile:456')).toBe(true);
+      expect(cacheStore.has(otherProfileKey)).toBe(true);
+    });
+  });
+
+  describe('invalidateFileCache', () => {
+    it('invalidates file item and owner list caches', () => {
+      const fileKey = cacheService.buildCacheKey('file:id', { fileId: 'file-1' });
+      const ownerListKey = cacheService.buildCacheKey('files:list', { ownerId: 'owner-1', page: 1 });
+      const otherOwnerListKey = cacheService.buildCacheKey('files:list', { ownerId: 'owner-2', page: 1 });
+
+      cacheStore.set(fileKey, 'value1');
+      cacheStore.set(ownerListKey, 'value2');
+      cacheStore.set(otherOwnerListKey, 'value3');
+
+      cacheService.invalidateFileCache({ ownerId: 'owner-1', fileId: 'file-1' });
+
+      expect(cacheStore.has(fileKey)).toBe(false);
+      expect(cacheStore.has(ownerListKey)).toBe(false);
+      expect(cacheStore.has(otherOwnerListKey)).toBe(true);
     });
   });
 
@@ -209,10 +231,14 @@ describe('Cache Service', () => {
       expect(cacheService.CACHE_DEFAULTS.USER_PROFILE).toBeDefined();
       expect(cacheService.CACHE_DEFAULTS.USER_LIST).toBeDefined();
       expect(cacheService.CACHE_DEFAULTS.USER_BY_ID).toBeDefined();
+      expect(cacheService.CACHE_DEFAULTS.FILE_LIST).toBeDefined();
+      expect(cacheService.CACHE_DEFAULTS.FILE_BY_ID).toBeDefined();
 
       expect(cacheService.CACHE_DEFAULTS.USER_PROFILE.ttl).toBe(3600);
       expect(cacheService.CACHE_DEFAULTS.USER_LIST.ttl).toBe(1800);
       expect(cacheService.CACHE_DEFAULTS.USER_BY_ID.ttl).toBe(3600);
+      expect(cacheService.CACHE_DEFAULTS.FILE_LIST.ttl).toBe(1800);
+      expect(cacheService.CACHE_DEFAULTS.FILE_BY_ID.ttl).toBe(3600);
     });
   });
 });

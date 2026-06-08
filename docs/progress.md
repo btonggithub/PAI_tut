@@ -161,6 +161,14 @@ Implemented:
 * Cache invalidation: `updateMe` invalidates all user-related caches after updates
 * Pattern-based invalidation: Invalidates user profile, user ID, and user list caches
 
+**Task 3.5 - File Service Integration**
+* Updated `src/services/file/fileService.js` to use cache service
+* Cached GET operations:
+  - `listUserFiles`: Caches actor-owned file lists for 30 minutes (1800s)
+  - `getUserFile`: Caches individual file metadata for 1 hour (3600s)
+* Cache invalidation: `createUserFile` invalidates actor file list caches after successful upload
+* Ownership checks remain outside cache fetches so cached file metadata still passes authorization
+
 **Task 4 - Comprehensive Test Coverage**
 * Added `tests/unit/cache.test.js`: 13 tests for CacheStore
   - get/set/delete operations
@@ -176,6 +184,7 @@ Implemented:
 * Updated `tests/unit/userService.test.js`: 4 new cache integration tests
   - Verification that cache service is called with correct keys
   - Verification that cache invalidation occurs on updates
+* Updated `tests/unit/fileService.test.js`: cache verification for file list and file lookup
 
 **Architecture Rules Enforced:**
 * Service layer remains independent (no HTTP layer access)
@@ -193,7 +202,7 @@ Implemented:
 
 **Test Results:**
 - 38 test suites ✅ all passing (↑ from 36)
-- 394 tests ✅ all passing (↑ from 356, added 38 new cache tests)
+- 401 tests ✅ all passing (↑ from 356, added 45 cache-related tests)
 - 0 failures ✅
 
 **Future Extensibility:**
@@ -216,13 +225,10 @@ Current Architecture Health:
 
 ## NEXT
 
-Phase 22 - Cache Layer Foundation
+Phase 23 - TBD
 
-- Status: in progress
+- Status: pending
 
 - Next steps:
-  - Setup Redis or in-memory cache
-  - Integrate Service layer with cacheWrapper
-  - Update GET endpoints
-  - Add logging for hits/misses
-  - Unit & integration tests
+  - Define next roadmap item
+  - Keep extending cache coverage as new GET workflows are added

@@ -41,6 +41,10 @@ class CacheStore {
       this.delete(key);
     }, ttl * 1000);
 
+    if (typeof timer.unref === 'function') {
+      timer.unref();
+    }
+
     this.timers.set(key, timer);
   }
 

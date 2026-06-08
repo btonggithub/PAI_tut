@@ -33,6 +33,8 @@ const buildSchema = (env) => {
     JWT_REFRESH_SECRET: isProduction
       ? Joi.string().min(32).required()
       : Joi.string().min(16).default('dev-refresh-secret-key-change-in-production'),
+    APP_URL: Joi.string().uri().default('http://localhost:3000'),
+    ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
   })
     .unknown(true)
     .required();
@@ -63,6 +65,8 @@ const env = {
   MONGO_URI: value.MONGO_URI,
   JWT_SECRET: value.JWT_SECRET,
   JWT_REFRESH_SECRET: value.JWT_REFRESH_SECRET,
+  APP_URL: value.APP_URL.replace(/\/+$/, ''),
+  ALLOWED_ORIGINS: value.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean),
   isDevelopment: (value.NODE_ENV || nodeEnv) === 'development',
   isProduction: (value.NODE_ENV || nodeEnv) === 'production',
   isTest: (value.NODE_ENV || nodeEnv) === 'test',

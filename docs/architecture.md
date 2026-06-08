@@ -777,12 +777,21 @@ Return value
 
 Current Integration:
 - User service GET endpoints (getMe, getUserById, listUsers)
-- Automatic invalidation on updates
+- File service GET endpoints (listUserFiles, getUserFile)
+- Automatic invalidation on user updates and file uploads
 
 Cache Keys:
-- user:profile:{userId} (3600s TTL)
-- user:id:{userId} (3600s TTL)
-- users:list:{page,limit,...} (1800s TTL)
+- user:profile:userId="{userId}" (3600s TTL)
+- user:id:userId="{userId}" (3600s TTL)
+- users:list:limit={limit}:page={page}:... (1800s TTL)
+- files:list:ownerId="{ownerId}":limit={limit}:page={page}:... (1800s TTL)
+- file:id:fileId="{fileId}" (3600s TTL)
+
+Notes:
+- Cache keys are built with `cacheService.buildCacheKey(baseKey, params)`.
+- Parameter names are sorted for stable cache keys.
+- Audit events for cached reads are recorded outside cache fetchers so every access is logged, including cache hits.
+- Authorization checks remain outside cache fetches when cached data can be shared across actors.
 
 ### In-Memory Cache Implementation
 
@@ -818,11 +827,13 @@ Automatic invalidation on:
 - User profile updates
 - User role/permission changes
 - Bulk user operations
+- File uploads
+- Future file update/delete operations
 
 Pattern-based invalidation:
-- Exact string matching: `invalidateByPattern('user:1')`
-- Regex pattern matching: `invalidateByPattern(/^user:/)`
-- Wildcard patterns: `invalidateByPattern(/^users:list/)`
+- Exact string matching: `invalidateByPattern(cacheService.buildCacheKey('user:id', { userId }))`
+- Regex pattern matching: `invalidateByPattern(/^users:list:/)`
+- Owner-scoped file list invalidation through `invalidateFileCache({ ownerId, fileId })`
 
 ### Architecture Rules for Cache
 
