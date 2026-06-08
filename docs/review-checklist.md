@@ -393,3 +393,44 @@ Testing:
 - Cache misses fall back to repository/database fetches
 - Unit tests cover cache store, cache service, and service-level cache use
 - Integration tests cover cached GET behavior or an explicit reason is documented
+
+---
+
+## Phase 23 Event Foundation Review
+
+### Architecture
+
+- Event bus exists in the service/application layer
+- Controllers do not publish events
+- Routes do not publish events
+- Repositories do not publish or subscribe to events
+- Models do not know about events
+- Event handlers are registered explicitly
+- Existing response contracts are preserved
+
+### Event Bus Behavior
+
+- Publish works with one handler
+- Publish works with multiple handlers
+- Publish with no handlers is safe
+- Handler failure behavior is defined and tested
+- Handler state can be reset between tests
+- Event names are stable dot-notation strings
+- Payload shape is compact and predictable
+
+### Security and Scope
+
+- Event payloads do not include passwords, raw tokens, token hashes, or secrets
+- No external message broker added
+- No event sourcing added
+- No distributed event delivery added
+- No notification module behavior added
+- No public event API added
+
+### Testing
+
+- Event bus unit tests added
+- Event publisher/subscriber tests added
+- Handler failure tests added
+- Integration tests added only for workflows wired to the event bus
+- Existing auth/session/permission/audit/file/email/cache tests continue passing

@@ -866,6 +866,71 @@ Controllers:
 
 ---
 
+## Event Foundation Architecture
+
+Phase 23 introduces an in-process event foundation for decoupling selected
+service reactions without introducing distributed messaging.
+
+Contains:
+- services/event/ (event bus and handler registration)
+
+Responsibilities:
+- Publish application events from service workflows
+- Register in-process handlers during application/service initialization
+- Keep event names and payloads stable
+- Isolate handler failure behavior from HTTP controllers and repositories
+
+### Event Flow
+
+Service workflow
+    ↓
+Publish application event
+    ↓
+Event bus
+    ↓
+Registered handlers
+    ↓
+Handler side effects or follow-up service calls
+
+### Event Foundation Rules
+
+Services:
+- May publish events after successful business state changes
+- Must not depend on Express request or response objects
+- Must preserve existing response contracts when publishing events
+
+Event Bus:
+- Owns subscribe, unsubscribe/reset, and publish behavior
+- Has no database access
+- Has no HTTP response formatting
+- Does not implement business rules
+
+Handlers:
+- Must be registered explicitly
+- Must keep side effects narrow and testable
+- Must document whether failures are propagated or captured
+
+Controllers, Routes, Repositories, Models:
+- Must not publish or subscribe to application events directly
+- Must not know about event handler registration
+
+### Phase 23 Scope Boundary
+
+Included:
+- In-process event bus foundation
+- Stable event contracts and conventions
+- Unit tests for event publishing and handler behavior
+
+Excluded:
+- Kafka, RabbitMQ, Redis Streams, SNS/SQS, or external queues
+- Event sourcing
+- Cross-process or distributed events
+- Domain Events Foundation from Phase 25
+- Notification Module from Phase 26
+- Replacing existing audit logging, cache invalidation, or email workflows
+
+---
+
 ## Architecture Evolution Summary
 
 Phase 1-18: Core foundation
@@ -882,3 +947,6 @@ Phase 21: Email verification refinement
 
 Phase 22: Cache layer foundation
 - Performance optimization through transparent caching
+
+Phase 23: Event foundation
+- In-process application event bus preparation

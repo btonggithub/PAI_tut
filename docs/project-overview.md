@@ -140,6 +140,12 @@ The project currently implements:
 - Cache invalidation on user updates and file uploads
 - Redis-ready cache provider boundary for future distributed caching
 
+### Event Foundation Preparation
+- Upcoming in-process event bus foundation
+- Service-layer event publishing preparation
+- Stable application event naming and payload conventions
+- No distributed message broker or event sourcing in Phase 23
+
 ---
 
 ## Architectural Principles
@@ -224,17 +230,18 @@ Controller
 
 ## Upcoming Phase
 
-### Phase 21 - Email Verification Foundation
+### Phase 23 - Event Foundation
 
 Goals:
-- Email verification workflow
-- Verification token lifecycle
-- Email provider abstraction
-- Verification endpoints
-- Verification audit integration
+- Lightweight in-process event bus
+- Event publisher and subscriber APIs
+- Stable event naming and payload conventions
+- Service-layer event handler registration
+- Tests for publish/subscribe and handler failure behavior
 
-Future Expansion:
-- Password reset
-- Magic login links
-- Email change verification
-- Notification services
+Out of Scope:
+- Distributed message brokers
+- Event sourcing
+- Domain events foundation
+- Notification module
+- Replacing existing audit/cache/email/file workflows

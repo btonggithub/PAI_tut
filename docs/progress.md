@@ -225,10 +225,13 @@ Current Architecture Health:
 
 ## NEXT
 
-Phase 23 - TBD
+Phase 23 - Event Foundation
 
 - Status: pending
 
 - Next steps:
-  - Define next roadmap item
-  - Keep extending cache coverage as new GET workflows are added
+  - Implement in-process event bus foundation
+  - Define event naming and payload conventions
+  - Add publisher/subscriber APIs and handler registration
+  - Add unit tests for publish/subscribe and handler failure behavior
+  - Preserve existing direct audit/cache/email/file workflows unless explicitly wired for a low-risk proof point

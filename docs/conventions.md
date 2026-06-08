@@ -492,3 +492,27 @@ Do not use:
 - Invalidate cache on create/update/delete workflows that change cached data
 - Record audit events outside cache fetchers when every access must be logged
 - Keep authorization checks outside cache fetches when cached data may be reused across actors
+
+---
+
+## Event Module Conventions
+
+Event names use lowercase dot notation.
+
+Format:
+domain.action
+
+Examples:
+- user.updated
+- file.uploaded
+- email.verification.sent
+
+Rules:
+- Use stable event names; do not build names from request input.
+- Publish events from services after successful business state changes.
+- Keep controllers, routes, repositories, and models event-unaware.
+- Keep payloads compact and free of passwords, raw tokens, refresh token hashes, and secrets.
+- Include occurredAt and metadata where useful.
+- Include actor and resource information when available.
+- Use correlationId only when available from request context or workflow context.
+- Do not introduce distributed brokers, event sourcing, notifications, or domain events in Phase 23.

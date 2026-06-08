@@ -576,3 +576,16 @@ Negative:
 - TTL defaults: user profile/user by id/file by id = 3600s; user list/file list = 1800s
 - Invalidation: on user update and file upload, with create/update/delete hooks added as those workflows exist
 - Fallback: DB query if cache miss
+
+---
+
+## Decision 023 - Event Foundation
+
+- Event Technology: in-process Node.js event bus for the foundation phase
+- Event Scope: application events published from service workflows only
+- Handler Scope: explicitly registered in-process handlers only
+- Event Naming: stable dot-notation names such as `user.updated` or `file.uploaded`
+- Payload Shape: compact object containing event name, occurredAt, actor, resource, metadata, and optional correlationId
+- Error Strategy: event bus behavior must define whether handler failures are captured or propagated; tests must cover that behavior
+- Out of Scope: external brokers, event sourcing, distributed events, domain events, notifications, and public event APIs
+- Future Path: Domain Events Foundation and Notification Module may consume this foundation in later phases

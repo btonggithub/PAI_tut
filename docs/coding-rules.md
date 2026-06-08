@@ -572,3 +572,76 @@ Example output:
     [CACHE_MISS] files:list:ownerId="u1":page=1
     [CACHE_INVALIDATE] user:id:userId="456"
     [CACHE_INVALIDATE_ALL] All caches cleared
+
+---
+
+## Event Foundation Rules
+
+### Event Bus Rules
+
+Event bus owns:
+- event subscription
+- event publishing
+- handler execution ordering policy
+- handler failure behavior
+- test helpers for clearing handlers between tests
+
+Event bus must NOT:
+- access repositories directly
+- depend on Express request or response objects
+- contain business logic
+- format HTTP responses
+- persist events to MongoDB
+
+### Event Publishing Rules
+
+Services may publish events after successful business state changes.
+
+Good:
+    await eventBus.publish('file.uploaded', { actor, resource, metadata });
+
+Bad:
+    router.post('/files', () => eventBus.publish(...));
+
+Controllers, routes, repositories, models, and middleware must NOT publish application events directly.
+
+### Event Handler Rules
+
+Handlers must:
+- be registered explicitly from an application/service composition point
+- keep side effects focused and testable
+- document whether failures should block or not block the publisher
+- avoid hidden dependencies on Express objects
+
+Handlers must not:
+- mutate HTTP responses
+- perform unrelated business workflows
+- hide database access outside existing service/repository boundaries
+
+### Event Payload Rules
+
+Payloads should include:
+- event name or type when useful
+- occurredAt timestamp
+- actor information when available
+- resource information when available
+- metadata for compact context
+- correlationId when available
+
+Payloads must not include:
+- passwords
+- raw access tokens
+- raw refresh tokens
+- refresh token hashes
+- verification token raw values
+- secrets or private keys
+
+### Phase 23 Scope Rules
+
+Phase 23 must not add:
+- Kafka, RabbitMQ, Redis Streams, SNS/SQS, or other external brokers
+- event sourcing
+- distributed/cross-process event delivery
+- notification module behavior
+- public event APIs
+- admin event-management screens
