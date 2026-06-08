@@ -210,6 +210,53 @@ Implemented:
 - Provider pattern supports multiple cache backends
 - Cache service can be extended for other entities (files, sessions, etc.)
 
+### Phase 23 - Event Foundation
+
+Status: Completed
+
+Implemented:
+
+**Task 1 - In-Process Event Bus**
+* Created `src/services/event/eventBus.js` with subscribe, publish, clearHandlers, getHandlerCount, and getEventNames support
+* Event names must use lowercase dot notation
+* Publish returns handler count, handled status, payload, and captured errors
+* Default handler failure behavior captures errors and continues to later handlers
+* Optional `throwOnError` behavior propagates handler failure when a workflow needs blocking behavior
+
+**Task 2 - Event Contracts and Payloads**
+* Created `src/services/event/eventNames.js` for stable foundation event names
+* Created `src/services/event/eventPayload.js` for compact event payload shape
+* Payload includes name, occurredAt, actor, resource, metadata, and correlationId
+
+**Task 3 - Handler Registration Boundary**
+* Created `src/services/event/eventRegistry.js` for explicit service/application-layer handler registration
+* Added reset helper for isolated tests and future lifecycle wiring
+* Exported event foundation through `src/services/event/index.js`
+
+**Task 4 - Focused Unit Test Coverage**
+* Added `tests/unit/eventBus.test.js`
+  - single handler publishing
+  - multiple handlers in registration order
+  - no-handler publishing
+  - default failure capture and continuation
+  - opt-in failure propagation
+  - unsubscribe and reset behavior
+  - invalid event names and invalid handlers
+* Added `tests/unit/eventRegistry.test.js`
+  - handler registration through the service event registry
+  - handler reset behavior
+
+**Architecture Rules Enforced:**
+* Controllers, routes, repositories, models, and middleware remain event-unaware
+* No database persistence added for events
+* No distributed broker, event sourcing, notification delivery, or public event API added
+* Existing audit/cache/email/file workflows remain direct and unchanged
+
+**Focused Test Results:**
+- `npm test -- tests/unit/eventBus.test.js tests/unit/eventRegistry.test.js` passing
+- 2 focused event test suites passing
+- 10 event tests passing
+
 ## CURRENT STATUS
 
 Current Architecture Health:
@@ -222,16 +269,16 @@ Current Architecture Health:
 * File upload foundation completed (Phase 20.5)
 * Email verification foundation completed (Phase 21)
 * Cache layer foundation completed (Phase 22)
+* Event foundation completed (Phase 23)
 
 ## NEXT
 
-Phase 23 - Event Foundation
+Phase 23.5 - Event Integration Hardening
 
 - Status: pending
 
 - Next steps:
-  - Implement in-process event bus foundation
-  - Define event naming and payload conventions
-  - Add publisher/subscriber APIs and handler registration
-  - Add unit tests for publish/subscribe and handler failure behavior
-  - Preserve existing direct audit/cache/email/file workflows unless explicitly wired for a low-risk proof point
+  - Wire the event bus into one or two low-risk service workflows
+  - Preserve existing response contracts
+  - Verify audit/cache/email/file behavior does not regress
+  - Add focused integration tests for event-connected workflows

@@ -94,9 +94,9 @@ src/
 
 ---
 
-## Target Structure After Phase 22
+## Target Structure After Phase 23
 
-Phase 22 includes the file, email verification, audit, permission, and cache foundations:
+Phase 23 includes the file, email verification, audit, permission, cache, and event foundations:
 
 src/
 ├── controllers/
@@ -124,6 +124,11 @@ src/
     ├── cache/
     │   └── cacheService.js
     ├── email/
+    ├── event/
+    │   ├── eventBus.js
+    │   ├── eventNames.js
+    │   ├── eventPayload.js
+    │   └── eventRegistry.js
     └── file/
         ├── fileService.js
         └── storage/
@@ -872,7 +877,7 @@ Phase 23 introduces an in-process event foundation for decoupling selected
 service reactions without introducing distributed messaging.
 
 Contains:
-- services/event/ (event bus and handler registration)
+- services/event/ (event bus, event names, payload builder, and handler registration)
 
 Responsibilities:
 - Publish application events from service workflows
@@ -920,6 +925,7 @@ Included:
 - In-process event bus foundation
 - Stable event contracts and conventions
 - Unit tests for event publishing and handler behavior
+- Handler reset helper for isolated tests
 
 Excluded:
 - Kafka, RabbitMQ, Redis Streams, SNS/SQS, or external queues

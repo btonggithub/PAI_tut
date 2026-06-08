@@ -4,6 +4,8 @@
 
 npm run dev
 
+npm test -- tests/unit/eventBus.test.js tests/unit/eventRegistry.test.js
+
 ## merge file
 
 node mergePhase.js . changelog/updated_context_phase22.md

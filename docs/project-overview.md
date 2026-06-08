@@ -140,10 +140,12 @@ The project currently implements:
 - Cache invalidation on user updates and file uploads
 - Redis-ready cache provider boundary for future distributed caching
 
-### Event Foundation Preparation
-- Upcoming in-process event bus foundation
+### Event Foundation
+- In-process event bus foundation
 - Service-layer event publishing preparation
 - Stable application event naming and payload conventions
+- Explicit event handler registration helper
+- Unit-tested handler failure behavior
 - No distributed message broker or event sourcing in Phase 23
 
 ---
@@ -230,18 +232,16 @@ Controller
 
 ## Upcoming Phase
 
-### Phase 23 - Event Foundation
+### Phase 23.5 - Event Integration Hardening
 
 Goals:
-- Lightweight in-process event bus
-- Event publisher and subscriber APIs
-- Stable event naming and payload conventions
-- Service-layer event handler registration
-- Tests for publish/subscribe and handler failure behavior
+- Wire the event foundation into one or two low-risk service workflows
+- Preserve existing response contracts
+- Verify audit/cache/email/file behavior does not regress
+- Add focused integration tests for event-connected workflows
 
 Out of Scope:
 - Distributed message brokers
 - Event sourcing
-- Domain events foundation
-- Notification module
-- Replacing existing audit/cache/email/file workflows
+- Notification delivery
+- Cross-process event delivery
