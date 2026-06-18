@@ -1,4 +1,10 @@
-const { eventBus, EVENT_NAMES, registerEventHandlers, resetEventHandlers } = require('../../src/services/event');
+const {
+  eventBus,
+  EVENT_NAMES,
+  registerEventHandlers,
+  resetEventHandlers,
+  getRegisteredHandlerCount,
+} = require('../../src/services/event');
 
 describe('eventRegistry', () => {
   beforeEach(() => {
@@ -14,13 +20,18 @@ describe('eventRegistry', () => {
     const handler = jest.fn().mockResolvedValue(undefined);
 
     const unsubscribers = registerEventHandlers([
-      { eventName: EVENT_NAMES.FILE_UPLOADED, handler },
+      {
+        key: 'file-upload-test-handler',
+        eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL,
+        handler,
+      },
     ]);
 
     expect(unsubscribers).toHaveLength(1);
-    expect(eventBus.getHandlerCount(EVENT_NAMES.FILE_UPLOADED)).toBe(1);
+    expect(eventBus.getHandlerCount(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL)).toBe(1);
+    expect(getRegisteredHandlerCount()).toBe(1);
 
-    await eventBus.publish(EVENT_NAMES.FILE_UPLOADED, {
+    await eventBus.publish(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, {
       resource: { type: 'file', id: 'file-1' },
     });
 
@@ -29,14 +40,60 @@ describe('eventRegistry', () => {
 
   it('resets registered handlers', () => {
     registerEventHandlers([
-      { eventName: EVENT_NAMES.FILE_UPLOADED, handler: jest.fn() },
-      { eventName: EVENT_NAMES.USER_UPDATED, handler: jest.fn() },
+      {
+        key: 'file-upload-test-handler',
+        eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL,
+        handler: jest.fn(),
+      },
+      {
+        key: 'user-profile-test-handler',
+        eventName: EVENT_NAMES.USER_PROFILE_UPDATED_INTERNAL,
+        handler: jest.fn(),
+      },
     ]);
 
     expect(eventBus.getHandlerCount()).toBe(2);
+    expect(getRegisteredHandlerCount()).toBe(2);
 
     resetEventHandlers();
 
     expect(eventBus.getHandlerCount()).toBe(0);
+    expect(getRegisteredHandlerCount()).toBe(0);
+  });
+
+  it('prevents duplicate handler registration across startup re-runs', () => {
+    const firstHandler = jest.fn();
+    const secondHandler = jest.fn();
+    const registrations = [
+      {
+        key: 'file-upload-audit-handler',
+        eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL,
+        handler: firstHandler,
+      },
+    ];
+
+    registerEventHandlers(registrations);
+    registerEventHandlers([
+      {
+        key: 'file-upload-audit-handler',
+        eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL,
+        handler: secondHandler,
+      },
+    ]);
+
+    expect(eventBus.getHandlerCount(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL)).toBe(1);
+    expect(getRegisteredHandlerCount()).toBe(1);
+  });
+
+  it('allows unkeyed handlers to register independently', () => {
+    registerEventHandlers([
+      { eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, handler: jest.fn() },
+    ]);
+    registerEventHandlers([
+      { eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, handler: jest.fn() },
+    ]);
+
+    expect(eventBus.getHandlerCount(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL)).toBe(2);
+    expect(getRegisteredHandlerCount()).toBe(0);
   });
 });

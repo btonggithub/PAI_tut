@@ -222,6 +222,8 @@ Implemented:
 * Publish returns handler count, handled status, payload, and captured errors
 * Default handler failure behavior captures errors and continues to later handlers
 * Optional `throwOnError` behavior propagates handler failure when a workflow needs blocking behavior
+* Structured event logs record publish, handled, and failed events with correlationId when available
+* Basic metrics track published, handled, and failed counts
 
 **Task 2 - Event Contracts and Payloads**
 * Created `src/services/event/eventNames.js` for stable foundation event names
@@ -231,6 +233,7 @@ Implemented:
 **Task 3 - Handler Registration Boundary**
 * Created `src/services/event/eventRegistry.js` for explicit service/application-layer handler registration
 * Added reset helper for isolated tests and future lifecycle wiring
+* Added stable registration key support to prevent duplicate handler registration on startup/test re-run
 * Exported event foundation through `src/services/event/index.js`
 
 **Task 4 - Focused Unit Test Coverage**
@@ -241,10 +244,12 @@ Implemented:
   - default failure capture and continuation
   - opt-in failure propagation
   - unsubscribe and reset behavior
+  - structured event logs and metrics
   - invalid event names and invalid handlers
 * Added `tests/unit/eventRegistry.test.js`
   - handler registration through the service event registry
   - handler reset behavior
+  - duplicate registration prevention with stable keys
 
 **Architecture Rules Enforced:**
 * Controllers, routes, repositories, models, and middleware remain event-unaware
@@ -256,6 +261,7 @@ Implemented:
 - `npm test -- tests/unit/eventBus.test.js tests/unit/eventRegistry.test.js` passing
 - 2 focused event test suites passing
 - 10 event tests passing
+- 13 event tests passing
 
 ## CURRENT STATUS
 

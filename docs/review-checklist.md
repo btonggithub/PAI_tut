@@ -416,7 +416,11 @@ Testing:
 - Handler failure behavior is defined and tested
 - Handler state can be reset between tests
 - Event names are stable dot-notation strings
+- Event names remain technical/internal during Phase 23
 - Payload shape is compact and predictable
+- Publish/handled/failed metrics exist
+- Structured publish/handled/failed logs include correlation id where available
+- Duplicate handler registration is prevented with stable registration keys
 
 ### Security and Scope
 

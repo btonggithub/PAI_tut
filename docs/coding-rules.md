@@ -598,7 +598,7 @@ Event bus must NOT:
 Services may publish events after successful business state changes.
 
 Good:
-    await eventBus.publish('file.uploaded', { actor, resource, metadata });
+    await eventBus.publish('file.upload.persisted.internal', { actor, resource, metadata });
 
 Bad:
     router.post('/files', () => eventBus.publish(...));
@@ -609,6 +609,7 @@ Controllers, routes, repositories, models, and middleware must NOT publish appli
 
 Handlers must:
 - be registered explicitly from an application/service composition point
+- use stable registration keys when startup code may run more than once
 - keep side effects focused and testable
 - document whether failures should block or not block the publisher
 - avoid hidden dependencies on Express objects
@@ -627,6 +628,23 @@ Payloads should include:
 - resource information when available
 - metadata for compact context
 - correlationId when available
+
+### Event Observability Rules
+
+Event bus must expose lightweight metrics:
+- published count
+- handled count
+- failed count
+
+Event bus should emit structured logs for:
+- event.publish
+- event.handled
+- event.failed
+
+Rules:
+- Logs should include eventName and correlationId where available.
+- Handler failures should be logged without crashing the process by default.
+- No retry behavior is introduced in Phase 23.
 
 Payloads must not include:
 - passwords

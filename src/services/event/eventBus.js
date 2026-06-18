@@ -1,10 +1,20 @@
 const { createEventPayload } = require('./eventPayload');
 
 const EVENT_NAME_PATTERN = /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/;
+const noopLogger = {
+  info: () => {},
+  error: () => {},
+};
 
 class EventBus {
-  constructor() {
+  constructor({ logger = noopLogger } = {}) {
     this.handlers = new Map();
+    this.logger = logger;
+    this.metrics = {
+      publishedCount: 0,
+      handledCount: 0,
+      failedCount: 0,
+    };
   }
 
   validateEventName(eventName) {
@@ -16,6 +26,18 @@ class EventBus {
   validateHandler(handler) {
     if (typeof handler !== 'function') {
       throw new Error('Event handler must be a function');
+    }
+  }
+
+  logInfo(payload) {
+    if (this.logger && typeof this.logger.info === 'function') {
+      this.logger.info(payload);
+    }
+  }
+
+  logError(payload) {
+    if (this.logger && typeof this.logger.error === 'function') {
+      this.logger.error(payload);
     }
   }
 
@@ -46,12 +68,39 @@ class EventBus {
     const eventPayload = createEventPayload(eventName, payload);
     const eventHandlers = Array.from(this.handlers.get(eventName) || []);
     const errors = [];
+    const correlationId = eventPayload.correlationId;
+
+    this.metrics.publishedCount += 1;
+    this.logInfo({
+      type: 'event.publish',
+      eventName,
+      correlationId,
+      handlerCount: eventHandlers.length,
+    });
 
     for (const handler of eventHandlers) {
       try {
         await handler(eventPayload);
+        this.metrics.handledCount += 1;
+        this.logInfo({
+          type: 'event.handled',
+          eventName,
+          correlationId,
+          handlerName: handler.name || 'anonymous',
+        });
       } catch (err) {
         errors.push(err);
+        this.metrics.failedCount += 1;
+        this.logError({
+          type: 'event.failed',
+          eventName,
+          correlationId,
+          handlerName: handler.name || 'anonymous',
+          error: {
+            message: err.message,
+            name: err.name,
+          },
+        });
 
         if (throwOnError) {
           throw err;
@@ -70,6 +119,22 @@ class EventBus {
 
   clearHandlers() {
     this.handlers.clear();
+  }
+
+  resetMetrics() {
+    this.metrics = {
+      publishedCount: 0,
+      handledCount: 0,
+      failedCount: 0,
+    };
+  }
+
+  getMetrics() {
+    return { ...this.metrics };
+  }
+
+  setLogger(logger = noopLogger) {
+    this.logger = logger;
   }
 
   getHandlerCount(eventName) {

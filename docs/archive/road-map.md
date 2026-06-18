@@ -82,6 +82,24 @@
 - Keep controllers, routes, repositories, and models event-unaware.
 - Add unit tests for publish/subscribe, multiple handlers, no handlers, and handler failures.
 
+Technical Rules (must define in this phase):
+
+- Delivery semantics: in-process only, at-most-once, no persistence, best-effort delivery.
+- Dispatch mode: sync by default inside service flow; async mode is optional and must be explicit.
+- Ordering: preserve handler execution order by registration order for the same event.
+- Timeout and isolation: each handler must be isolated; one handler failure must not crash the process.
+- Failure policy: log structured error, increment failure metric, and continue remaining handlers (no retry in Phase 23).
+- Registration safety: prevent duplicate handler registration on startup/test re-run.
+- Event naming in this phase must stay technical/integration-focused (not business/domain contract yet).
+
+Definition of Done:
+
+- Event bus API documented with example publish/subscribe usage.
+- Unit tests pass for normal flow, multiple handlers, no handlers, and handler failure continuation.
+- Structured logs exist for publish/handled/failed events with correlation id support.
+- Basic metrics exist: published count, handled count, failed count.
+- No changes to public REST response contract.
+
 Out of Scope:
 - Distributed brokers
 - Event sourcing
@@ -90,7 +108,7 @@ Out of Scope:
 - Public event APIs
 
 ## Phase 23.5 Event Integration Hardening
-เอา event bus ที่สร้างใน Phase 23 ไปลองใช้จริงกับ workflow เล็ก ๆ 1-2 จุด เช่น file.uploaded หรือ user.updated แบบ low-risk
+เอา event bus ที่สร้างใน Phase 23 ไปลองใช้จริงกับ workflow เล็ก ๆ 1-2 จุด เช่น file.upload.persisted.internal หรือ user.profile.updated.internal แบบ low-risk
 เป้าหมายคือพิสูจน์ว่า event ใช้ได้จริงโดยไม่ทำ response contract, audit, cache, email/file workflow เดิมพัง
 
 - Wire event bus into 1-2 low-risk service workflows.
@@ -98,6 +116,20 @@ Out of Scope:
 - Verify audit/cache/email/file behavior does not regress.
 - Add integration tests for event-connected workflows.
 - Document event handler registration and failure behavior.
+
+Integration Scope Guardrails:
+
+- Integrate only 1-2 low-risk workflows at service layer (controllers remain event-unaware).
+- Use technical integration event names in this phase (example: file.postPersisted, user.profileUpdated.internal).
+- Do not introduce domain ownership/versioning rules until Phase 25.
+
+Acceptance Criteria:
+
+- Existing endpoint status codes and response payloads remain unchanged.
+- Existing audit/cache/email/file behavior remains compatible (no functional regression).
+- Integration tests cover success path and handler failure path for selected workflows.
+- Event connection can be disabled with feature flag or config toggle for safe rollback.
+- Documentation includes handler registration location and failure behavior.
 
 Out of Scope:
 - Replacing existing audit logging

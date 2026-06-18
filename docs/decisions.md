@@ -584,8 +584,10 @@ Negative:
 - Event Technology: in-process Node.js event bus for the foundation phase
 - Event Scope: application events published from service workflows only
 - Handler Scope: explicitly registered in-process handlers only
-- Event Naming: stable dot-notation names such as `user.updated` or `file.uploaded`
+- Event Naming: stable technical/internal dot-notation names such as `user.profile.updated.internal` or `file.upload.persisted.internal`
 - Payload Shape: compact object containing event name, occurredAt, actor, resource, metadata, and optional correlationId
 - Error Strategy: event bus behavior must define whether handler failures are captured or propagated; tests must cover that behavior
+- Observability Strategy: event bus records lightweight publish/handled/failed metrics and structured logs with correlationId where available
+- Registration Strategy: event handler registration must prevent duplicate startup/test re-run registrations where a stable key is provided
 - Out of Scope: external brokers, event sourcing, distributed events, domain events, notifications, and public event APIs
 - Future Path: Domain Events Foundation and Notification Module may consume this foundation in later phases

@@ -883,6 +883,8 @@ Responsibilities:
 - Publish application events from service workflows
 - Register in-process handlers during application/service initialization
 - Keep event names and payloads stable
+- Track lightweight publish/handled/failed metrics
+- Emit structured publish/handled/failed logs with correlationId where available
 - Isolate handler failure behavior from HTTP controllers and repositories
 
 ### Event Flow
@@ -906,12 +908,15 @@ Services:
 
 Event Bus:
 - Owns subscribe, unsubscribe/reset, and publish behavior
+- Owns publish/handled/failed metrics
+- Owns structured event execution logs
 - Has no database access
 - Has no HTTP response formatting
 - Does not implement business rules
 
 Handlers:
 - Must be registered explicitly
+- Should use stable registration keys when startup code may run more than once
 - Must keep side effects narrow and testable
 - Must document whether failures are propagated or captured
 

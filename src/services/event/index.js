@@ -1,7 +1,11 @@
 const eventBus = require('./eventBus');
 const EVENT_NAMES = require('./eventNames');
 const { createEventPayload } = require('./eventPayload');
-const { registerEventHandlers, resetEventHandlers } = require('./eventRegistry');
+const {
+  registerEventHandlers,
+  resetEventHandlers,
+  getRegisteredHandlerCount,
+} = require('./eventRegistry');
 
 module.exports = {
   eventBus,
@@ -11,4 +15,5 @@ module.exports = {
   createEventPayload,
   registerEventHandlers,
   resetEventHandlers,
+  getRegisteredHandlerCount,
 };

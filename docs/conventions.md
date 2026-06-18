@@ -503,12 +503,13 @@ Format:
 domain.action
 
 Examples:
-- user.updated
-- file.uploaded
-- email.verification.sent
+- user.profile.updated.internal
+- file.upload.persisted.internal
+- email.verification.queued.internal
 
 Rules:
 - Use stable event names; do not build names from request input.
+- Keep Phase 23 event names technical/internal, not public domain event contracts.
 - Publish events from services after successful business state changes.
 - Keep controllers, routes, repositories, and models event-unaware.
 - Keep payloads compact and free of passwords, raw tokens, refresh token hashes, and secrets.
