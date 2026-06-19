@@ -26,6 +26,15 @@ const findFilesByOwner = async (ownerId, query = {}) => {
   };
 };
 
+const findFiles = async (query = {}) => {
+  return fileBaseRepository.findMany(query, {
+    allowedFilters: ['ownerId', 'status', 'mimeType', 'extension'],
+    allowedSortFields: ['createdAt', 'updatedAt', 'size', 'status'],
+    defaultSort: '-createdAt',
+    useLean: true,
+  });
+};
+
 const updateFileStatus = async (fileId, payload) => {
   return File.findByIdAndUpdate(fileId, payload, {
     new: true,
@@ -37,5 +46,6 @@ module.exports = {
   createFileMetadata,
   findFileById,
   findFilesByOwner,
+  findFiles,
   updateFileStatus,
 };
