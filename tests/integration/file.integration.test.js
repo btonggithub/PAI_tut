@@ -30,6 +30,7 @@ const authService = require('../../src/services/auth/authService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 const cacheStore = require('../../src/utils/cache');
+const { eventBus, EVENT_NAMES } = require('../../src/services/event');
 
 const regularUser = {
   id: '64b7f5b9f1d2c3a4b5c6d7b2',
@@ -68,6 +69,7 @@ describe('File API integration', () => {
     jest.clearAllMocks();
     cacheStore.clear();
     authService.getAuthUser.mockResolvedValue(regularUser);
+    eventBus.resetMetrics();
   });
 
   describe('POST /api/v1/files', () => {
@@ -160,6 +162,65 @@ describe('File API integration', () => {
           actorId: regularUser.id,
         })
       );
+    });
+
+    it('publishes file upload internal event without changing response contract', async () => {
+      fileRepository.createFileMetadata.mockResolvedValue(mockFileRecord);
+
+      const response = await request(app)
+        .post('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id))
+        .set('x-correlation-id', 'file-upload-request-123')
+        .attach('file', Buffer.from('hello world'), {
+          filename: 'hello.txt',
+          contentType: 'text/plain',
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveProperty('file');
+      expect(response.body.data.file).not.toHaveProperty('storageKey');
+      expect(response.body.data.file).not.toHaveProperty('storedName');
+
+      expect(eventBus.getMetrics()).toEqual(expect.objectContaining({
+        publishedCount: 1,
+        handledCount: expect.any(Number),
+        failedCount: 0,
+      }));
+    });
+
+    it('keeps upload success response when one event handler fails', async () => {
+      fileRepository.createFileMetadata.mockResolvedValue(mockFileRecord);
+      const unsubscribe = eventBus.subscribe(
+        EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL,
+        async () => {
+          throw new Error('forced handler failure for integration test');
+        }
+      );
+
+      const response = await request(app)
+        .post('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id))
+        .attach('file', Buffer.from('hello world'), {
+          filename: 'hello.txt',
+          contentType: 'text/plain',
+        });
+
+      unsubscribe();
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(recordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.upload',
+          result: 'succeeded',
+          actorId: regularUser.id,
+        })
+      );
+      expect(eventBus.getMetrics()).toEqual(expect.objectContaining({
+        publishedCount: 1,
+        failedCount: 1,
+      }));
     });
   });
 
@@ -336,6 +397,61 @@ describe('File API integration', () => {
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('INTERNAL_EVENTS_ENABLED toggle', () => {
+    const originalInternalEventsEnabled = process.env.INTERNAL_EVENTS_ENABLED;
+
+    afterEach(() => {
+      if (typeof originalInternalEventsEnabled === 'undefined') {
+        delete process.env.INTERNAL_EVENTS_ENABLED;
+      } else {
+        process.env.INTERNAL_EVENTS_ENABLED = originalInternalEventsEnabled;
+      }
+
+      jest.resetModules();
+    });
+
+    it('skips internal event bootstrap and publish when INTERNAL_EVENTS_ENABLED=false', async () => {
+      jest.resetModules();
+      process.env.INTERNAL_EVENTS_ENABLED = 'false';
+
+      const isolatedApp = require('../../src/app');
+      const isolatedAuthService = require('../../src/services/auth/authService');
+      const isolatedFileRepository = require('../../src/repositories/file/fileRepository');
+      const { recordAuditEvent: isolatedRecordAuditEvent } = require('../../src/services/audit/auditLogService');
+      const isolatedCacheStore = require('../../src/utils/cache');
+      const { eventBus: isolatedEventBus } = require('../../src/services/event');
+
+      isolatedCacheStore.clear();
+      isolatedAuthService.getAuthUser.mockResolvedValue(regularUser);
+      isolatedFileRepository.createFileMetadata.mockResolvedValue(mockFileRecord);
+      isolatedEventBus.resetMetrics();
+
+      const response = await request(isolatedApp)
+        .post('/api/v1/files')
+        .set(accessHeaderFor(regularUser.id))
+        .attach('file', Buffer.from('hello world'), {
+          filename: 'hello.txt',
+          contentType: 'text/plain',
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toHaveProperty('file');
+      expect(isolatedRecordAuditEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'file.upload',
+          result: 'succeeded',
+          actorId: regularUser.id,
+        })
+      );
+      expect(isolatedEventBus.getMetrics()).toEqual({
+        publishedCount: 0,
+        handledCount: 0,
+        failedCount: 0,
+      });
     });
   });
 });

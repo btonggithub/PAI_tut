@@ -6,6 +6,8 @@ const {
   resetEventHandlers,
   getRegisteredHandlerCount,
 } = require('./eventRegistry');
+const { registerInternalEventHandlers } = require('./internalEventHandlers');
+const { bootstrapInternalEvents } = require('./bootstrapInternalEvents');
 
 module.exports = {
   eventBus,
@@ -16,4 +18,6 @@ module.exports = {
   registerEventHandlers,
   resetEventHandlers,
   getRegisteredHandlerCount,
+  registerInternalEventHandlers,
+  bootstrapInternalEvents,
 };

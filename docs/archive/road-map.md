@@ -111,6 +111,8 @@ Out of Scope:
 เอา event bus ที่สร้างใน Phase 23 ไปลองใช้จริงกับ workflow เล็ก ๆ 1-2 จุด เช่น file.upload.persisted.internal หรือ user.profile.updated.internal แบบ low-risk
 เป้าหมายคือพิสูจน์ว่า event ใช้ได้จริงโดยไม่ทำ response contract, audit, cache, email/file workflow เดิมพัง
 
+Status: Completed
+
 - Wire event bus into 1-2 low-risk service workflows.
 - Verify existing response contracts remain unchanged.
 - Verify audit/cache/email/file behavior does not regress.

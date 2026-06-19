@@ -277,14 +277,38 @@ Current Architecture Health:
 * Cache layer foundation completed (Phase 22)
 * Event foundation completed (Phase 23)
 
-## NEXT
+### Phase 23.5 - Event Integration Hardening
 
-Phase 23.5 - Event Integration Hardening
+Status: Completed
 
-- Status: pending
+Implemented:
 
-- Next steps:
-  - Wire the event bus into one or two low-risk service workflows
-  - Preserve existing response contracts
-  - Verify audit/cache/email/file behavior does not regress
-  - Add focused integration tests for event-connected workflows
+**Task 1 - Low-Risk Workflow Integration**
+* Wired `src/services/file/fileService.js` to publish `file.upload.persisted.internal` after successful metadata persistence and audit logging
+* Event payload includes actor/resource metadata and requestContext correlation id
+* Controllers remain event-unaware
+
+**Task 2 - Toggleable Event Wiring**
+* Added `INTERNAL_EVENTS_ENABLED` environment flag in `src/config/env.js`
+* Added explicit composition bootstrap `src/services/event/bootstrapInternalEvents.js`
+* Added internal handler registration module `src/services/event/internalEventHandlers.js`
+* Bootstrapped handlers in `src/app.js` through event composition point
+
+**Task 3 - Failure Isolation Validation**
+* Added integration test path that injects a failing file-upload handler
+* Verified endpoint response contract remains unchanged (`201` + existing body shape)
+* Verified handler failure increments event failure metric without breaking upload flow
+
+**Task 4 - Focused Test Coverage**
+* Added `tests/unit/eventBootstrap.test.js` for enabled/disabled bootstrap behavior
+* Extended `tests/integration/file.integration.test.js` with:
+  - success-path event publishing checks
+  - handler-failure continuation checks
+
+Acceptance Criteria Coverage:
+
+* Existing file endpoint status codes and response payload shape remain unchanged
+* Audit + cache behavior remains compatible in file integration tests
+* Integration tests cover success and handler failure paths for the wired workflow
+* Event wiring can be disabled via `INTERNAL_EVENTS_ENABLED`
+* Handler registration location and behavior are documented in this progress log

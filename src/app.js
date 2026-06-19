@@ -3,6 +3,7 @@ const errorHandler = require('./middleware/errorHandler');
 const registerRoutes = require('./routes');
 const registerSecurity = require('./middleware/security/registerSecurity');
 const attachRequestContext = require('./middleware/requestContext');
+const { bootstrapInternalEvents } = require('./services/event');
 const AppError = require('./utils/AppError');
 
 const app = express();
@@ -10,6 +11,8 @@ const app = express();
 registerSecurity(app);
 
 app.use(attachRequestContext);
+
+bootstrapInternalEvents();
 
 registerRoutes(app);
 

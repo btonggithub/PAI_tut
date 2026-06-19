@@ -35,6 +35,7 @@ const buildSchema = (env) => {
       : Joi.string().min(16).default('dev-refresh-secret-key-change-in-production'),
     APP_URL: Joi.string().uri().default('http://localhost:3000'),
     ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
+    INTERNAL_EVENTS_ENABLED: Joi.boolean().truthy('true', '1', 'yes', 'on').falsy('false', '0', 'no', 'off').default(true),
   })
     .unknown(true)
     .required();
@@ -67,6 +68,7 @@ const env = {
   JWT_REFRESH_SECRET: value.JWT_REFRESH_SECRET,
   APP_URL: value.APP_URL.replace(/\/+$/, ''),
   ALLOWED_ORIGINS: value.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean),
+  INTERNAL_EVENTS_ENABLED: value.INTERNAL_EVENTS_ENABLED,
   isDevelopment: (value.NODE_ENV || nodeEnv) === 'development',
   isProduction: (value.NODE_ENV || nodeEnv) === 'production',
   isTest: (value.NODE_ENV || nodeEnv) === 'test',

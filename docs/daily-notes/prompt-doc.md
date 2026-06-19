@@ -71,6 +71,8 @@ Follow the existing architecture and coding style.
 
 ---
 
+- docs/archive/road-map.md
+
 # >>> Prompts 5
 Read project context from:
 - docs/project-overview.md

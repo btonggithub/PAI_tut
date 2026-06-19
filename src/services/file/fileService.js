@@ -7,6 +7,8 @@ const AUDIT_ACTIONS = require('../audit/auditActions');
 const AUDIT_RESULTS = require('../audit/auditResults');
 const { STORAGE_PROVIDERS } = require('../../config/upload');
 const cacheService = require('../cache/cacheService');
+const env = require('../../config/env');
+const { eventBus, EVENT_NAMES } = require('../event');
 
 const toSafeFile = (file) => ({
   id: file._id ? String(file._id) : String(file.id),
@@ -57,6 +59,20 @@ const createUserFile = async ({ actor, file, metadata = {}, requestContext = {} 
       userAgent: requestContext.userAgent || null,
       metadata: { fileName: file.originalname, size: file.size },
     });
+
+    if (env.INTERNAL_EVENTS_ENABLED) {
+      await eventBus.publish(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, {
+        actor: { id: actor.id, role: actor.role },
+        resource: { type: 'file', id: fileRecord._id ? String(fileRecord._id) : String(fileRecord.id) },
+        metadata: {
+          ownerId: String(actor.id),
+          mimeType: file.mimetype,
+          size: file.size,
+          storageProvider,
+        },
+        requestContext,
+      });
+    }
 
     return toSafeFile(fileRecord);
   } catch (err) {
