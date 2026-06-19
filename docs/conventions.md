@@ -517,3 +517,27 @@ Rules:
 - Include actor and resource information when available.
 - Use correlationId only when available from request context or workflow context.
 - Do not introduce distributed brokers, event sourcing, notifications, or domain events in Phase 23.
+
+---
+
+## Admin Module Conventions (Phase 24)
+
+Route naming:
+- Admin routes live under `/api/v1/admin`.
+- Use explicit resource names such as `/admin/users`, `/admin/files`, `/admin/system`.
+
+Controller naming:
+- `adminController.js` for consolidated admin entrypoints, or domain-specific admin controllers when size requires split.
+- Keep handler names action-oriented, for example `listUsers`, `getUserById`, `listFiles`, `getSystemStatus`.
+
+Service naming:
+- Use `adminService` for orchestration of admin workflows.
+- Reuse existing `userService`, `fileService`, and `systemService` boundaries when behavior already exists.
+
+Authorization convention:
+- Apply admin checks in middleware/policy layers, never inline in controllers.
+- Use centralized permission constants; do not hardcode permission strings in route/controller code.
+
+Scope convention:
+- Phase 24 focuses on admin API foundations and core read workflows.
+- Detailed admin audit/activity views remain reserved for Phase 24.5.

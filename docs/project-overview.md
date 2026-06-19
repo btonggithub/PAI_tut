@@ -232,16 +232,20 @@ Controller
 
 ## Upcoming Phase
 
-### Phase 23.5 - Event Integration Hardening
+### Phase 24 - Admin Module
 
 Goals:
-- Wire the event foundation into one or two low-risk service workflows
-- Preserve existing response contracts
-- Verify audit/cache/email/file behavior does not regress
-- Add focused integration tests for event-connected workflows
+- Add admin-only API foundation and route structure
+- Add admin user/file/system read workflows
+- Enforce admin authorization through reusable middleware/policy boundaries
+- Preserve all existing user-facing response contracts
+
+Execution Notes:
+- Phase 23.5 event integration hardening is completed.
+- Phase 24 focuses on admin API surface and access boundaries only.
+- Phase 24.5 will handle audit/activity read views, filtering, and analytics-style access patterns.
 
 Out of Scope:
-- Distributed message brokers
-- Event sourcing
-- Notification delivery
-- Cross-process event delivery
+- Admin UI
+- Audit analytics and activity dashboards
+- Notification management

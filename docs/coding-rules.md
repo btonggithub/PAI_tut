@@ -663,3 +663,52 @@ Phase 23 must not add:
 - notification module behavior
 - public event APIs
 - admin event-management screens
+
+---
+
+## Phase 24 Admin Module Rules
+
+### Admin Route Rules
+
+Admin endpoints must:
+- be namespaced under `/api/v1/admin/*`
+- apply authentication before authorization
+- return standardized error/response contracts
+
+Admin endpoints must not:
+- duplicate existing user-facing endpoint behavior unless explicitly required for admin scope
+- bypass centralized middleware ordering
+
+### Admin Controller Rules
+
+Admin controllers must:
+- remain HTTP-only
+- delegate business workflows to services
+
+Admin controllers must not:
+- execute database queries
+- perform inline permission/role logic
+- emit custom response formats outside shared response utilities
+
+### Admin Service Rules
+
+Admin services must:
+- orchestrate admin workflows through existing repositories/services
+- enforce authorization through policy/permission boundaries
+- keep audit writes compatible with existing audit logging behavior
+
+Admin services must not:
+- access Express request/response objects
+- introduce analytics/reporting logic reserved for Phase 24.5
+
+### Phase 24 Scope Rules
+
+Phase 24 includes:
+- admin API foundation
+- admin route/controller/service structure
+- permission-protected admin workflows for user/file/system read operations
+
+Phase 24 excludes:
+- admin UI
+- audit analytics or activity dashboards
+- notification workflows

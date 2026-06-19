@@ -438,3 +438,54 @@ Testing:
 - Handler failure tests added
 - Integration tests added only for workflows wired to the event bus
 - Existing auth/session/permission/audit/file/email/cache tests continue passing
+
+---
+
+## Phase 23.5 Event Integration Hardening Review
+
+### Integration Scope
+
+- Event wiring is limited to one or two low-risk service workflows
+- Controllers remain event-unaware
+- Event wiring can be disabled via feature flag/config toggle
+
+### Compatibility
+
+- Existing endpoint response contracts remain unchanged
+- Existing audit/cache/email/file behaviors remain compatible
+- Handler failure isolation is verified in integration tests
+
+### Testing
+
+- Success-path integration test exists for event-connected workflow
+- Handler-failure continuation integration test exists
+- Event-disabled (`INTERNAL_EVENTS_ENABLED=false`) integration path exists
+
+---
+
+## Phase 24 Admin Module Review
+
+### Architecture
+
+- Admin routes exist under `/api/v1/admin/*`
+- Admin controllers remain HTTP-only
+- Admin services orchestrate business workflows
+- Repositories remain the only DB access boundary
+
+### Security and Authorization
+
+- Unauthenticated access to admin endpoints returns 401
+- Non-admin access to admin endpoints returns 403
+- Admin authorization is enforced by middleware/policy, not inline controller checks
+- Permission constants remain centralized and server-controlled
+
+### Contract Safety
+
+- Existing user-facing endpoints keep their response contracts
+- Admin endpoint responses use shared response/error utilities
+
+### Testing
+
+- Integration tests cover admin success path(s)
+- Integration tests cover admin 401 and 403 paths
+- Existing module test suites remain green after admin module changes

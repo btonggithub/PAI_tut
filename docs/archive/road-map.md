@@ -143,11 +143,28 @@ Out of Scope:
 สร้าง admin APIs เช่น manage users, view files metadata, system/admin endpoints, permission-protected admin routes
 อันนี้เหมาะมาหลัง event foundation เพราะ admin module อาจเริ่มต้องดู activity/system state มากขึ้น
 
+Status: Ready to Start
+
 - Add admin-only API foundation.
 - Add admin route/controller/service structure.
 - Add admin permission checks.
 - Add user/file/system admin read workflows where appropriate.
 - Preserve existing user-facing API contracts.
+
+Scope Guardrails:
+
+- Keep controllers HTTP-only and services orchestration-focused.
+- Keep admin routes under `/api/v1/admin/*` and protect with admin permissions.
+- Reuse existing repositories and shared response/error utilities.
+- Keep audit writes unchanged in this phase; detailed admin activity read APIs stay in Phase 24.5.
+
+Acceptance Criteria:
+
+- Admin-only endpoints return 401/403 correctly for unauthenticated/non-admin access.
+- Existing user-facing endpoint contracts remain unchanged.
+- Admin read workflows for users/files/system health are exposed through admin routes.
+- Integration tests cover success, unauthorized, and forbidden paths for admin endpoints.
+- Documentation clearly states what remains deferred to Phase 24.5.
 
 Out of Scope:
 - Admin UI

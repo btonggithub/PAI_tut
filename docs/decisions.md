@@ -591,3 +591,37 @@ Negative:
 - Registration Strategy: event handler registration must prevent duplicate startup/test re-run registrations where a stable key is provided
 - Out of Scope: external brokers, event sourcing, distributed events, domain events, notifications, and public event APIs
 - Future Path: Domain Events Foundation and Notification Module may consume this foundation in later phases
+
+---
+
+## Decision 024 - Admin Module Scope and Boundary
+
+Status:
+Accepted
+
+Decision:
+Phase 24 introduces admin-only API foundations with strict architecture boundaries:
+
+- Admin endpoints are exposed under `/api/v1/admin/*`.
+- Admin controllers stay HTTP-only.
+- Admin services orchestrate business behavior and reuse existing repositories/services where possible.
+- Authorization for admin endpoints remains server-controlled through middleware and policy boundaries.
+- Existing user-facing endpoint contracts must remain unchanged.
+
+Deferred to Phase 24.5:
+- Admin audit/activity read views
+- Advanced filtering/sorting/pagination for audit streams
+- Analytics-style reporting workflows
+
+Rationale:
+Splitting Phase 24 and 24.5 keeps initial admin API delivery focused and prevents audit analytics concerns from bloating core admin module delivery.
+
+Consequences:
+
+Positive:
+- Faster and safer rollout of admin API capabilities
+- Better separation between operational admin APIs and audit analytics
+- Lower regression risk for existing user-facing modules
+
+Negative:
+- Some admin observability use cases remain deferred until 24.5

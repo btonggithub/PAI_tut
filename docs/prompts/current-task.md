@@ -1,29 +1,25 @@
-# Phase 23 - Event Foundation
+# Phase 24 - Admin Module
 
-Prepare an in-process event foundation that lets services publish application events without introducing distributed messaging or replacing existing service workflows.
+Prepare admin-only API foundations while preserving existing user-facing contracts and architecture boundaries.
 
 ## Objective
 
-1. Implement a lightweight in-process event bus module.
-2. Define stable event naming and payload conventions.
-3. Provide publisher and subscriber APIs with clear error handling.
-4. Keep controllers, routes, repositories, and models unaware of event infrastructure.
-5. Add event handler registration through the service/application layer only.
-6. Integrate with one or two low-risk workflows only when useful for proving the foundation.
-7. Preserve existing audit, cache, email, file, auth, and user response contracts.
-8. Write unit tests for publish/subscribe, multiple handlers, no-handler behavior, and handler failure behavior.
-9. Add focused integration tests only if a workflow is connected to the event bus.
-10. Update architecture.md, decisions.md, conventions.md, coding-rules.md, review-checklist.md, and progress.md with Phase 23 notes.
+1. Add admin route namespace under `/api/v1/admin/*`.
+2. Add admin route/controller/service structure with HTTP-only controllers.
+3. Implement admin-protected user/file/system read workflows.
+4. Enforce admin authorization via existing middleware/policy boundaries.
+5. Keep repositories as the only DB access boundary.
+6. Preserve existing auth/session/permission/audit/cache/file/email behaviors and contracts.
+7. Add integration tests for success, unauthenticated, and forbidden admin access paths.
+8. Update architecture.md, decisions.md, conventions.md, coding-rules.md, review-checklist.md, and progress.md with Phase 24 notes.
 
 ## Out of Scope
 
-- Kafka, RabbitMQ, Redis Streams, SNS/SQS, or external queues.
-- Event sourcing.
-- Distributed or cross-process events.
-- Domain Events Foundation from Phase 25.
-- Notification Module from Phase 26.
-- Replacing existing audit logging, cache invalidation, email verification, or file workflows unless explicitly required by this phase.
-- Adding public event APIs or admin event-management screens.
+- Admin UI
+- Audit analytics or activity dashboards (Phase 24.5)
+- Notification management
+- Domain event ownership/versioning (Phase 25)
+- Replacing existing user-facing endpoint contracts
 
 ---
 

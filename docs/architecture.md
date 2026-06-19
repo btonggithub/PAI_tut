@@ -961,3 +961,32 @@ Phase 22: Cache layer foundation
 
 Phase 23: Event foundation
 - In-process application event bus preparation
+
+Phase 23.5: Event integration hardening
+- Event foundation wired to selected low-risk workflow(s)
+- Feature-flag toggle for safe rollback
+- Integration tests for success and handler-failure continuation
+
+Phase 24: Admin module
+- Admin route/controller/service structure under admin namespace
+- Admin-only read workflows for user/file/system surfaces
+- Existing repositories and shared service boundaries reused
+- No admin UI or audit analytics introduced in this phase
+
+## Phase 24 Architecture Preparation
+
+Route namespace and boundary:
+- `routes/adminRoutes.js` owns admin HTTP endpoints only.
+- Route chain remains `protect -> authorize/requirePermission -> validation -> controller`.
+
+Controller boundary:
+- Admin controllers stay HTTP-only and map request/response contracts.
+- Admin controllers must not contain business rules, DB queries, or policy logic.
+
+Service boundary:
+- Admin services orchestrate admin workflows and may compose existing user/file/system services.
+- Admin services must reuse policy/permission checks and response DTO mapping patterns.
+
+Repository boundary:
+- Existing repositories remain the single data-access boundary.
+- Phase 24 does not add analytics-style aggregation repositories reserved for Phase 24.5.

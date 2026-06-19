@@ -304,6 +304,7 @@ Implemented:
 * Extended `tests/integration/file.integration.test.js` with:
   - success-path event publishing checks
   - handler-failure continuation checks
+  - `INTERNAL_EVENTS_ENABLED=false` path to verify bootstrap/publish skip behavior
 
 Acceptance Criteria Coverage:
 
@@ -312,3 +313,21 @@ Acceptance Criteria Coverage:
 * Integration tests cover success and handler failure paths for the wired workflow
 * Event wiring can be disabled via `INTERNAL_EVENTS_ENABLED`
 * Handler registration location and behavior are documented in this progress log
+
+## NEXT
+
+### Phase 24 - Admin Module
+
+Status: Ready to Start
+
+Planned scope:
+
+* Add admin route/controller/service foundation under `/api/v1/admin/*`
+* Add admin-only user/file/system read workflows
+* Enforce admin authz boundaries using existing middleware/policy system
+* Preserve existing user-facing endpoint contracts
+
+Deferred to Phase 24.5:
+
+* Admin audit/activity read APIs
+* Advanced audit filtering and analytics-style views
