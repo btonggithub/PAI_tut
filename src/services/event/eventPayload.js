@@ -3,7 +3,8 @@ const createEventPayload = (eventName, payload = {}) => {
     actor = null,
     resource = null,
     metadata = {},
-    correlationId = null,
+    requestContext = {},
+    correlationId = requestContext.correlationId || null,
     occurredAt = new Date().toISOString(),
   } = payload;
 

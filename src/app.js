@@ -2,11 +2,14 @@ const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
 const registerRoutes = require('./routes');
 const registerSecurity = require('./middleware/security/registerSecurity');
+const attachRequestContext = require('./middleware/requestContext');
 const AppError = require('./utils/AppError');
 
 const app = express();
 
 registerSecurity(app);
+
+app.use(attachRequestContext);
 
 registerRoutes(app);
 

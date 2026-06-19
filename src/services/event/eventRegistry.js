@@ -7,7 +7,7 @@ const getRegistrationKey = ({ key }) => {
     return key;
   }
 
-  return null;
+  throw new Error('Event handler registration requires a stable key');
 };
 
 const registerEventHandlers = (registrations = []) => {

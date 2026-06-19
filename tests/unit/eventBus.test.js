@@ -141,6 +141,25 @@ describe('EventBus', () => {
     }));
   });
 
+  it('propagates correlation id from request context payload', async () => {
+    const handler = jest.fn().mockResolvedValue(undefined);
+    eventBus.subscribe(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, handler);
+
+    const result = await eventBus.publish(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, {
+      requestContext: { correlationId: 'request-context-123' },
+      resource: { type: 'file', id: 'file-1' },
+    });
+
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({
+      correlationId: 'request-context-123',
+    }));
+    expect(result.payload.correlationId).toBe('request-context-123');
+    expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'event.publish',
+      correlationId: 'request-context-123',
+    }));
+  });
+
   it('propagates handler failures when throwOnError is enabled', async () => {
     const error = new Error('handler failed');
     const failingHandler = jest.fn().mockRejectedValue(error);

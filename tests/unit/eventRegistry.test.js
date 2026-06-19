@@ -85,15 +85,12 @@ describe('eventRegistry', () => {
     expect(getRegisteredHandlerCount()).toBe(1);
   });
 
-  it('allows unkeyed handlers to register independently', () => {
-    registerEventHandlers([
+  it('requires a stable key for every registered handler', () => {
+    expect(() => registerEventHandlers([
       { eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, handler: jest.fn() },
-    ]);
-    registerEventHandlers([
-      { eventName: EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL, handler: jest.fn() },
-    ]);
+    ])).toThrow('Event handler registration requires a stable key');
 
-    expect(eventBus.getHandlerCount(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL)).toBe(2);
+    expect(eventBus.getHandlerCount(EVENT_NAMES.FILE_UPLOAD_PERSISTED_INTERNAL)).toBe(0);
     expect(getRegisteredHandlerCount()).toBe(0);
   });
 });

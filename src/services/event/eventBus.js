@@ -6,6 +6,12 @@ const noopLogger = {
   error: () => {},
 };
 
+const assertTestOnly = (methodName) => {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error(`${methodName} is only available in test environment`);
+  }
+};
+
 class EventBus {
   constructor({ logger = noopLogger } = {}) {
     this.handlers = new Map();
@@ -118,10 +124,12 @@ class EventBus {
   }
 
   clearHandlers() {
+    assertTestOnly('clearHandlers');
     this.handlers.clear();
   }
 
   resetMetrics() {
+    assertTestOnly('resetMetrics');
     this.metrics = {
       publishedCount: 0,
       handledCount: 0,
