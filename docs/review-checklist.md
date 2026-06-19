@@ -489,3 +489,38 @@ Testing:
 - Integration tests cover admin success path(s)
 - Integration tests cover admin 401 and 403 paths
 - Existing module test suites remain green after admin module changes
+
+---
+
+## Phase 24.5 Admin Audit & Activity Views Review
+
+### Architecture
+
+- Admin audit routes exist under `/api/v1/admin/audit/*`
+- Audit controllers remain HTTP-only
+- Audit services orchestrate read-only workflows
+- Audit repositories remain the only audit query boundary
+
+### Security and Authorization
+
+- Unauthenticated access to admin audit endpoints returns 401
+- Non-admin access to admin audit endpoints returns 403
+- Admin authorization is enforced by middleware/policy boundaries
+
+### Query Behavior
+
+- Filter query params are validated in middleware
+- Sort query params are validated and deterministic
+- Pagination metadata is returned and consistent
+
+### Contract and Scope Safety
+
+- Existing user-facing contracts remain unchanged
+- Existing audit write workflows remain unchanged
+- No dashboard UI, alerting, or external log shipping logic is added
+
+### Testing
+
+- Integration tests cover admin audit success paths
+- Integration tests cover 401 and 403 access control paths
+- Integration tests cover filtering/sorting/pagination behavior

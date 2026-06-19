@@ -355,12 +355,19 @@ Implemented:
 
 ## NEXT
 
-### Phase 24.5 - Admin Audit Activity API
+### Phase 24.5 - Admin Audit & Activity Views
 
 Status: Ready to Start
 
 Planned scope:
 
-* Add admin audit/activity read APIs
-* Add advanced audit filtering and pagination for admin review workflows
+* Add admin-only audit/activity read APIs under admin namespace
+* Add filtering, sorting, and pagination for audit review workflows
 * Preserve existing audit write behavior and response contracts
+
+Planned acceptance validation:
+
+* 401/403 behavior verified for admin audit endpoints
+* Success path verified with standardized response contract
+* Filter/sort/pagination query behavior verified in integration tests
+* Existing user-facing contracts remain unchanged

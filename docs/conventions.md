@@ -541,3 +541,28 @@ Authorization convention:
 Scope convention:
 - Phase 24 focuses on admin API foundations and core read workflows.
 - Detailed admin audit/activity views remain reserved for Phase 24.5.
+
+---
+
+## Admin Audit & Activity Conventions (Phase 24.5)
+
+Route naming:
+- Use admin audit namespace paths such as `/api/v1/admin/audit/logs`.
+- Keep audit/activity endpoints read-only in this phase.
+
+Query conventions:
+- Support pagination with `page` and `limit` query params.
+- Support deterministic sorting with `sort` query param.
+- Support audit filters with explicit fields (for example action, result, actorId, resourceType, date range).
+
+Controller conventions:
+- Controllers parse validated query params only and remain HTTP-only.
+- Controllers return standardized success/error response contracts.
+
+Service conventions:
+- Services orchestrate read-only audit/activity retrieval.
+- Services must not mutate audit entries or trigger side effects.
+
+Repository conventions:
+- Repositories own all audit query construction.
+- Repository methods should stay domain-oriented and pagination-ready.

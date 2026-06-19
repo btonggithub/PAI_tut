@@ -973,6 +973,12 @@ Phase 24: Admin module
 - Existing repositories and shared service boundaries reused
 - No admin UI or audit analytics introduced in this phase
 
+Phase 24.5: Admin audit and activity views
+- Admin audit/activity read endpoints with filtering/sorting/pagination
+- Read-only extension over existing audit infrastructure
+- Admin-only access and standardized response contracts
+- No audit write pipeline replacement
+
 ## Phase 24 Architecture Preparation
 
 Route namespace and boundary:
@@ -990,3 +996,25 @@ Service boundary:
 Repository boundary:
 - Existing repositories remain the single data-access boundary.
 - Phase 24 does not add analytics-style aggregation repositories reserved for Phase 24.5.
+
+## Phase 24.5 Architecture Preparation
+
+Route namespace and boundary:
+- Admin audit routes live under `/api/v1/admin/audit/*`.
+- Route chain remains `protect -> requirePermission(USER_PERMISSIONS.MANAGE) -> validation -> controller`.
+
+Controller boundary:
+- Audit activity controllers remain HTTP-only and response-contract-safe.
+- Controllers map query params and delegate filtering/pagination to service layer.
+
+Service boundary:
+- Admin audit services orchestrate read-only workflows and must not introduce write side effects.
+- Services reuse existing audit service/repository boundaries instead of duplicating query logic.
+
+Repository boundary:
+- Audit repositories continue owning all audit query access.
+- New read helpers must stay domain-oriented and pagination-friendly.
+
+Scope boundary:
+- Phase 24.5 is API-only and read-only for audit/activity views.
+- Analytics dashboards, alerting, and external log shipping remain out of scope.

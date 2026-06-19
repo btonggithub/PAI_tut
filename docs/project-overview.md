@@ -232,20 +232,20 @@ Controller
 
 ## Upcoming Phase
 
-### Phase 24 - Admin Module
+### Phase 24.5 - Admin Audit & Activity Views
 
 Goals:
-- Add admin-only API foundation and route structure
-- Add admin user/file/system read workflows
-- Enforce admin authorization through reusable middleware/policy boundaries
-- Preserve all existing user-facing response contracts
+- Add admin-only audit/activity read APIs
+- Add filtering, sorting, and pagination for audit review workflows
+- Enforce admin authorization and preserve existing response contracts
+- Keep audit write workflows unchanged
 
 Execution Notes:
-- Phase 23.5 event integration hardening is completed.
-- Phase 24 focuses on admin API surface and access boundaries only.
-- Phase 24.5 will handle audit/activity read views, filtering, and analytics-style access patterns.
+- Phase 24 admin module delivery is completed.
+- Phase 24.5 extends admin capability with read-only audit/activity views.
+- Phase 25 (Domain Events Foundation) remains deferred until after admin audit views are stable.
 
 Out of Scope:
-- Admin UI
-- Audit analytics and activity dashboards
-- Notification management
+- Audit dashboard UI
+- External log shipping
+- Alerting pipelines

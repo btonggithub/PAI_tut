@@ -712,3 +712,52 @@ Phase 24 excludes:
 - admin UI
 - audit analytics or activity dashboards
 - notification workflows
+
+---
+
+## Phase 24.5 Admin Audit & Activity View Rules
+
+### Audit Route Rules
+
+Admin audit endpoints must:
+- be namespaced under `/api/v1/admin/audit/*`
+- remain read-only in this phase
+- apply `protect` and admin permission middleware before controller logic
+
+Admin audit endpoints must not:
+- create, update, or delete audit entries
+- bypass validation middleware for query filters
+
+### Audit Controller Rules
+
+Audit controllers must:
+- remain HTTP-only
+- delegate filtering/pagination/sorting orchestration to services
+
+Audit controllers must not:
+- build raw repository queries
+- perform side-effecting business logic
+
+### Audit Service Rules
+
+Audit services must:
+- orchestrate read-only audit/activity retrieval
+- preserve standardized response contract compatibility
+- reuse existing audit repository boundaries
+
+Audit services must not:
+- mutate audit log records
+- alter existing audit write behavior
+- introduce dashboard/analytics/reporting pipelines
+
+### Phase 24.5 Scope Rules
+
+Phase 24.5 includes:
+- admin audit/activity read APIs
+- filter/sort/paginate capabilities for audit review
+- integration tests for success, 401, 403, and query behavior
+
+Phase 24.5 excludes:
+- dashboard UI
+- external log shipping
+- alerting pipelines

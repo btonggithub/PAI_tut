@@ -625,3 +625,37 @@ Positive:
 
 Negative:
 - Some admin observability use cases remain deferred until 24.5
+
+---
+
+## Decision 024.5 - Admin Audit & Activity View Scope
+
+Status:
+Accepted
+
+Decision:
+Phase 24.5 introduces read-only admin audit/activity APIs with strict constraints:
+
+- Endpoints remain admin-only and API-only.
+- Audit writes remain unchanged and continue through existing write workflows.
+- Audit/activity APIs support filtering, sorting, and pagination for operational review.
+- Existing response contracts and middleware boundaries remain unchanged.
+
+Out of Scope in this phase:
+- Dashboard UI
+- External log shipping integrations
+- Alerting and analytics pipelines
+
+Rationale:
+Operational teams need API-level audit visibility before UI/analytics investments. Keeping this phase read-only minimizes risk to security-critical audit write flows.
+
+Consequences:
+
+Positive:
+- Faster delivery of admin audit visibility
+- Preserves audit write stability
+- Improves traceability for admin operations
+
+Negative:
+- No visual dashboard experience yet
+- Advanced analytics remain deferred

@@ -175,10 +175,27 @@ Out of Scope:
 แยกออกมาดีแล้วครับ เพราะถ้ารวมกับ Admin Module จะบวมมาก
 Phase นี้ควรเน้น audit/activity read APIs, filtering, pagination, admin-only access, ไม่ใช่สร้าง UI
 
+Status: Ready to Start
+
 - Add admin-only audit/activity read APIs.
 - Add filtering, sorting, and pagination.
 - Protect all endpoints with admin permissions.
 - Keep audit writes unchanged.
+
+Scope Guardrails:
+
+- Add read-only admin endpoints only; no audit write workflow changes.
+- Reuse existing audit repository/service and response utilities.
+- Keep admin audit routes under `/api/v1/admin/audit/*`.
+- Keep analytics/reporting dashboards out of API scope (API-only phase).
+
+Acceptance Criteria:
+
+- Admin audit endpoints return 401/403 correctly for unauthenticated/non-admin access.
+- Audit list endpoint supports filtering, sorting, and pagination with validated query params.
+- Existing audit write behavior remains unchanged.
+- Existing user-facing endpoint contracts remain unchanged.
+- Integration tests cover success, unauthorized, forbidden, and filter/pagination behavior.
 
 Out of Scope:
 - Audit dashboard UI

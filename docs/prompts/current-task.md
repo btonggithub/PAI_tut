@@ -1,25 +1,25 @@
-# Phase 24 - Admin Module
+# Phase 24.5 - Admin Audit & Activity Views
 
-Prepare admin-only API foundations while preserving existing user-facing contracts and architecture boundaries.
+Prepare admin-only audit/activity read APIs while preserving existing response contracts and keeping audit write behavior unchanged.
 
 ## Objective
 
-1. Add admin route namespace under `/api/v1/admin/*`.
-2. Add admin route/controller/service structure with HTTP-only controllers.
-3. Implement admin-protected user/file/system read workflows.
-4. Enforce admin authorization via existing middleware/policy boundaries.
+1. Add admin audit route namespace under `/api/v1/admin/audit/*`.
+2. Add admin audit controller/service structure with HTTP-only controllers.
+3. Implement admin-protected audit/activity read workflows.
+4. Support validated filtering, sorting, and pagination query parameters.
 5. Keep repositories as the only DB access boundary.
-6. Preserve existing auth/session/permission/audit/cache/file/email behaviors and contracts.
-7. Add integration tests for success, unauthenticated, and forbidden admin access paths.
-8. Update architecture.md, decisions.md, conventions.md, coding-rules.md, review-checklist.md, and progress.md with Phase 24 notes.
+6. Preserve existing audit write behavior and existing user-facing endpoint contracts.
+7. Add integration tests for success, unauthenticated, forbidden, and query-behavior paths.
+8. Update architecture.md, decisions.md, conventions.md, coding-rules.md, review-checklist.md, and progress.md with Phase 24.5 notes.
 
 ## Out of Scope
 
-- Admin UI
-- Audit analytics or activity dashboards (Phase 24.5)
-- Notification management
+- Audit dashboard UI
+- External log shipping integrations
+- Alerting pipelines
 - Domain event ownership/versioning (Phase 25)
-- Replacing existing user-facing endpoint contracts
+- Replacing existing audit write workflows or user-facing endpoint contracts
 
 ---
 
