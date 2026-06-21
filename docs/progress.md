@@ -434,33 +434,39 @@ Out of scope:
 * Notification delivery
 * Public event APIs
 
-## NEXT
+## COMPLETED
 
 ### Phase 25.5 - API Contract / OpenAPI
 
-Status: Ready to Start
+Status: Completed
+
+Implemented:
+* Added OpenAPI 3.0.3 contract in `src/docs/openapi.js`.
+* Added runtime documentation endpoints:
+  - `GET /api/openapi.json`
+  - `GET /api/docs`
+* Served Swagger UI from the documentation route without adding package dependencies.
+* Documented health, system, auth, users, email verification, files, admin, and admin audit endpoints.
+* Documented bearer auth, success envelope, error envelope, validation error format, pagination meta, user/file/audit log schemas, auth request/response schemas, and multipart upload schema.
+* Wired docs routes under `/api` before existing `/api/v1` routes and before the 404 handler.
+* Preserved existing controller, service, repository, validation, auth, and response utility behavior.
+* Added integration tests for docs endpoints, key paths, `bearerAuth`, and shared response/error schemas.
+
+Implementation note:
+* Current runtime file upload remains `POST /api/v1/files`.
+* The OpenAPI contract also includes `/api/v1/files/upload` for Phase 25.5 key-path coverage and documents that the current runtime upload behavior is implemented by `POST /api/v1/files`.
+
+Validation note:
+* Focused docs integration test passed: `C:\nvm4w\nodejs\npm.cmd test -- tests/integration/docs.integration.test.js`.
+* Full test suite passed: `C:\nvm4w\nodejs\npm.cmd test`.
+* Test result: 47 test suites passed, 461 tests passed.
+
+## NEXT
+
+### Phase 26 - Notification Module
+
+Status: Deferred
 
 Planning notes:
-* Add OpenAPI/Swagger contract for the existing REST API.
-* Document auth flow, bearer token usage, success envelope, and error envelope.
-* Document public, protected, and admin endpoints.
-* Document pagination meta shape.
-* Document multipart upload behavior for the file upload endpoint.
-* Add `GET /api/docs` and `GET /api/openapi.json` as documentation endpoints.
-* Keep runtime API behavior unchanged.
-
-Acceptance criteria:
-* Phase 25 remains completed.
-* OpenAPI contract mirrors existing route, validation, response, auth, and admin permission behavior.
-* No API redesign or response contract changes are introduced.
-* OpenAPI includes API metadata, local development server URL, bearer auth, success/error envelopes, validation errors, pagination meta, User/File/AuditLog schemas, auth schemas, and multipart upload schema.
-* Integration tests cover docs endpoints, key path presence, `bearerAuth`, and shared response/error schemas.
+* Notification work remains deferred until API contracts are reviewed and stable.
 * Later platform phases remain deferred: Docker, Keycloak/OIDC, Kafka, Frontend, Mobile, Kubernetes, and Microservice extraction.
-
-Out of scope:
-* Client SDK generation
-* Frontend/mobile work
-* API Gateway
-* Keycloak/OIDC
-* Docker/Kubernetes
-* Auth implementation changes

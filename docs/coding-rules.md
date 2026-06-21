@@ -884,6 +884,7 @@ OpenAPI documentation must not:
 OpenAPI contract files should live in a dedicated documentation/API contract boundary.
 
 Allowed locations:
+- `src/docs/openapi.js`
 - `src/docs/openapi/`
 - `docs/api/`
 
@@ -943,6 +944,11 @@ Documentation endpoints must not:
 - alter existing response envelopes
 - call services or repositories
 - execute business workflows
+
+Implementation notes:
+- `GET /api/docs` may serve Swagger UI through static HTML/CDN assets when package installation is not part of the phase.
+- Documentation-only CSP/header adjustments must be scoped to documentation routes.
+- If a required contract key path does not exactly match a runtime route, the OpenAPI description must state the current runtime path until an explicit API change is approved.
 
 ### Implementation Test Rules
 

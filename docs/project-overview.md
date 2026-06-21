@@ -168,6 +168,14 @@ The project currently implements:
 - Domain events add business-level event contracts, ownership, payload builders, and versioning
 - Domain events must preserve existing REST response, audit, cache, file, email, and admin contracts
 
+### API Contract / OpenAPI
+- Phase 25.5 is completed
+- OpenAPI contract lives in `src/docs/openapi.js`
+- Runtime documentation routes live in `src/routes/docsRoutes.js`
+- `GET /api/openapi.json` serves the OpenAPI JSON contract
+- `GET /api/docs` serves Swagger UI
+- Existing `/api/v1` runtime behavior and response contracts remain unchanged
+
 ---
 
 ## Architectural Principles
@@ -277,25 +285,33 @@ Delivered:
 - Low-risk event publication for user registration, email verification, and file upload
 - Contract, publisher, service, and integration test coverage
 
-## Upcoming Phase
-
 ### Phase 25.5 - API Contract / OpenAPI
 
-Status: Ready to Start
+Status: Completed
 
-Planning Notes:
-- Phase 25.5 prepares OpenAPI/Swagger documentation for the existing REST API.
-- Required documentation endpoints are `GET /api/docs` and `GET /api/openapi.json`.
-- Runtime behavior, authentication, authorization, validation, and response contracts must remain unchanged.
-- Current task details live in `docs/prompts/current-task.md`.
+Delivered:
+- OpenAPI 3.0.3 contract for existing REST APIs
+- Documentation endpoints at `GET /api/docs` and `GET /api/openapi.json`
+- Bearer auth, common success/error envelopes, validation errors, pagination meta, and multipart upload documentation
+- Public, protected, admin, and admin audit endpoint documentation
+- Integration tests for docs endpoints, key paths, security scheme, and shared schemas
+
+Execution Notes:
+- Runtime upload remains `POST /api/v1/files`; `/api/v1/files/upload` is included in the contract for Phase 25.5 key-path coverage with a note pointing to the runtime upload path.
 - Later platform phases such as Docker, Keycloak, Kafka, Frontend, Mobile, Kubernetes, and Microservice extraction remain deferred.
 
+## Upcoming Phase
+
+### Phase 26 - Notification Module
+
+Status: Deferred
+
+Planning Notes:
+- Notification work remains deferred until API contracts are reviewed and stable.
+- Current task details live in `docs/prompts/current-task.md`.
+
 Out of Scope:
-- API redesign
-- Response contract changes
-- Client SDK generation
-- Frontend/mobile implementation
 - API Gateway
 - Keycloak/OIDC integration
 - Docker/Kubernetes integration
-- Authentication implementation changes
+- Frontend/mobile implementation

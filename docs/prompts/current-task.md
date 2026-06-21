@@ -1,22 +1,33 @@
 # Phase 25.5 - API Contract / OpenAPI
 
-Status: Ready to Start
+Status: Completed
 
-Prepare OpenAPI/Swagger documentation for the existing REST API without changing runtime behavior or response contracts.
+Implemented OpenAPI/Swagger documentation for the existing REST API without changing existing `/api/v1` runtime behavior or response contracts.
+
+## Implementation Summary
+
+- Added OpenAPI 3.0.3 contract at `src/docs/openapi.js`.
+- Added documentation routes in `src/routes/docsRoutes.js`.
+- Wired documentation routes in `src/app.js` under `/api`.
+- Added `GET /api/openapi.json`.
+- Added `GET /api/docs` serving Swagger UI.
+- Added integration coverage in `tests/integration/docs.integration.test.js`.
+- Existing controllers, services, repositories, validation middleware, auth middleware, and response utilities remain behaviorally unchanged.
+- Current runtime upload endpoint remains `POST /api/v1/files`; the contract also includes `/api/v1/files/upload` for Phase 25.5 key-path coverage and documents that runtime upload behavior is implemented by `POST /api/v1/files`.
 
 ## Objective
 
-1. Add an OpenAPI 3.x contract for the existing API surface.
+1. Add an OpenAPI 3.x contract for the existing API surface. Completed.
 2. Document public, protected, and admin endpoints under the existing `/api/v1` namespace.
 3. Document authentication flow and bearer token usage.
 4. Document the standard success response envelope.
 5. Document the standard error response envelope.
 6. Document pagination meta shape used by list endpoints.
 7. Document multipart form-data upload behavior for the file upload endpoint.
-8. Add Swagger UI and/or OpenAPI JSON endpoint only if it can be added without changing existing API behavior.
+8. Add Swagger UI and/or OpenAPI JSON endpoint only if it can be added without changing existing API behavior. Completed.
 9. Keep controllers, services, repositories, validation, and response utilities behavior unchanged.
-10. Add focused tests or validation only if OpenAPI tooling is introduced.
-11. Update architecture.md, decisions.md, conventions.md, coding-rules.md, review-checklist.md, and progress.md with Phase 25.5 notes.
+10. Add focused tests or validation only if OpenAPI tooling is introduced. Completed.
+11. Update architecture.md, decisions.md, conventions.md, coding-rules.md, review-checklist.md, and progress.md with Phase 25.5 notes. Completed.
 
 ## Runtime Documentation Endpoints
 

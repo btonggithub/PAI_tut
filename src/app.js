@@ -1,6 +1,7 @@
 const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
 const registerRoutes = require('./routes');
+const docsRoutes = require('./routes/docsRoutes');
 const registerSecurity = require('./middleware/security/registerSecurity');
 const attachRequestContext = require('./middleware/requestContext');
 const { bootstrapInternalEvents } = require('./services/event');
@@ -13,6 +14,8 @@ registerSecurity(app);
 app.use(attachRequestContext);
 
 bootstrapInternalEvents();
+
+app.use('/api', docsRoutes);
 
 registerRoutes(app);
 

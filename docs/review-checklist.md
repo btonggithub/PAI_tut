@@ -646,6 +646,8 @@ Testing:
 - OpenAPI spec defines `bearerAuth`
 - OpenAPI spec defines common success response schema
 - OpenAPI spec defines common error response schema
+- Runtime upload path `POST /api/v1/files` is documented accurately
+- `/api/v1/files/upload`, if retained for key-path coverage, clearly points to current runtime upload behavior
 
 ### Drift Prevention
 

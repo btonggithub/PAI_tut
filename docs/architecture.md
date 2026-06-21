@@ -22,6 +22,8 @@ src/
 |   |-- db.js
 |   |-- env.js
 |   `-- upload.js
+|-- docs/
+|   `-- openapi.js
 |-- controllers/
 |   |-- admin/
 |   |-- auth/
@@ -63,6 +65,7 @@ src/
 |-- routes/
 |   |-- adminRoutes.js
 |   |-- authRoutes.js
+|   |-- docsRoutes.js
 |   |-- emailRoutes.js
 |   |-- fileRoutes.js
 |   |-- healthRoutes.js
@@ -1175,9 +1178,9 @@ Excluded:
 - Public event APIs
 - Replacing audit logging, cache invalidation, or existing technical event behavior
 
-## Phase 25.5 Architecture Preparation
+## Phase 25.5 Architecture
 
-Status: Ready to Start
+Status: Completed
 
 Phase 25.5 introduces an API contract layer for documenting the existing REST
 API through OpenAPI/Swagger.
@@ -1188,30 +1191,21 @@ validation, authentication, authorization, or response utilities.
 
 ### OpenAPI Components
 
-Recommended structure:
+Implemented structure:
 
 src/
 |-- docs/
-|   |-- openapi.js
-|   `-- openapi/
-|       |-- paths/
-|       |-- schemas/
-|       `-- security.js
+|   `-- openapi.js
 |-- routes/
 |   `-- docsRoutes.js
-
-Alternative docs-first structure:
-
-docs/
-`-- api/
-    `-- openapi.yaml
+|-- app.js
 
 Responsibilities:
 - OpenAPI config owns API metadata, server URLs, tags, security schemes, paths, and component schemas.
 - Path definitions mirror route files.
 - Schema definitions mirror validation schemas and response DTOs.
-- Swagger UI/OpenAPI JSON serving, if added, remains documentation-only.
-- `docsRoutes.js`, if added, owns only `GET /api/docs` and `GET /api/openapi.json`.
+- Swagger UI/OpenAPI JSON serving remains documentation-only.
+- `docsRoutes.js` owns only `GET /api/docs` and `GET /api/openapi.json`.
 - `app.js` wires documentation routes after base middleware and before the 404 handler without changing existing `/api/v1` route behavior.
 
 ### OpenAPI Flow
@@ -1308,6 +1302,11 @@ Included:
 - Multipart upload documentation
 - `GET /api/docs`
 - `GET /api/openapi.json`
+
+Implementation notes:
+- Runtime upload remains `POST /api/v1/files`.
+- `/api/v1/files/upload` is included in the OpenAPI contract for Phase 25.5 key-path coverage and points readers to the current runtime upload behavior.
+- No controllers, services, repositories, validation middleware, auth middleware, or response utilities were changed for the existing `/api/v1` APIs.
 
 Excluded:
 - API redesign

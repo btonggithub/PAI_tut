@@ -626,9 +626,9 @@ Scope conventions:
 OpenAPI files should describe the existing REST API contract.
 
 Recommended locations:
-- `src/docs/openapi.js` or `src/docs/openapiSpec.js` for OpenAPI configuration/spec.
-- `src/docs/openapi/` for split path/schema/security modules when the spec grows.
-- `src/routes/docsRoutes.js` for documentation endpoints if needed.
+- `src/docs/openapi.js` for the current OpenAPI configuration/spec.
+- `src/docs/openapi/` for split path/schema/security modules if the spec grows.
+- `src/routes/docsRoutes.js` for documentation endpoints.
 - `docs/api/` for static contract artifacts if the project chooses a docs-first file.
 
 Path conventions:
@@ -676,3 +676,7 @@ Runtime documentation endpoint conventions:
 - `GET /api/openapi.json` serves the OpenAPI JSON document.
 - `GET /api/docs` serves Swagger UI or redirects to the documentation UI.
 - Documentation routes must not be nested under `/api/v1` because they describe API versions rather than being versioned business endpoints.
+
+Implementation note:
+- The current upload endpoint is `POST /api/v1/files` with multipart field `file`.
+- `/api/v1/files/upload` is present in the Phase 25.5 contract for key-path coverage and must continue to point readers back to the current runtime upload behavior unless an explicit API change adds that route.

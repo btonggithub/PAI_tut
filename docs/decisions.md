@@ -736,13 +736,21 @@ Implementation note:
 
 ---
 
-## Decision 025.5 - API Contract / OpenAPI
+## Decision 025.5 - API Contract & Swagger UI Strategy
 
 Status:
 Accepted
 
+Context:
+API surface is broad enough to require a machine-readable contract. Question:
+serve OpenAPI JSON only or include interactive documentation?
+
 Decision:
-Phase 25.5 introduces an OpenAPI/Swagger contract for the existing REST API.
+Phase 25.5 introduces an OpenAPI 3.0 contract AND Swagger UI for the existing REST API.
+
+Endpoints:
+- `GET /api/docs` → Swagger UI interactive documentation (developer experience)
+- `GET /api/openapi.json` → Raw OpenAPI 3.0 JSON (automation, tooling, CI/CD)
 
 The API contract must document the implementation that already exists. It must
 not redesign endpoints, change response envelopes, alter authentication, or
@@ -754,14 +762,14 @@ engineering route behavior from controllers or tests.
 
 Phase 25.5 includes:
 - OpenAPI 3.x contract for existing `/api/v1` endpoints.
+- Swagger UI served at `/api/docs` (swagger-ui-express).
+- OpenAPI JSON available at `/api/openapi.json`.
 - Shared schemas for success response envelopes.
 - Shared schemas for error response envelopes.
 - Bearer authentication documentation.
 - Public, protected, and admin endpoint grouping.
 - Pagination metadata schema.
 - Multipart upload schema for the file upload endpoint.
-- `GET /api/docs` for Swagger UI or equivalent documentation.
-- `GET /api/openapi.json` for machine-readable OpenAPI JSON.
 
 Contract source of truth:
 - Routes, validation schemas, response utilities, controllers, and integration tests remain the implementation source of truth.
@@ -793,10 +801,18 @@ reduces drift risk without coupling it to a larger platform change.
 Introducing OpenAPI before frontend, mobile, gateway, and identity-provider
 work keeps those later phases anchored to current backend behavior.
 
+Rationale:
+The combination of Swagger UI + JSON endpoint provides:
+- DX benefit: Swagger UI for frontend/mobile teams to explore API interactively
+- Automation benefit: JSON endpoint for CI/CD, API mocking tools, client generators
+- No performance penalty: swagger-ui-express is lightweight
+- Industry standard: OpenAPI + UI is the expected pattern
+
 Consequences:
 
 Positive:
-- Clear API discoverability
+- Clear API discoverability through interactive Swagger UI
+- JSON endpoint enables automation and tooling
 - Better manual and automated contract review
 - Safer future client, frontend, and mobile work
 - Easier onboarding for admin and integration surfaces
@@ -804,3 +820,11 @@ Positive:
 Negative:
 - Adds a new artifact that must stay synchronized with routes and schemas
 - Requires review discipline whenever endpoint contracts change
+
+Implementation note:
+- OpenAPI contract lives in `src/docs/openapi.js`.
+- Documentation routes live in `src/routes/docsRoutes.js`.
+- `GET /api/openapi.json` serves the machine-readable OpenAPI JSON.
+- `GET /api/docs` serves Swagger UI without adding a package dependency.
+- Existing `/api/v1` controllers, services, repositories, validation, authentication, authorization, and response utilities remain behaviorally unchanged.
+- Current runtime upload remains `POST /api/v1/files`; `/api/v1/files/upload` is included for Phase 25.5 key-path coverage and documents the current runtime upload path.

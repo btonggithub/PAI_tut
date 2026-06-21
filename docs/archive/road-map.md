@@ -49,6 +49,9 @@
 25. Domain Events Foundation
 25.5 API Contract / OpenAPI
 26.  Notification Module
+    - Align OpenAPI upload path with actual runtime path
+    OR
+    - Add alias route for backward compatibility
 26.5 Production Hardening II
 27.  Docker Compose Foundation
 27.5 Containerization Hardening
@@ -271,10 +274,10 @@ Out of Scope:
 
 ## Phase 25.5. API Contract / OpenAPI
 
-Status: Ready to Start
+Status: Completed
 
-Phase 25.5 prepares an OpenAPI/Swagger contract for the existing REST API
-without changing runtime behavior.
+Phase 25.5 adds an OpenAPI/Swagger contract for the existing REST API without
+changing existing `/api/v1` runtime behavior.
 
 Scope Guardrails:
 - Add OpenAPI/Swagger contract for existing `/api/v1` APIs.
@@ -285,11 +288,13 @@ Scope Guardrails:
 - Document pagination metadata shape.
 - Document multipart upload behavior for file uploads.
 - Add Swagger UI or OpenAPI JSON endpoint only if it remains documentation-only.
-- Keep implementation docs-only first.
+- Keep implementation documentation-only for existing business APIs.
 
 Acceptance Criteria:
-- `docs/prompts/current-task.md` describes the OpenAPI implementation task.
-- Architecture docs identify where OpenAPI config/files should live.
+- `src/docs/openapi.js` contains the OpenAPI contract.
+- `src/routes/docsRoutes.js` serves `GET /api/docs` and `GET /api/openapi.json`.
+- `docs/prompts/current-task.md` describes the completed OpenAPI implementation task.
+- Architecture docs identify where OpenAPI config/files live.
 - Decisions docs include Decision 025.5.
 - Conventions define OpenAPI tags, path naming, and schema naming.
 - Coding rules prevent OpenAPI drift from routes, validation, and response contracts.
