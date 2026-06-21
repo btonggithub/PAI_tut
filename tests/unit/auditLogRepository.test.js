@@ -4,6 +4,11 @@ const AuditLog = require('../../src/models/auditLogModel');
 jest.mock('../../src/models/auditLogModel');
 
 describe('auditLogRepository', () => {
+  beforeEach(() => {
+    AuditLog.find = jest.fn();
+    AuditLog.countDocuments = jest.fn();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -84,6 +89,69 @@ describe('auditLogRepository', () => {
       await auditLogRepository.recordAuditLog(payload);
 
       expect(AuditLog.create).toHaveBeenCalledWith(payload);
+    });
+  });
+
+  describe('findAuditLogs', () => {
+    const createFindChain = (items) => {
+      const chain = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(items),
+      };
+
+      AuditLog.find.mockReturnValue(chain);
+      AuditLog.countDocuments.mockResolvedValue(items.length);
+
+      return chain;
+    };
+
+    it('queries audit logs with filters, sort, and pagination', async () => {
+      const items = [{ _id: 'audit-1', action: 'auth.login', result: 'succeeded' }];
+      const chain = createFindChain(items);
+
+      const result = await auditLogRepository.findAuditLogs({
+        action: 'auth.login',
+        result: 'succeeded',
+        page: 2,
+        limit: 5,
+        sort: 'action,-createdAt',
+      });
+
+      expect(AuditLog.find).toHaveBeenCalledWith({
+        action: 'auth.login',
+        result: 'succeeded',
+      });
+      expect(chain.sort).toHaveBeenCalledWith('action -createdAt');
+      expect(chain.skip).toHaveBeenCalledWith(5);
+      expect(chain.limit).toHaveBeenCalledWith(5);
+      expect(AuditLog.countDocuments).toHaveBeenCalledWith({
+        action: 'auth.login',
+        result: 'succeeded',
+      });
+      expect(result.items).toEqual(items);
+      expect(result.meta).toEqual(expect.objectContaining({
+        total: 1,
+        page: 2,
+        limit: 5,
+      }));
+    });
+
+    it('builds createdAt range filters inside the repository', async () => {
+      createFindChain([]);
+
+      await auditLogRepository.findAuditLogs({
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-31T23:59:59.000Z',
+      });
+
+      expect(AuditLog.find).toHaveBeenCalledWith({
+        createdAt: {
+          $gte: new Date('2026-01-01T00:00:00.000Z'),
+          $lte: new Date('2026-01-31T23:59:59.000Z'),
+        },
+      });
     });
   });
 });

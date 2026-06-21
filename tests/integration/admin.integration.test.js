@@ -26,6 +26,7 @@ jest.mock('../../src/repositories/system/systemRepository', () => ({
 
 jest.mock('../../src/services/audit/auditLogService', () => ({
   recordAuditEvent: jest.fn().mockResolvedValue({}),
+  listAuditLogs: jest.fn(),
 }));
 
 const app = require('../../src/app');
@@ -35,6 +36,7 @@ const authService = require('../../src/services/auth/authService');
 const userRepository = require('../../src/repositories/user/userRepository');
 const fileRepository = require('../../src/repositories/file/fileRepository');
 const systemRepository = require('../../src/repositories/system/systemRepository');
+const auditLogService = require('../../src/services/audit/auditLogService');
 const cacheStore = require('../../src/utils/cache');
 
 const adminUser = {
@@ -94,12 +96,28 @@ const otherOwnerFile = {
 
 const accessHeaderFor = (userId) => toAuthHeader(signAccessToken({ sub: userId }));
 
+const auditLog = {
+  id: '64b7f5b9f1d2c3a4b5c6a111',
+  actorId: adminUser.id,
+  actorRole: 'admin',
+  action: 'auth.login',
+  resourceType: 'auth',
+  resourceId: null,
+  result: 'succeeded',
+  ipAddress: '127.0.0.1',
+  userAgent: 'jest',
+  metadata: { reason: 'test' },
+  createdAt: new Date('2026-01-03T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-03T00:00:00.000Z'),
+};
+
 describe('Admin API integration', () => {
   const adminEndpoints = [
     ['GET /api/v1/admin/users', '/api/v1/admin/users'],
     ['GET /api/v1/admin/users/:id', `/api/v1/admin/users/${targetUser.id}`],
     ['GET /api/v1/admin/files', '/api/v1/admin/files'],
     ['GET /api/v1/admin/files/:id', `/api/v1/admin/files/${targetFile._id}`],
+    ['GET /api/v1/admin/audit/logs', '/api/v1/admin/audit/logs'],
     ['GET /api/v1/admin/system', '/api/v1/admin/system'],
   ];
 
@@ -131,6 +149,11 @@ describe('Admin API integration', () => {
       service: 'PAI_tut Backend',
       version: 'v1',
       uptime: 42,
+    });
+
+    auditLogService.listAuditLogs.mockResolvedValue({
+      auditLogs: [auditLog],
+      meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
     });
   });
 
@@ -229,5 +252,61 @@ describe('Admin API integration', () => {
     expect(response.body.data).not.toHaveProperty('environment');
     expect(response.body.data).not.toHaveProperty('secrets');
     expect(response.body.data).not.toHaveProperty('config');
+  });
+
+  it('GET /api/v1/admin/audit/logs allows admins', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/audit/logs')
+      .set(accessHeaderFor(adminUser.id));
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toHaveProperty('auditLogs');
+    expect(response.body.data).toHaveProperty('meta');
+    expect(response.body.data.auditLogs[0]).toEqual(expect.objectContaining({
+      id: auditLog.id,
+      action: auditLog.action,
+      result: auditLog.result,
+    }));
+  });
+
+  it('GET /api/v1/admin/audit/logs validates and forwards query behavior', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/audit/logs')
+      .query({
+        action: 'auth.login',
+        result: 'succeeded',
+        actorId: adminUser.id,
+        resourceType: 'auth',
+        from: '2026-01-01T00:00:00.000Z',
+        to: '2026-01-31T23:59:59.000Z',
+        sort: '-createdAt',
+        page: 2,
+        limit: 5,
+      })
+      .set(accessHeaderFor(adminUser.id));
+
+    expect(response.status).toBe(200);
+    expect(auditLogService.listAuditLogs).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'auth.login',
+      result: 'succeeded',
+      actorId: adminUser.id,
+      resourceType: 'auth',
+      sort: '-createdAt',
+      page: '2',
+      limit: '5',
+    }));
+    expect(auditLogService.listAuditLogs.mock.calls[0][0].from).toBe('2026-01-01T00:00:00.000Z');
+    expect(auditLogService.listAuditLogs.mock.calls[0][0].to).toBe('2026-01-31T23:59:59.000Z');
+  });
+
+  it('GET /api/v1/admin/audit/logs rejects invalid query filters', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/audit/logs')
+      .query({ result: 'unknown' })
+      .set(accessHeaderFor(adminUser.id));
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
   });
 });

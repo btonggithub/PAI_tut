@@ -128,3 +128,13 @@ Testing rules:
 - Add/update tests required by current-task.md
 
 ---
+
+## >>> Prompt reveiwer
+
+Please re-review current project status using the latest sections of
+
+- docs/progress.md
+- docs/prompts/current-task.md
+- docs/archive/road-map.md. 
+
+Do not infer current phase from early sections of progress.md. The project may contain historical phase notes. Identify the latest completed phase and next phase before giving recommendations.

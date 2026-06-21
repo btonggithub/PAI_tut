@@ -353,21 +353,57 @@ Implemented:
   - success-path checks for users/files/system admin endpoints
 * Verified existing user integration tests remain passing
 
-## NEXT
+## COMPLETED
 
 ### Phase 24.5 - Admin Audit & Activity Views
 
-Status: Ready to Start
+Status: Completed
 
-Planned scope:
+Implemented:
 
-* Add admin-only audit/activity read APIs under admin namespace
-* Add filtering, sorting, and pagination for audit review workflows
-* Preserve existing audit write behavior and response contracts
+**Task 1 - Admin Audit Namespace**
+* Added `GET /api/v1/admin/audit/logs`
+* Reused existing admin route protection: `protect` + `requirePermission(USER_PERMISSIONS.MANAGE)`
+* Kept endpoint read-only
 
-Planned acceptance validation:
+**Task 2 - Controller and Service Boundary**
+* Added `src/controllers/admin/adminAuditController.js`
+* Added `src/services/admin/adminAuditService.js`
+* Controllers remain HTTP-only
+* Admin audit service verifies admin capability and delegates read retrieval to audit log service
 
-* 401/403 behavior verified for admin audit endpoints
-* Success path verified with standardized response contract
-* Filter/sort/pagination query behavior verified in integration tests
-* Existing user-facing contracts remain unchanged
+**Task 3 - Repository-Owned Query Behavior**
+* Added `auditLogRepository.findAuditLogs(query)`
+* Supports explicit filters for action, result, actorId, actorRole, resourceType, and resourceId
+* Supports `from` and `to` ISO date filters against `createdAt`
+* Supports pagination and deterministic sorting
+
+**Task 4 - Response Contract and Safety**
+* Added `auditLogService.listAuditLogs(query)`
+* Returns `{ auditLogs, meta }` through the shared success response utility
+* Sanitizes audit metadata in read DTOs
+* Existing audit write behavior remains unchanged
+
+**Task 5 - Duplicate TTL Index Warning Fix**
+* Removed duplicate `expiresAt` field-level index from verification token model
+* Preserved explicit TTL index `{ expiresAt: 1 }, { expireAfterSeconds: 0 }`
+
+**Task 6 - Test Coverage**
+* Added audit repository unit tests for filters, sorting, pagination, and createdAt ranges
+* Added audit service unit test for safe audit log DTOs
+* Extended admin integration tests for audit success, 401, 403, query behavior, and invalid filters
+* Updated verification token model test for explicit TTL index behavior
+
+Validation note:
+* Attempted focused test command, but the execution shell could not find `npm` or `node` on PATH.
+
+## NEXT
+
+### Phase 25 - Domain Events Foundation
+
+Status: Deferred
+
+Planning notes:
+* Build on the existing Phase 23/23.5 in-process event foundation.
+* Preserve current controller, service, repository, audit, cache, file, and admin boundaries.
+* Define acceptance criteria before implementation begins.

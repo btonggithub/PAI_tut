@@ -497,6 +497,7 @@ Testing:
 ### Architecture
 
 - Admin audit routes exist under `/api/v1/admin/audit/*`
+- `GET /api/v1/admin/audit/logs` is registered
 - Audit controllers remain HTTP-only
 - Audit services orchestrate read-only workflows
 - Audit repositories remain the only audit query boundary
@@ -512,6 +513,7 @@ Testing:
 - Filter query params are validated in middleware
 - Sort query params are validated and deterministic
 - Pagination metadata is returned and consistent
+- CreatedAt date range filters are built in the audit repository
 
 ### Contract and Scope Safety
 

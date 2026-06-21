@@ -659,3 +659,8 @@ Positive:
 Negative:
 - No visual dashboard experience yet
 - Advanced analytics remain deferred
+
+Implementation note:
+- `GET /api/v1/admin/audit/logs` is the initial read-only admin audit endpoint.
+- Supported query behavior includes pagination, deterministic sorting, explicit filters, and createdAt date ranges.
+- Audit writes remain unchanged and continue through existing service workflows.

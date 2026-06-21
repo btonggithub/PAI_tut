@@ -1,4 +1,4 @@
-const { recordAuditEvent, sanitizeMetadata } = require('../../src/services/audit/auditLogService');
+const { recordAuditEvent, sanitizeMetadata, listAuditLogs } = require('../../src/services/audit/auditLogService');
 const auditLogRepository = require('../../src/repositories/audit/auditLogRepository');
 const AUDIT_RESULTS = require('../../src/services/audit/auditResults');
 
@@ -265,6 +265,53 @@ describe('auditLogService', () => {
         ipAddress: '192.168.1.1',
         userAgent: 'Mozilla/5.0',
         metadata: { fields: ['name'] },
+      });
+    });
+  });
+
+  describe('listAuditLogs', () => {
+    it('returns safe audit log DTOs with pagination metadata', async () => {
+      const createdAt = new Date('2026-01-01T00:00:00.000Z');
+      auditLogRepository.findAuditLogs.mockResolvedValue({
+        items: [
+          {
+            _id: 'audit-123',
+            actorId: 'user-123',
+            actorRole: 'admin',
+            action: 'auth.login',
+            resourceType: 'auth',
+            resourceId: null,
+            result: AUDIT_RESULTS.SUCCEEDED,
+            ipAddress: '127.0.0.1',
+            userAgent: 'jest',
+            metadata: {
+              reason: 'test',
+              token: 'raw-token',
+            },
+            createdAt,
+            updatedAt: createdAt,
+          },
+        ],
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
+      });
+
+      const result = await listAuditLogs({ result: AUDIT_RESULTS.SUCCEEDED });
+
+      expect(auditLogRepository.findAuditLogs).toHaveBeenCalledWith({
+        result: AUDIT_RESULTS.SUCCEEDED,
+      });
+      expect(result).toEqual({
+        auditLogs: [
+          expect.objectContaining({
+            id: 'audit-123',
+            actorId: 'user-123',
+            actorRole: 'admin',
+            action: 'auth.login',
+            result: AUDIT_RESULTS.SUCCEEDED,
+            metadata: { reason: 'test' },
+          }),
+        ],
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
       });
     });
   });

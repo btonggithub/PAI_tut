@@ -13,125 +13,138 @@ Goals:
 
 ---
 
-## Structure
+## Current Structure
 
 src/
-├── app.js
-├── server.js
-│
-├── config/
-│   ├── db.js
-│   └── env.js
-│
-├── controllers/
-│   ├── auth/
-│   ├── health/
-│   ├── system/
-│   └── user/
-│
-├── services/
-│   ├── audit/
-│   ├── auth/
-│   ├── cache/
-│   ├── email/
-│   ├── health/
-│   ├── session/
-│   ├── system/
-│   └── user/
-│
-├── repositories/
-│   ├── audit/
-│   ├── auth/
-│   ├── base/
-│   ├── health/
-│   ├── session/
-│   ├── system/
-│   └── user/
-│
-├── middleware/
-│   ├── auth/
-│   ├── security/
-│   ├── validation/
-│   └── errorHandler.js
-│
-├── models/
-│   ├── auditLogModel.js
-│   ├── sessionModel.js
-│   └── userModel.js
-│
-├── routes/
-│   ├── authRoutes.js
-│   ├── healthRoutes.js
-│   ├── systemRoutes.js
-│   ├── userRoutes.js
-│   └── index.js
-│
-├── policies/
-│   └── userPolicy.js
-│
-├── permissions/
-│   ├── hasPermission.js
-│   ├── index.js
-│   ├── rolePermissions.js
-│   └── userPermissions.js
-│
-├── utils/
-│   ├── AppError.js
-│   ├── asyncHandler.js
-│   ├── cache.js
-│   ├── jwt.js
-│   ├── pagination.js
-│   ├── password.js
-│   ├── query.js
-│   ├── requestContext.js
-│   └── response.js
-│
-└── tests/
-    ├── fixtures/
-    ├── helpers/
-    ├── integration/
-    └── unit/
+|-- app.js
+|-- server.js
+|-- config/
+|   |-- db.js
+|   |-- env.js
+|   `-- upload.js
+|-- controllers/
+|   |-- admin/
+|   |-- auth/
+|   |-- email/
+|   |-- file/
+|   |-- health/
+|   |-- system/
+|   `-- user/
+|-- middleware/
+|   |-- auth/
+|   |-- security/
+|   |-- upload/
+|   |-- validation/
+|   |-- errorHandler.js
+|   `-- requestContext.js
+|-- models/
+|   |-- auditLogModel.js
+|   |-- fileModel.js
+|   |-- sessionModel.js
+|   |-- userModel.js
+|   `-- verificationTokenModel.js
+|-- permissions/
+|   |-- hasPermission.js
+|   |-- index.js
+|   |-- rolePermissions.js
+|   `-- userPermissions.js
+|-- policies/
+|   `-- userPolicy.js
+|-- repositories/
+|   |-- audit/
+|   |-- auth/
+|   |-- base/
+|   |-- email/
+|   |-- file/
+|   |-- health/
+|   |-- session/
+|   |-- system/
+|   `-- user/
+|-- routes/
+|   |-- adminRoutes.js
+|   |-- authRoutes.js
+|   |-- emailRoutes.js
+|   |-- fileRoutes.js
+|   |-- healthRoutes.js
+|   |-- index.js
+|   |-- systemRoutes.js
+|   `-- userRoutes.js
+|-- services/
+|   |-- admin/
+|   |-- audit/
+|   |-- auth/
+|   |-- cache/
+|   |-- email/
+|   |-- event/
+|   |-- file/
+|   |-- health/
+|   |-- session/
+|   |-- system/
+|   `-- user/
+`-- utils/
+    |-- AppError.js
+    |-- asyncHandler.js
+    |-- cache.js
+    |-- jwt.js
+    |-- pagination.js
+    |-- password.js
+    |-- query.js
+    |-- requestContext.js
+    |-- response.js
+    `-- token.js
+
+tests/
+|-- fixtures/
+|-- helpers/
+|-- integration/
+`-- unit/
 
 ---
 
-## Target Structure After Phase 23
+## Current Module Extensions
 
-Phase 23 includes the file, email verification, audit, permission, cache, and event foundations:
+The current implementation includes file, email verification, audit, permission, cache, event, admin, and admin audit foundations:
 
 src/
-├── controllers/
-│   ├── email/
-│   └── file/
-│
-├── middleware/
-│   └── upload/
-│       └── uploadFile.js
-│
-├── models/
-│   ├── auditLogModel.js
-│   └── fileModel.js
-│
-├── repositories/
-│   ├── audit/
-│   ├── email/
-│   └── file/
-│
-├── routes/
-│   ├── emailRoutes.js
-│   └── fileRoutes.js
-│
-└── services/
-    ├── cache/
-    │   └── cacheService.js
-    ├── email/
-    ├── event/
-    │   ├── eventBus.js
-    │   ├── eventNames.js
-    │   ├── eventPayload.js
-    │   └── eventRegistry.js
-    └── file/
-        ├── fileService.js
-        └── storage/
+|-- controllers/
+|   |-- admin/
+|   |   |-- adminAuditController.js
+|   |   `-- adminController.js
+|   |-- email/
+|   `-- file/
+|-- middleware/
+|   `-- upload/
+|       `-- uploadFile.js
+|-- models/
+|   |-- auditLogModel.js
+|   |-- fileModel.js
+|   `-- verificationTokenModel.js
+|-- repositories/
+|   |-- audit/
+|   |-- email/
+|   `-- file/
+|-- routes/
+|   |-- adminRoutes.js
+|   |-- emailRoutes.js
+|   `-- fileRoutes.js
+`-- services/
+    |-- admin/
+    |   |-- adminAuditService.js
+    |   `-- adminService.js
+    |-- cache/
+    |   `-- cacheService.js
+    |-- email/
+    |-- event/
+    |   |-- bootstrapInternalEvents.js
+    |   |-- eventBus.js
+    |   |-- eventNames.js
+    |   |-- eventPayload.js
+    |   |-- eventRegistry.js
+    |   |-- index.js
+    |   `-- internalEventHandlers.js
+    `-- file/
+        |-- fileService.js
+        `-- storage/
 
 ---
 
@@ -1002,18 +1015,22 @@ Repository boundary:
 Route namespace and boundary:
 - Admin audit routes live under `/api/v1/admin/audit/*`.
 - Route chain remains `protect -> requirePermission(USER_PERMISSIONS.MANAGE) -> validation -> controller`.
+- Implemented read endpoint: `GET /api/v1/admin/audit/logs`.
 
 Controller boundary:
 - Audit activity controllers remain HTTP-only and response-contract-safe.
 - Controllers map query params and delegate filtering/pagination to service layer.
+- `adminAuditController` delegates audit listing to the admin audit service only.
 
 Service boundary:
 - Admin audit services orchestrate read-only workflows and must not introduce write side effects.
 - Services reuse existing audit service/repository boundaries instead of duplicating query logic.
+- `adminAuditService` verifies admin capability and delegates read workflows to `auditLogService`.
 
 Repository boundary:
 - Audit repositories continue owning all audit query access.
 - New read helpers must stay domain-oriented and pagination-friendly.
+- `auditLogRepository.findAuditLogs` owns filtering, date range, sorting, and pagination query construction.
 
 Scope boundary:
 - Phase 24.5 is API-only and read-only for audit/activity views.

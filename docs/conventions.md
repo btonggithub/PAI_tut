@@ -549,20 +549,25 @@ Scope convention:
 Route naming:
 - Use admin audit namespace paths such as `/api/v1/admin/audit/logs`.
 - Keep audit/activity endpoints read-only in this phase.
+- Initial route: `GET /api/v1/admin/audit/logs`.
 
 Query conventions:
 - Support pagination with `page` and `limit` query params.
 - Support deterministic sorting with `sort` query param.
 - Support audit filters with explicit fields (for example action, result, actorId, resourceType, date range).
+- Use `from` and `to` as ISO date range query params for audit `createdAt` filtering.
 
 Controller conventions:
 - Controllers parse validated query params only and remain HTTP-only.
 - Controllers return standardized success/error response contracts.
+- Admin audit controllers delegate to admin audit services only.
 
 Service conventions:
 - Services orchestrate read-only audit/activity retrieval.
 - Services must not mutate audit entries or trigger side effects.
+- Admin audit services may reuse audit log service read helpers.
 
 Repository conventions:
 - Repositories own all audit query construction.
 - Repository methods should stay domain-oriented and pagination-ready.
+- Audit log read helpers own filter, date range, sort, and pagination query construction.

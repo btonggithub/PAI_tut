@@ -42,11 +42,16 @@ describe('VerificationToken model', () => {
       expect(typeField.enumValues).toContain(VERIFICATION_TOKEN_TYPES.EMAIL);
     });
 
-    it('expiresAt should be required and indexed', () => {
+    it('expiresAt should be required and have TTL index', () => {
       const schema = VerificationToken.schema;
       const expiryField = schema.paths.expiresAt;
+      const indexes = schema.indexes();
+      const ttlIndex = indexes.find(([fields, options]) => (
+        fields.expiresAt === 1 && options.expireAfterSeconds === 0
+      ));
+
       expect(expiryField.isRequired).toBe(true);
-      expect(expiryField._index).toBe(true);
+      expect(ttlIndex).toBeDefined();
     });
 
     it('usedAt should default to null', () => {

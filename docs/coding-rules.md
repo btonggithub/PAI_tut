@@ -756,8 +756,17 @@ Phase 24.5 includes:
 - admin audit/activity read APIs
 - filter/sort/paginate capabilities for audit review
 - integration tests for success, 401, 403, and query behavior
+- audit date range filtering through repository-owned query construction
 
 Phase 24.5 excludes:
 - dashboard UI
 - external log shipping
 - alerting pipelines
+
+### Phase 24.5 Implementation Rules
+
+Admin audit controllers must only read validated request data, call admin audit services, and return shared response utility output.
+
+Admin audit services must keep workflows read-only and must not alter audit write behavior.
+
+Audit repositories must own all audit read query construction, including createdAt ranges, filters, sorting, and pagination.

@@ -91,7 +91,32 @@ const recordAuditEvent = async (payload = {}) => {
   }
 };
 
+const toSafeAuditLog = (auditLog) => ({
+  id: auditLog._id ? String(auditLog._id) : String(auditLog.id),
+  actorId: auditLog.actorId ? String(auditLog.actorId) : null,
+  actorRole: auditLog.actorRole || null,
+  action: auditLog.action,
+  resourceType: auditLog.resourceType || null,
+  resourceId: auditLog.resourceId || null,
+  result: auditLog.result,
+  ipAddress: auditLog.ipAddress || null,
+  userAgent: auditLog.userAgent || null,
+  metadata: sanitizeMetadata(auditLog.metadata),
+  createdAt: auditLog.createdAt,
+  updatedAt: auditLog.updatedAt,
+});
+
+const listAuditLogs = async (query = {}) => {
+  const result = await auditLogRepository.findAuditLogs(query);
+
+  return {
+    auditLogs: result.items.map(toSafeAuditLog),
+    meta: result.meta,
+  };
+};
+
 module.exports = {
   recordAuditEvent,
   sanitizeMetadata,
+  listAuditLogs,
 };

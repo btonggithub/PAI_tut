@@ -148,6 +148,20 @@ The project currently implements:
 - Unit-tested handler failure behavior
 - No distributed message broker or event sourcing in Phase 23
 
+### Admin API Foundation
+- Admin API namespace under `/api/v1/admin/*`
+- Admin-only read workflows for users, files, and system information
+- Shared admin authorization via `protect` and `requirePermission(USER_PERMISSIONS.MANAGE)`
+- Admin controllers remain HTTP-only
+- Admin services reuse existing service and repository boundaries where practical
+
+### Admin Audit and Activity Views
+- Read-only admin audit endpoint at `GET /api/v1/admin/audit/logs`
+- Filtering by action, result, actor, resource, and createdAt date range
+- Pagination and deterministic sorting for audit review workflows
+- Audit metadata sanitization preserved in read DTOs
+- Existing audit write workflows remain unchanged
+
 ---
 
 ## Architectural Principles
@@ -230,20 +244,30 @@ Controller
 
 ---
 
-## Upcoming Phase
+## Current Phase Status
 
 ### Phase 24.5 - Admin Audit & Activity Views
 
-Goals:
-- Add admin-only audit/activity read APIs
-- Add filtering, sorting, and pagination for audit review workflows
-- Enforce admin authorization and preserve existing response contracts
-- Keep audit write workflows unchanged
+Status: Completed
+
+Delivered:
+- Admin-only audit/activity read API under `/api/v1/admin/audit/logs`
+- Filtering, sorting, and pagination for audit review workflows
+- Admin authorization enforcement with preserved response contracts
+- Existing audit write workflows left unchanged
 
 Execution Notes:
 - Phase 24 admin module delivery is completed.
-- Phase 24.5 extends admin capability with read-only audit/activity views.
-- Phase 25 (Domain Events Foundation) remains deferred until after admin audit views are stable.
+- Phase 24.5 extends admin capability with read-only audit/activity views and is completed.
+
+## Upcoming Phase
+
+### Phase 25 - Domain Events Foundation
+
+Planning Notes:
+- Phase 25 remains deferred until admin audit views are stable.
+- Existing in-process event foundation from Phase 23/23.5 should remain the baseline.
+- Future work should preserve the current controller/service/repository boundaries.
 
 Out of Scope:
 - Audit dashboard UI
