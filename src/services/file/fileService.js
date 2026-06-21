@@ -8,7 +8,7 @@ const AUDIT_RESULTS = require('../audit/auditResults');
 const { STORAGE_PROVIDERS } = require('../../config/upload');
 const cacheService = require('../cache/cacheService');
 const env = require('../../config/env');
-const { eventBus, EVENT_NAMES } = require('../event');
+const { eventBus, EVENT_NAMES, domainEventPublisher } = require('../event');
 
 const toSafeFile = (file) => ({
   id: file._id ? String(file._id) : String(file.id),
@@ -73,6 +73,12 @@ const createUserFile = async ({ actor, file, metadata = {}, requestContext = {} 
         requestContext,
       });
     }
+
+    await domainEventPublisher.publishFileUploaded({
+      file: fileRecord,
+      actor,
+      requestContext,
+    });
 
     return toSafeFile(fileRecord);
   } catch (err) {

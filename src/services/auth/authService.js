@@ -12,6 +12,7 @@ const sessionService = require('../session/sessionService');
 const { recordAuditEvent } = require('../audit/auditLogService');
 const AUDIT_ACTIONS = require('../audit/auditActions');
 const AUDIT_RESULTS = require('../audit/auditResults');
+const { domainEventPublisher } = require('../event');
 
 const toRefreshExpiryDate = (payload) => {
   return new Date(payload.exp * 1000);
@@ -45,7 +46,7 @@ const issueSessionTokens = async (userId) => {
   };
 };
 
-const register = async ({ name, email, password }) => {
+const register = async ({ name, email, password }, requestContext = {}) => {
   const existingUser = await authRepository.findUserByEmail(email);
 
   if (existingUser) {
@@ -60,6 +61,11 @@ const register = async ({ name, email, password }) => {
   });
 
   const tokens = await issueSessionTokens(user.id);
+
+  await domainEventPublisher.publishUserRegistered({
+    user,
+    requestContext,
+  });
 
   return {
     user: toSafeUser(user),

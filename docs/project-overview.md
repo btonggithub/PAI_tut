@@ -163,9 +163,9 @@ The project currently implements:
 - Existing audit write workflows remain unchanged
 
 ### Domain Events Preparation
-- Phase 25 is the next active implementation phase
+- Phase 25 is completed
 - Existing Phase 23/23.5 in-process event bus remains the dispatch foundation
-- Domain events will add business-level event contracts, ownership, payload builders, and versioning
+- Domain events add business-level event contracts, ownership, payload builders, and versioning
 - Domain events must preserve existing REST response, audit, cache, file, email, and admin contracts
 
 ---
@@ -266,18 +266,24 @@ Execution Notes:
 - Phase 24 admin module delivery is completed.
 - Phase 24.5 extends admin capability with read-only audit/activity views and is completed.
 
-## Upcoming Phase
-
 ### Phase 25 - Domain Events Foundation
 
-Status: Ready to Start
+Status: Completed
+
+Delivered:
+- Centralized domain event constants
+- Domain event payload builders
+- Domain event publisher boundary over the existing event bus
+- Low-risk event publication for user registration, email verification, and file upload
+- Contract, publisher, service, and integration test coverage
+
+## Upcoming Phase
+
+### Phase 26 - Notification Module
 
 Planning Notes:
-- Phase 25 is ready for implementation planning.
-- Existing in-process event foundation from Phase 23/23.5 should remain the baseline.
-- Future work should preserve the current controller/service/repository boundaries.
-- Current task details live in `docs/prompts/current-task.md`.
-- Implementation should start with low-risk events such as `user.registered.v1`, `user.email_verified.v1`, and `file.uploaded.v1`.
+- Phase 26 may consume Phase 25 domain events.
+- Notification delivery must remain separate from domain event contract ownership.
 
 Out of Scope:
 - Audit dashboard UI
@@ -285,4 +291,4 @@ Out of Scope:
 - Alerting pipelines
 - External message brokers
 - Event sourcing
-- Notification delivery
+- Public event APIs

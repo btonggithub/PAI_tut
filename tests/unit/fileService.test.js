@@ -18,11 +18,24 @@ jest.mock('../../src/services/audit/auditLogService', () => ({
   recordAuditEvent: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../src/services/event', () => ({
+  EVENT_NAMES: {
+    FILE_UPLOAD_PERSISTED_INTERNAL: 'file.upload.persisted.internal',
+  },
+  eventBus: {
+    publish: jest.fn().mockResolvedValue({}),
+  },
+  domainEventPublisher: {
+    publishFileUploaded: jest.fn().mockResolvedValue({}),
+  },
+}));
+
 const AppError = require('../../src/utils/AppError');
 const fileService = require('../../src/services/file/fileService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
 const storageService = require('../../src/services/file/storage/storageService');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const { domainEventPublisher } = require('../../src/services/event');
 const cacheStore = require('../../src/utils/cache');
 
 const actor = { id: 'actor-id-1', role: 'user' };
@@ -133,6 +146,11 @@ describe('fileService', () => {
           resourceType: 'file',
         })
       );
+      expect(domainEventPublisher.publishFileUploaded).toHaveBeenCalledWith({
+        file: mockFileRecord,
+        actor,
+        requestContext: mockRequestContext,
+      });
     });
 
     it('implements compensation logic: removes stored file if metadata save fails', async () => {
@@ -165,6 +183,7 @@ describe('fileService', () => {
           }),
         })
       );
+      expect(domainEventPublisher.publishFileUploaded).not.toHaveBeenCalled();
     });
   });
 

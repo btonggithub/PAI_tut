@@ -30,7 +30,7 @@ const authService = require('../../src/services/auth/authService');
 const fileRepository = require('../../src/repositories/file/fileRepository');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 const cacheStore = require('../../src/utils/cache');
-const { eventBus, EVENT_NAMES } = require('../../src/services/event');
+const { eventBus, EVENT_NAMES, DOMAIN_EVENT_NAMES } = require('../../src/services/event');
 
 const regularUser = {
   id: '64b7f5b9f1d2c3a4b5c6d7b2',
@@ -164,8 +164,10 @@ describe('File API integration', () => {
       );
     });
 
-    it('publishes file upload internal event without changing response contract', async () => {
+    it('publishes file upload internal and domain events without changing response contract', async () => {
       fileRepository.createFileMetadata.mockResolvedValue(mockFileRecord);
+      const domainHandler = jest.fn().mockResolvedValue(undefined);
+      const unsubscribe = eventBus.subscribe(DOMAIN_EVENT_NAMES.FILE_UPLOADED_V1, domainHandler);
 
       const response = await request(app)
         .post('/api/v1/files')
@@ -182,8 +184,25 @@ describe('File API integration', () => {
       expect(response.body.data.file).not.toHaveProperty('storageKey');
       expect(response.body.data.file).not.toHaveProperty('storedName');
 
+      unsubscribe();
+
+      expect(domainHandler).toHaveBeenCalledWith(expect.objectContaining({
+        name: DOMAIN_EVENT_NAMES.FILE_UPLOADED_V1,
+        version: 'v1',
+        owner: { domain: 'file' },
+        actor: { id: regularUser.id, role: regularUser.role },
+        resource: { type: 'file', id: mockFileRecord._id },
+        metadata: expect.objectContaining({
+          ownerId: regularUser.id,
+          mimeType: expect.any(String),
+          size: expect.any(Number),
+          storageProvider: 'local',
+        }),
+        correlationId: 'file-upload-request-123',
+        occurredAt: expect.any(String),
+      }));
       expect(eventBus.getMetrics()).toEqual(expect.objectContaining({
-        publishedCount: 1,
+        publishedCount: 2,
         handledCount: expect.any(Number),
         failedCount: 0,
       }));
@@ -218,7 +237,7 @@ describe('File API integration', () => {
         })
       );
       expect(eventBus.getMetrics()).toEqual(expect.objectContaining({
-        publishedCount: 1,
+        publishedCount: 2,
         failedCount: 1,
       }));
     });

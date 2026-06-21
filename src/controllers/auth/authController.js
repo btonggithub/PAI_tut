@@ -4,7 +4,8 @@ const authService = require('../../services/auth/authService');
 const { extractRequestContext } = require('../../utils/requestContext');
 
 const register = asyncHandler(async (req, res) => {
-  const data = await authService.register(req.body);
+  const requestContext = extractRequestContext(req);
+  const data = await authService.register(req.body, requestContext);
   return sendSuccess(res, data, 201, 'User registered successfully');
 });
 

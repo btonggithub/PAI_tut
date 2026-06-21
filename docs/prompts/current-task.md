@@ -1,6 +1,6 @@
 # Phase 25 - Domain Events Foundation
 
-Status: Ready to Start
+Status: Completed
 
 Prepare stable domain event contracts on top of the existing in-process event foundation from Phase 23/23.5.
 

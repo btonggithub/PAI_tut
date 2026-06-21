@@ -397,25 +397,26 @@ Implemented:
 Validation note:
 * Attempted focused test command, but the execution shell could not find `npm` or `node` on PATH.
 
-## NEXT
+## COMPLETED
 
 ### Phase 25 - Domain Events Foundation
 
-Status: Ready to Start
+Status: Completed
 
-Prepared scope:
-* Build on the existing Phase 23/23.5 in-process event foundation.
-* Preserve current controller, service, repository, audit, cache, file, and admin boundaries.
-* Introduce stable domain event contracts with versioned names.
-* Add centralized domain event constants, payload builders, and publisher boundary.
-* Publish selected low-risk domain events only after successful business state changes.
+Implemented:
+* Built on the existing Phase 23/23.5 in-process event foundation.
+* Preserved current controller, route, repository, audit, cache, file, email, and admin boundaries.
+* Added centralized domain event constants in `src/services/event/domainEventNames.js`.
+* Added contract-safe payload builders in `src/services/event/domainEventPayload.js`.
+* Added domain event publisher boundary in `src/services/event/domainEventPublisher.js`.
+* Published selected low-risk domain events only after successful business state changes.
 
-Initial event candidates:
+Implemented events:
 * `user.registered.v1`
 * `user.email_verified.v1`
 * `file.uploaded.v1`
 
-Acceptance criteria:
+Acceptance criteria covered:
 * Domain event names are centralized and versioned.
 * Payload builders return compact, contract-safe payloads without secrets or token values.
 * Domain event publisher delegates to the existing event bus.
@@ -432,3 +433,14 @@ Out of scope:
 * Distributed delivery guarantees
 * Notification delivery
 * Public event APIs
+
+## NEXT
+
+### Phase 26 - Notification Module
+
+Status: Deferred
+
+Planning notes:
+* Consume stable domain events from Phase 25 where useful.
+* Keep notification delivery separate from domain event contract ownership.
+* Define delivery channels, templates, and failure behavior before implementation begins.

@@ -727,3 +727,9 @@ Positive:
 Negative:
 - Additional contract layer to maintain
 - Domain events remain in-process until a later broker/outbox phase
+
+Implementation note:
+- Domain event names are centralized in `src/services/event/domainEventNames.js`.
+- Domain event payload builders live in `src/services/event/domainEventPayload.js`.
+- Domain event publishing is routed through `src/services/event/domainEventPublisher.js`.
+- Initial publication points are user registration, email verification, and file upload.

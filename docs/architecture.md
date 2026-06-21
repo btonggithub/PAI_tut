@@ -136,6 +136,9 @@ src/
     |-- email/
     |-- event/
     |   |-- bootstrapInternalEvents.js
+    |   |-- domainEventNames.js
+    |   |-- domainEventPayload.js
+    |   |-- domainEventPublisher.js
     |   |-- eventBus.js
     |   |-- eventNames.js
     |   |-- eventPayload.js
@@ -1044,7 +1047,7 @@ Scope boundary:
 
 ## Phase 25 Architecture Preparation
 
-Status: Ready to Start
+Status: Completed
 
 Phase 25 upgrades the existing technical event foundation into explicit domain
 event contracts.
@@ -1068,6 +1071,16 @@ Responsibilities:
 - `domainEventNames.js` centralizes versioned domain event names.
 - `domainEventPayload.js` builds compact, contract-safe payloads.
 - `domainEventPublisher.js` delegates dispatch to the existing event bus.
+
+Implemented domain event files:
+- `services/event/domainEventNames.js`
+- `services/event/domainEventPayload.js`
+- `services/event/domainEventPublisher.js`
+
+Implemented publication points:
+- User registration publishes `user.registered.v1`.
+- Email verification publishes `user.email_verified.v1`.
+- File upload publishes `file.uploaded.v1`.
 
 ### Domain Event Flow
 

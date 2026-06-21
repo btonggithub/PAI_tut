@@ -1,6 +1,6 @@
 const { createEventPayload } = require('./eventPayload');
 
-const EVENT_NAME_PATTERN = /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/;
+const EVENT_NAME_PATTERN = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
 const noopLogger = {
   info: () => {},
   error: () => {},
@@ -72,6 +72,15 @@ class EventBus {
 
     const { throwOnError = false } = options;
     const eventPayload = createEventPayload(eventName, payload);
+    
+    // Preserve domain event fields (version, owner) if present in input payload
+    if (payload.version) {
+      eventPayload.version = payload.version;
+    }
+    if (payload.owner) {
+      eventPayload.owner = payload.owner;
+    }
+    
     const eventHandlers = Array.from(this.handlers.get(eventName) || []);
     const errors = [];
     const correlationId = eventPayload.correlationId;

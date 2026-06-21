@@ -47,13 +47,34 @@
 24. Admin Module
 24.5 Admin Audit & Activity Views
 25. Domain Events Foundation
-26. Notification Module
-27. Microservice Extraction Preparation
-    service contracts
-    event contracts
-    domain ownership
-    bounded contexts 
-30+ Mongo Transaction
+25.5 API Contract / OpenAPI
+26.  Notification Module
+26.5 Production Hardening II
+27.  Docker Compose Foundation
+27.5 Containerization Hardening
+28.  Keycloak / OIDC Integration
+29.  Kafka Adapter / Async Messaging
+30.  Frontend Admin Web
+31.  Mobile API Readiness
+32.  Microservice Extraction Preparation
+    - service contracts
+    - event contracts
+    - domain ownership
+    - bounded contexts
+    - database ownership
+    - transaction boundary
+
+33   Kubernetes Readiness / Deployment
+
+34   First Microservice Extraction
+    - extract low-risk service first
+    - notification-service หรือ audit-query-service
+    - keep auth/admin core in monolith first
+
+35   Mongo Transaction / Consistency Strategy
+    - Mongo transaction
+    - eventual consistency
+    - outbox pattern decision
 
 ## Phase 21 Completed: Email Verification
 

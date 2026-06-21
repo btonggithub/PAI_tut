@@ -27,6 +27,12 @@ jest.mock('../../src/services/audit/auditLogService', () => ({
   recordAuditEvent: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('../../src/services/event', () => ({
+  domainEventPublisher: {
+    publishUserRegistered: jest.fn().mockResolvedValue({}),
+  },
+}));
+
 const AppError = require('../../src/utils/AppError');
 const authService = require('../../src/services/auth/authService');
 const authRepository = require('../../src/repositories/auth/authRepository');
@@ -36,6 +42,7 @@ const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../..
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
 const AUDIT_ACTIONS = require('../../src/services/audit/auditActions');
 const AUDIT_RESULTS = require('../../src/services/audit/auditResults');
+const { domainEventPublisher } = require('../../src/services/event');
 const crypto = require('crypto');
 
 describe('authService', () => {
@@ -143,6 +150,14 @@ describe('authService', () => {
       expect(signAccessToken).toHaveBeenCalledWith({ sub: 'u1' });
       
       expect(sessionService.rotateSessionRefreshToken).not.toHaveBeenCalled();
+      expect(domainEventPublisher.publishUserRegistered).toHaveBeenCalledWith({
+        user: expect.objectContaining({
+          id: 'u1',
+          email: 'john@example.com',
+          role: 'user',
+        }),
+        requestContext: {},
+      });
       expect(result).toEqual({
         user: {
           id: 'u1',
@@ -171,6 +186,7 @@ describe('authService', () => {
         statusCode: 409,
         isOperational: true,
       });
+      expect(domainEventPublisher.publishUserRegistered).not.toHaveBeenCalled();
     });
   });
 

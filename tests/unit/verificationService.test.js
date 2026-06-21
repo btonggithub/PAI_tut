@@ -3,6 +3,11 @@ jest.mock('../../src/repositories/user/userRepository');
 jest.mock('../../src/services/email/emailService');
 jest.mock('../../src/utils/token');
 jest.mock('../../src/services/audit/auditLogService');
+jest.mock('../../src/services/event', () => ({
+  domainEventPublisher: {
+    publishUserEmailVerified: jest.fn().mockResolvedValue({}),
+  },
+}));
 
 const verificationService = require('../../src/services/email/verificationService');
 const verificationRepository = require('../../src/repositories/email/verificationRepository');
@@ -10,6 +15,7 @@ const userRepository = require('../../src/repositories/user/userRepository');
 const emailService = require('../../src/services/email/emailService');
 const { generateToken, hashToken } = require('../../src/utils/token');
 const { recordAuditEvent } = require('../../src/services/audit/auditLogService');
+const { domainEventPublisher } = require('../../src/services/event');
 const AppError = require('../../src/utils/AppError');
 const { VERIFICATION_TOKEN_TYPES } = require('../../src/models/verificationTokenModel');
 
@@ -126,6 +132,12 @@ describe('Verification service', () => {
       expect(result).toHaveProperty('userId', mockUser.id);
       expect(result).toHaveProperty('verifiedAt');
       expect(result).toHaveProperty('email', mockUser.email);
+      expect(domainEventPublisher.publishUserEmailVerified).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        email: mockUser.email,
+        actor: mockUpdatedUser,
+        requestContext: mockRequestContext,
+      });
     });
 
     it('throws error if token is invalid', async () => {
@@ -134,6 +146,7 @@ describe('Verification service', () => {
       await expect(verificationService.verifyEmail('invalid-token', mockRequestContext)).rejects.toThrow(
         /invalid or expired/i
       );
+      expect(domainEventPublisher.publishUserEmailVerified).not.toHaveBeenCalled();
     });
 
     it('throws error if token is expired', async () => {

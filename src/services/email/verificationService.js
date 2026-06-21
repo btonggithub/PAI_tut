@@ -8,6 +8,7 @@ const AUDIT_RESULTS = require('../audit/auditResults');
 const { generateToken, hashToken } = require('../../utils/token');
 const { VERIFICATION_TOKEN_TYPES } = require('../../models/verificationTokenModel');
 const env = require('../../config/env');
+const { domainEventPublisher } = require('../event');
 
 // Token configuration
 const VERIFICATION_TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -198,6 +199,13 @@ const verifyEmail = async (rawToken, requestContext = {}) => {
       userAgent: requestContext.userAgent || null,
       metadata: { email: tokenRecord.metadata.email },
     }).catch(() => {});
+
+    await domainEventPublisher.publishUserEmailVerified({
+      userId,
+      email: tokenRecord.metadata.email,
+      actor: updatedUser || null,
+      requestContext,
+    });
 
     // Return verification result
     return {
