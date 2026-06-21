@@ -992,6 +992,12 @@ Phase 24.5: Admin audit and activity views
 - Admin-only access and standardized response contracts
 - No audit write pipeline replacement
 
+Phase 25: Domain events foundation
+- Stable business event contracts on top of the in-process event bus
+- Versioned event names and domain-owned payload builders
+- Dedicated domain event publisher boundary
+- Selected low-risk workflow publication without changing REST contracts
+
 ## Phase 24 Architecture Preparation
 
 Route namespace and boundary:
@@ -1035,3 +1041,123 @@ Repository boundary:
 Scope boundary:
 - Phase 24.5 is API-only and read-only for audit/activity views.
 - Analytics dashboards, alerting, and external log shipping remain out of scope.
+
+## Phase 25 Architecture Preparation
+
+Status: Ready to Start
+
+Phase 25 upgrades the existing technical event foundation into explicit domain
+event contracts.
+
+Domain events are business facts that already happened. They are contract-level
+messages for future consumers, not commands, audit logs, cache invalidation
+messages, or notification delivery jobs.
+
+### Domain Event Components
+
+Expected structure:
+
+src/
+|-- services/
+|   `-- event/
+|       |-- domainEventNames.js
+|       |-- domainEventPayload.js
+|       `-- domainEventPublisher.js
+
+Responsibilities:
+- `domainEventNames.js` centralizes versioned domain event names.
+- `domainEventPayload.js` builds compact, contract-safe payloads.
+- `domainEventPublisher.js` delegates dispatch to the existing event bus.
+
+### Domain Event Flow
+
+Service workflow
+    ->
+Successful business state change
+    ->
+Build domain event payload
+    ->
+Domain event publisher
+    ->
+Existing event bus
+    ->
+Registered handlers
+
+### Naming and Versioning
+
+Domain event names use:
+
+`<domain>.<fact>.<version>`
+
+Initial candidates:
+- `user.registered.v1`
+- `user.email_verified.v1`
+- `file.uploaded.v1`
+
+Rules:
+- Event names must be centralized constants.
+- Event names must describe completed facts.
+- Event names must include a version suffix from the first release.
+- Breaking payload changes require a new version.
+- Additive fields may stay in the same version.
+
+### Payload Contract
+
+Recommended payload shape:
+
+name
+    ->
+version
+    ->
+occurredAt
+    ->
+owner
+    ->
+actor
+    ->
+resource
+    ->
+metadata
+    ->
+correlationId
+
+Rules:
+- Payloads use stable IDs and primitives, not full database documents.
+- Payloads must not contain passwords, raw tokens, token hashes, authorization headers, secrets, or private storage paths.
+- Payload builders own payload normalization and sensitive-field exclusion.
+
+### Boundary Rules
+
+Services:
+- May publish domain events after successful business state changes.
+- Must preserve existing response contracts.
+- Must not rely on event handlers for the primary workflow result.
+
+Domain Event Publisher:
+- Owns domain event dispatch into the existing event bus.
+- Must not implement business rules.
+- Must not know about HTTP request/response objects.
+
+Controllers, Routes, Repositories, Models:
+- Must not publish domain events directly.
+- Must not subscribe to domain events directly.
+- Must remain unaware of domain event handler registration.
+
+### Phase 25 Scope Boundary
+
+Included:
+- Domain event constants
+- Domain event payload builders
+- Domain event publisher boundary
+- Selected low-risk workflow publication
+- Unit tests for contract and publisher behavior
+- Integration tests for workflows that emit domain events
+
+Excluded:
+- External brokers
+- Event sourcing
+- Outbox/inbox persistence
+- Distributed delivery guarantees
+- Notification delivery
+- Public event APIs
+- Replacing audit logging, cache invalidation, or existing technical event behavior

@@ -770,3 +770,95 @@ Admin audit controllers must only read validated request data, call admin audit 
 Admin audit services must keep workflows read-only and must not alter audit write behavior.
 
 Audit repositories must own all audit read query construction, including createdAt ranges, filters, sorting, and pagination.
+
+---
+
+## Phase 25 Domain Events Foundation Rules
+
+### Domain Event Contract Rules
+
+Domain events must:
+- describe completed business facts
+- use centralized event name constants
+- include a version suffix from the first implementation
+- use stable payload builders
+- avoid full database documents in payloads
+
+Domain events must not:
+- represent commands or future work requests
+- be built from client-provided event names
+- expose passwords, raw tokens, token hashes, authorization headers, secrets, or private storage paths
+- replace audit logs, cache invalidation, or existing response contracts
+
+### Domain Event Naming Rules
+
+Event names must follow:
+`<domain>.<fact>.<version>`
+
+Allowed examples:
+- `user.registered.v1`
+- `user.email_verified.v1`
+- `file.uploaded.v1`
+
+Disallowed examples:
+- `send.email`
+- `createUser`
+- `file.upload.persisted.internal` for a public domain event contract
+- unversioned names such as `user.registered`
+
+### Domain Event Payload Rules
+
+Payloads must include:
+- `name`
+- `version`
+- `occurredAt`
+- `owner`
+- `resource`
+- `metadata`
+
+Payloads may include:
+- `actor`
+- `correlationId`
+
+Payloads must keep values explicit, serializable, and contract-safe.
+
+### Publishing Rules
+
+Services may publish domain events only after successful state changes.
+
+Controllers, routes, repositories, models, and middleware must not publish domain events directly.
+
+Domain event publishing must go through a dedicated publisher boundary that delegates to the existing event bus.
+
+Publishing a domain event must not change existing endpoint status codes, response body shapes, audit behavior, or cache invalidation behavior.
+
+### Versioning and Compatibility Rules
+
+Additive fields are allowed within the same version.
+
+Breaking changes require a new version.
+
+Breaking changes include:
+- removing a field
+- renaming a field
+- changing a field type
+- changing the semantic meaning of a field
+
+### Phase 25 Scope Rules
+
+Phase 25 includes:
+- domain event contract constants
+- payload builders
+- domain event publisher boundary
+- selected low-risk workflow publication
+- unit tests for contracts/builders/publisher behavior
+- integration tests only for workflows that publish domain events
+
+Phase 25 excludes:
+- external brokers
+- event sourcing
+- persistent outbox/inbox patterns
+- distributed delivery guarantees
+- notification delivery
+- public event APIs
+- replacing technical/internal events where they still serve current workflows

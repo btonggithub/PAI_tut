@@ -401,9 +401,34 @@ Validation note:
 
 ### Phase 25 - Domain Events Foundation
 
-Status: Deferred
+Status: Ready to Start
 
-Planning notes:
+Prepared scope:
 * Build on the existing Phase 23/23.5 in-process event foundation.
 * Preserve current controller, service, repository, audit, cache, file, and admin boundaries.
-* Define acceptance criteria before implementation begins.
+* Introduce stable domain event contracts with versioned names.
+* Add centralized domain event constants, payload builders, and publisher boundary.
+* Publish selected low-risk domain events only after successful business state changes.
+
+Initial event candidates:
+* `user.registered.v1`
+* `user.email_verified.v1`
+* `file.uploaded.v1`
+
+Acceptance criteria:
+* Domain event names are centralized and versioned.
+* Payload builders return compact, contract-safe payloads without secrets or token values.
+* Domain event publisher delegates to the existing event bus.
+* Controllers, routes, repositories, and models remain domain-event-unaware.
+* Existing REST response contracts remain unchanged.
+* Existing audit logging and cache invalidation behavior remain unchanged.
+* Unit tests cover constants, payload builders, and publisher behavior.
+* Integration tests cover each workflow that emits a domain event.
+
+Out of scope:
+* External brokers
+* Event sourcing
+* Outbox/inbox persistence
+* Distributed delivery guarantees
+* Notification delivery
+* Public event APIs

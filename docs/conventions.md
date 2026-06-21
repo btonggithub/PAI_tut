@@ -571,3 +571,50 @@ Repository conventions:
 - Repositories own all audit query construction.
 - Repository methods should stay domain-oriented and pagination-ready.
 - Audit log read helpers own filter, date range, sort, and pagination query construction.
+
+---
+
+## Domain Event Conventions (Phase 25)
+
+Domain event names describe business facts that already happened.
+
+Format:
+`<domain>.<fact>.<version>`
+
+Examples:
+- `user.registered.v1`
+- `user.email_verified.v1`
+- `file.uploaded.v1`
+
+Naming conventions:
+- Use lowercase dot notation.
+- Use past-tense facts, not commands.
+- Include a version suffix from the first release.
+- Do not build event names from request input.
+- Keep names centralized in a domain event constants module.
+
+Ownership conventions:
+- Each event must have one owning domain.
+- The owning domain owns the event name, payload builder, and compatibility rules.
+- Consumers may depend on published contracts but must not mutate event payloads.
+
+Payload conventions:
+- Include `name`, `version`, `occurredAt`, `owner`, `actor`, `resource`, `metadata`, and optional `correlationId`.
+- Keep payloads compact and explicit.
+- Use stable IDs and primitive values instead of full database documents.
+- Do not include passwords, raw tokens, token hashes, authorization headers, secrets, or private storage paths.
+
+Versioning conventions:
+- Additive payload fields are allowed inside the same version.
+- Renaming, removing, or changing the meaning/type of an existing field requires a new version.
+- Keep old versions available until consumers are migrated or the version is explicitly retired.
+
+Publishing conventions:
+- Publish domain events from services after successful business state changes.
+- Reuse the existing event bus through a domain event publisher boundary.
+- Keep controllers, routes, repositories, and models unaware of domain event publishing.
+- Preserve existing REST response contracts when domain events are published.
+
+Scope conventions:
+- Phase 25 introduces event contracts and selected low-risk publishers only.
+- Notifications, external brokers, event sourcing, outbox persistence, and public event APIs remain out of scope.

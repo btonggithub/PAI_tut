@@ -143,7 +143,7 @@ Out of Scope:
 สร้าง admin APIs เช่น manage users, view files metadata, system/admin endpoints, permission-protected admin routes
 อันนี้เหมาะมาหลัง event foundation เพราะ admin module อาจเริ่มต้องดู activity/system state มากขึ้น
 
-Status: Ready to Start
+Status: Completed
 
 - Add admin-only API foundation.
 - Add admin route/controller/service structure.
@@ -175,7 +175,7 @@ Out of Scope:
 แยกออกมาดีแล้วครับ เพราะถ้ารวมกับ Admin Module จะบวมมาก
 Phase นี้ควรเน้น audit/activity read APIs, filtering, pagination, admin-only access, ไม่ใช่สร้าง UI
 
-Status: Ready to Start
+Status: Completed
 
 - Add admin-only audit/activity read APIs.
 - Add filtering, sorting, and pagination.
@@ -212,6 +212,41 @@ Out of Scope:
 - admin.userRoleChanged
 
 ตรงนี้ควรกำหนด owner ของ event, payload contract, versioning, naming, compatibility
+
+Status: Ready to Start
+
+Phase 25 turns the technical in-process event foundation into explicit domain
+event contracts.
+
+Initial event candidates:
+- `user.registered.v1`
+- `user.email_verified.v1`
+- `file.uploaded.v1`
+
+Scope Guardrails:
+- Domain events describe completed business facts.
+- Domain event names must be centralized and versioned.
+- Payload builders must be owned by the event domain.
+- Domain event publishing must go through the existing event bus.
+- Services may publish domain events after successful state changes.
+- Controllers, routes, repositories, and models remain domain-event-unaware.
+- Existing REST response contracts, audit logging, cache behavior, and file/email/admin workflows must remain unchanged.
+
+Acceptance Criteria:
+- Domain event constants exist for initial selected events.
+- Payload builders produce compact contract-safe payloads.
+- Payloads exclude passwords, raw tokens, token hashes, authorization headers, secrets, and private storage paths.
+- Publisher delegates to the existing event bus without introducing another dispatch mechanism.
+- Unit tests cover constants, payload builders, and publisher behavior.
+- Integration tests cover each workflow that emits a domain event.
+
+Out of Scope:
+- External brokers
+- Event sourcing
+- Persistent outbox/inbox
+- Distributed delivery guarantees
+- Notification delivery
+- Public event APIs
 
 ## Phase 26. Notification Module
 ใช้ domain events เพื่อ trigger notification เช่น verification follow-up, admin alerts, future in-app notification

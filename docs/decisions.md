@@ -664,3 +664,66 @@ Implementation note:
 - `GET /api/v1/admin/audit/logs` is the initial read-only admin audit endpoint.
 - Supported query behavior includes pagination, deterministic sorting, explicit filters, and createdAt date ranges.
 - Audit writes remain unchanged and continue through existing service workflows.
+
+---
+
+## Decision 025 - Domain Events Foundation
+
+Status:
+Accepted
+
+Decision:
+Phase 25 introduces stable domain event contracts on top of the existing
+in-process event foundation.
+
+Domain events represent business facts that already happened. They are not
+commands, API requests, audit records, cache invalidation messages, or
+notification delivery jobs.
+
+Phase 25 includes:
+- Centralized domain event names.
+- Versioned event names from the first contract.
+- Domain-owned payload builders.
+- A domain event publisher boundary that delegates to the existing event bus.
+- Focused tests for event contracts, payload shape, publisher behavior, and selected workflow publication.
+
+Naming:
+- Domain event names use lowercase dot notation plus a version suffix.
+- Format: `<domain>.<fact>.<version>`.
+- Initial examples: `user.registered.v1`, `user.email_verified.v1`, `file.uploaded.v1`.
+
+Payload contract:
+- Payloads include event name, version, occurredAt, owner, actor, resource, metadata, and correlationId when available.
+- Payloads must not include passwords, raw tokens, refresh token hashes, verification token hashes, authorization headers, or secrets.
+- Event contracts must be additive-compatible inside a version.
+- Breaking payload changes require a new version.
+
+Architecture boundary:
+- Services may publish domain events after successful state changes.
+- Controllers, routes, repositories, and models must remain domain-event-unaware.
+- Domain event publishers must reuse the Phase 23 event bus instead of introducing a new dispatch mechanism.
+
+Out of Scope:
+- External brokers
+- Event sourcing
+- Persistent outbox/inbox patterns
+- Cross-process delivery guarantees
+- Notification delivery
+- Public event APIs
+- Replacing audit logging or cache invalidation
+
+Rationale:
+The project already has a technical event bus and one low-risk integration.
+Phase 25 upgrades that foundation into explicit business contracts without
+changing transport, persistence, or delivery guarantees.
+
+Consequences:
+
+Positive:
+- Clear event ownership and versioning
+- Safer future notification and microservice preparation
+- Better testability for business event contracts
+
+Negative:
+- Additional contract layer to maintain
+- Domain events remain in-process until a later broker/outbox phase

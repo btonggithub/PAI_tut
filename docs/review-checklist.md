@@ -526,3 +526,70 @@ Testing:
 - Integration tests cover admin audit success paths
 - Integration tests cover 401 and 403 access control paths
 - Integration tests cover filtering/sorting/pagination behavior
+
+---
+
+## Phase 25 Domain Events Foundation Review
+
+### Architecture
+
+- Domain event constants are centralized
+- Domain event payload builders are centralized and domain-owned
+- Domain event publisher delegates to the existing event bus
+- Controllers do not publish domain events
+- Routes do not publish domain events
+- Repositories do not publish domain events
+- Models do not know about domain events
+- Existing technical/internal events remain compatible where still used
+
+### Naming and Ownership
+
+- Event names follow `<domain>.<fact>.<version>`
+- Event names describe completed business facts
+- Event names are not commands
+- Event names are not built from request input
+- Each event has one owning domain
+- Event versions are explicit from the first release
+
+### Payload Contract
+
+- Payloads include name, version, occurredAt, owner, resource, and metadata
+- Payloads include actor and correlationId when available and useful
+- Payloads use stable IDs and primitives instead of full database documents
+- Payloads do not include passwords
+- Payloads do not include raw access tokens or refresh tokens
+- Payloads do not include token hashes
+- Payloads do not include authorization headers
+- Payloads do not include secrets or private storage paths
+
+### Compatibility
+
+- Additive payload changes preserve the same version
+- Breaking payload changes require a new version
+- Tests cover payload builder output for each published event
+- Existing REST response contracts remain unchanged
+- Existing audit logging remains unchanged
+- Existing cache invalidation behavior remains unchanged
+
+### Publishing Behavior
+
+- Domain events are published only after successful business state changes
+- Publishing uses the domain event publisher boundary
+- Handler failure behavior follows the existing event bus rules
+- Event-disabled or handler failure paths do not break existing endpoint contracts
+
+### Scope Control
+
+- No external message broker is added
+- No event sourcing is added
+- No outbox/inbox persistence is added
+- No notification delivery behavior is added
+- No public event API is added
+
+### Testing
+
+- Unit tests cover domain event constants
+- Unit tests cover payload builders
+- Unit tests cover domain event publisher behavior
+- Integration tests cover each workflow that publishes a domain event
+- Existing auth/session/permission/audit/file/email/cache/admin tests remain compatible

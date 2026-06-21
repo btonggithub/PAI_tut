@@ -162,6 +162,12 @@ The project currently implements:
 - Audit metadata sanitization preserved in read DTOs
 - Existing audit write workflows remain unchanged
 
+### Domain Events Preparation
+- Phase 25 is the next active implementation phase
+- Existing Phase 23/23.5 in-process event bus remains the dispatch foundation
+- Domain events will add business-level event contracts, ownership, payload builders, and versioning
+- Domain events must preserve existing REST response, audit, cache, file, email, and admin contracts
+
 ---
 
 ## Architectural Principles
@@ -264,12 +270,19 @@ Execution Notes:
 
 ### Phase 25 - Domain Events Foundation
 
+Status: Ready to Start
+
 Planning Notes:
-- Phase 25 remains deferred until admin audit views are stable.
+- Phase 25 is ready for implementation planning.
 - Existing in-process event foundation from Phase 23/23.5 should remain the baseline.
 - Future work should preserve the current controller/service/repository boundaries.
+- Current task details live in `docs/prompts/current-task.md`.
+- Implementation should start with low-risk events such as `user.registered.v1`, `user.email_verified.v1`, and `file.uploaded.v1`.
 
 Out of Scope:
 - Audit dashboard UI
 - External log shipping
 - Alerting pipelines
+- External message brokers
+- Event sourcing
+- Notification delivery
