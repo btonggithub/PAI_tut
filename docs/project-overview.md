@@ -279,16 +279,23 @@ Delivered:
 
 ## Upcoming Phase
 
-### Phase 26 - Notification Module
+### Phase 25.5 - API Contract / OpenAPI
+
+Status: Ready to Start
 
 Planning Notes:
-- Phase 26 may consume Phase 25 domain events.
-- Notification delivery must remain separate from domain event contract ownership.
+- Phase 25.5 prepares OpenAPI/Swagger documentation for the existing REST API.
+- Required documentation endpoints are `GET /api/docs` and `GET /api/openapi.json`.
+- Runtime behavior, authentication, authorization, validation, and response contracts must remain unchanged.
+- Current task details live in `docs/prompts/current-task.md`.
+- Later platform phases such as Docker, Keycloak, Kafka, Frontend, Mobile, Kubernetes, and Microservice extraction remain deferred.
 
 Out of Scope:
-- Audit dashboard UI
-- External log shipping
-- Alerting pipelines
-- External message brokers
-- Event sourcing
-- Public event APIs
+- API redesign
+- Response contract changes
+- Client SDK generation
+- Frontend/mobile implementation
+- API Gateway
+- Keycloak/OIDC integration
+- Docker/Kubernetes integration
+- Authentication implementation changes

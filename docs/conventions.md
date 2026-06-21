@@ -618,3 +618,61 @@ Publishing conventions:
 Scope conventions:
 - Phase 25 introduces event contracts and selected low-risk publishers only.
 - Notifications, external brokers, event sourcing, outbox persistence, and public event APIs remain out of scope.
+
+---
+
+## OpenAPI Conventions (Phase 25.5)
+
+OpenAPI files should describe the existing REST API contract.
+
+Recommended locations:
+- `src/docs/openapi.js` or `src/docs/openapiSpec.js` for OpenAPI configuration/spec.
+- `src/docs/openapi/` for split path/schema/security modules when the spec grows.
+- `src/routes/docsRoutes.js` for documentation endpoints if needed.
+- `docs/api/` for static contract artifacts if the project chooses a docs-first file.
+
+Path conventions:
+- Document paths with the `/api/v1` prefix.
+- Keep path parameters named exactly as route parameters.
+- Use existing route nouns such as `/auth`, `/users`, `/files`, `/email`, `/admin`, and `/admin/audit`.
+- Use resource-oriented paths only.
+- Do not introduce verb-based path names for new documentation examples.
+- Preserve existing REST endpoint naming exactly.
+
+Tag conventions:
+- `Health`
+- `Auth`
+- `Users`
+- `Files`
+- `Email`
+- `Admin`
+- `Audit`
+
+Schema naming conventions:
+- Use PascalCase schema names.
+- Use `SuccessResponse`, `ErrorResponse`, and `PaginationMeta` for shared envelopes.
+- Use resource-specific schema names such as `User`, `File`, `AuditLog`, and `SessionTokens`.
+- Use request schema names ending in `Request`.
+- Use response schema names ending in `Response`.
+- Shared error schema uses `ErrorResponse`.
+- Shared pagination schema uses `PaginationMeta`.
+
+Auth conventions:
+- Protected endpoints declare bearer authentication.
+- Public endpoints explicitly omit security requirements.
+- Admin endpoints include a description that admin permissions are required.
+
+Response conventions:
+- All documented success responses must use the existing standardized envelope.
+- All documented error responses must use the existing standardized error envelope.
+- List endpoints must include `meta` with the current pagination shape.
+
+Upload conventions:
+- File upload endpoint must use `multipart/form-data`.
+- The uploaded file field name must match the current route/middleware contract.
+- Do not document internal storage keys or filesystem paths as response fields.
+
+Runtime documentation endpoint conventions:
+- `GET /api/openapi.json` serves the OpenAPI JSON document.
+- `GET /api/docs` serves Swagger UI or redirects to the documentation UI.
+- Documentation routes must not be nested under `/api/v1` because they describe API versions rather than being versioned business endpoints.

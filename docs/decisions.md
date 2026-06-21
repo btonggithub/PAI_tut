@@ -733,3 +733,74 @@ Implementation note:
 - Domain event payload builders live in `src/services/event/domainEventPayload.js`.
 - Domain event publishing is routed through `src/services/event/domainEventPublisher.js`.
 - Initial publication points are user registration, email verification, and file upload.
+
+---
+
+## Decision 025.5 - API Contract / OpenAPI
+
+Status:
+Accepted
+
+Decision:
+Phase 25.5 introduces an OpenAPI/Swagger contract for the existing REST API.
+
+The API contract must document the implementation that already exists. It must
+not redesign endpoints, change response envelopes, alter authentication, or
+introduce new business behavior.
+
+OpenAPI is introduced before Frontend Admin Web and Mobile API Readiness so
+future clients can build against a reviewed contract instead of reverse
+engineering route behavior from controllers or tests.
+
+Phase 25.5 includes:
+- OpenAPI 3.x contract for existing `/api/v1` endpoints.
+- Shared schemas for success response envelopes.
+- Shared schemas for error response envelopes.
+- Bearer authentication documentation.
+- Public, protected, and admin endpoint grouping.
+- Pagination metadata schema.
+- Multipart upload schema for the file upload endpoint.
+- `GET /api/docs` for Swagger UI or equivalent documentation.
+- `GET /api/openapi.json` for machine-readable OpenAPI JSON.
+
+Contract source of truth:
+- Routes, validation schemas, response utilities, controllers, and integration tests remain the implementation source of truth.
+- OpenAPI files must be kept in sync with those implementation boundaries.
+- Contract definitions must reuse existing naming and response conventions.
+
+Strategy:
+- Contract first for documentation.
+- Runtime implementation remains unchanged.
+- If OpenAPI and runtime disagree, runtime is treated as the behavioral source of truth and the OpenAPI contract must be corrected.
+- Future endpoint changes must update OpenAPI in the same phase or PR.
+
+Out of Scope:
+- API redesign
+- Response contract changes
+- Client SDK generation
+- Frontend or mobile implementation
+- API Gateway integration
+- Keycloak/OIDC integration
+- Docker/Kubernetes integration
+- Authentication implementation changes
+- Runtime behavior changes unrelated to serving documentation
+
+Rationale:
+The API surface is now broad enough that humans and future clients need a
+stable machine-readable contract. Keeping this as a contract/documentation phase
+reduces drift risk without coupling it to a larger platform change.
+
+Introducing OpenAPI before frontend, mobile, gateway, and identity-provider
+work keeps those later phases anchored to current backend behavior.
+
+Consequences:
+
+Positive:
+- Clear API discoverability
+- Better manual and automated contract review
+- Safer future client, frontend, and mobile work
+- Easier onboarding for admin and integration surfaces
+
+Negative:
+- Adds a new artifact that must stay synchronized with routes and schemas
+- Requires review discipline whenever endpoint contracts change

@@ -1174,3 +1174,147 @@ Excluded:
 - Notification delivery
 - Public event APIs
 - Replacing audit logging, cache invalidation, or existing technical event behavior
+
+## Phase 25.5 Architecture Preparation
+
+Status: Ready to Start
+
+Phase 25.5 introduces an API contract layer for documenting the existing REST
+API through OpenAPI/Swagger.
+
+The OpenAPI contract must describe runtime behavior. It must not become a new
+business logic layer and must not change controllers, services, repositories,
+validation, authentication, authorization, or response utilities.
+
+### OpenAPI Components
+
+Recommended structure:
+
+src/
+|-- docs/
+|   |-- openapi.js
+|   `-- openapi/
+|       |-- paths/
+|       |-- schemas/
+|       `-- security.js
+|-- routes/
+|   `-- docsRoutes.js
+
+Alternative docs-first structure:
+
+docs/
+`-- api/
+    `-- openapi.yaml
+
+Responsibilities:
+- OpenAPI config owns API metadata, server URLs, tags, security schemes, paths, and component schemas.
+- Path definitions mirror route files.
+- Schema definitions mirror validation schemas and response DTOs.
+- Swagger UI/OpenAPI JSON serving, if added, remains documentation-only.
+- `docsRoutes.js`, if added, owns only `GET /api/docs` and `GET /api/openapi.json`.
+- `app.js` wires documentation routes after base middleware and before the 404 handler without changing existing `/api/v1` route behavior.
+
+### OpenAPI Flow
+
+Developer or API consumer
+    ->
+OpenAPI JSON or Swagger UI
+    ->
+Documented route contract
+    ->
+Existing route/controller/service implementation
+
+### Contract Coverage
+
+Phase 25.5 should document:
+- Health and system endpoints
+- Auth endpoints and bearer token flow
+- User endpoints
+- Email verification endpoints
+- File endpoints, including multipart upload
+- Admin user/file/system endpoints
+- Admin audit endpoints
+- Common success and error envelopes
+- Pagination metadata shape
+
+Minimum key paths:
+- `/api/v1/health`
+- `/api/v1/auth/login`
+- `/api/v1/auth/register`
+- `/api/v1/files`
+- `/api/v1/files/upload`
+- `/api/v1/admin/users`
+- `/api/v1/admin/audit/logs`
+
+Required contract sections:
+- API metadata: title, version, description
+- Local development server URL
+- Bearer auth security scheme
+- Common success response envelope
+- Common error response envelope
+- Validation error response format
+- Pagination meta schema
+- User schema
+- File schema
+- AuditLog schema
+- Auth request/response schemas
+- Multipart upload schema
+
+### API Documentation Layer
+
+The API Documentation Layer is a read-only documentation boundary.
+
+Responsibilities:
+- Describe existing routes and response contracts.
+- Serve OpenAPI JSON and optional Swagger UI.
+- Keep API consumers aligned with current runtime behavior.
+
+Non-responsibilities:
+- Business logic
+- Authentication or authorization decisions
+- Validation enforcement
+- Response formatting for existing APIs
+- Database access
+
+Relationship to runtime routes:
+- Runtime routes are the behavioral source of truth.
+- OpenAPI paths mirror runtime route registration.
+- Validation schemas and response DTOs guide OpenAPI request/response schemas.
+- If OpenAPI and runtime disagree, update OpenAPI to match runtime unless a separate API change is explicitly approved.
+
+### Boundary Rules
+
+Routes and Controllers:
+- Must not contain OpenAPI business logic.
+- May expose documentation endpoints if the implementation chooses Swagger UI/OpenAPI JSON.
+
+Services and Repositories:
+- Must remain unchanged by documentation work.
+- Must not depend on OpenAPI modules.
+
+OpenAPI Modules:
+- Must not execute business workflows.
+- Must not access repositories or models directly.
+- Must not change runtime response contracts.
+
+### Phase 25.5 Scope Boundary
+
+Included:
+- OpenAPI/Swagger contract for existing REST APIs
+- Shared component schemas
+- Bearer auth documentation
+- Public/protected/admin endpoint documentation
+- Pagination meta documentation
+- Multipart upload documentation
+- `GET /api/docs`
+- `GET /api/openapi.json`
+
+Excluded:
+- API redesign
+- Response contract changes
+- Client SDK generation
+- Frontend/mobile implementation
+- API Gateway
+- Keycloak/OIDC
+- Docker/Kubernetes
+- Authentication implementation changes

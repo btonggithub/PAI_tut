@@ -436,11 +436,31 @@ Out of scope:
 
 ## NEXT
 
-### Phase 26 - Notification Module
+### Phase 25.5 - API Contract / OpenAPI
 
-Status: Deferred
+Status: Ready to Start
 
 Planning notes:
-* Consume stable domain events from Phase 25 where useful.
-* Keep notification delivery separate from domain event contract ownership.
-* Define delivery channels, templates, and failure behavior before implementation begins.
+* Add OpenAPI/Swagger contract for the existing REST API.
+* Document auth flow, bearer token usage, success envelope, and error envelope.
+* Document public, protected, and admin endpoints.
+* Document pagination meta shape.
+* Document multipart upload behavior for the file upload endpoint.
+* Add `GET /api/docs` and `GET /api/openapi.json` as documentation endpoints.
+* Keep runtime API behavior unchanged.
+
+Acceptance criteria:
+* Phase 25 remains completed.
+* OpenAPI contract mirrors existing route, validation, response, auth, and admin permission behavior.
+* No API redesign or response contract changes are introduced.
+* OpenAPI includes API metadata, local development server URL, bearer auth, success/error envelopes, validation errors, pagination meta, User/File/AuditLog schemas, auth schemas, and multipart upload schema.
+* Integration tests cover docs endpoints, key path presence, `bearerAuth`, and shared response/error schemas.
+* Later platform phases remain deferred: Docker, Keycloak/OIDC, Kafka, Frontend, Mobile, Kubernetes, and Microservice extraction.
+
+Out of scope:
+* Client SDK generation
+* Frontend/mobile work
+* API Gateway
+* Keycloak/OIDC
+* Docker/Kubernetes
+* Auth implementation changes

@@ -862,3 +862,109 @@ Phase 25 excludes:
 - notification delivery
 - public event APIs
 - replacing technical/internal events where they still serve current workflows
+
+---
+
+## Phase 25.5 API Contract / OpenAPI Rules
+
+### Contract Accuracy Rules
+
+OpenAPI documentation must describe the existing implementation.
+
+OpenAPI documentation must not:
+- redesign routes
+- rename fields
+- change status codes
+- change response envelopes
+- change authentication behavior
+- introduce new runtime workflows
+
+### File Organization Rules
+
+OpenAPI contract files should live in a dedicated documentation/API contract boundary.
+
+Allowed locations:
+- `src/docs/openapi/`
+- `docs/api/`
+
+OpenAPI contract logic must not live inside controllers, services, repositories, or models.
+
+### Schema Rules
+
+Schemas must:
+- use centralized reusable components for shared response envelopes
+- document `success`, `message`, `data`, and `error` fields according to current response utilities
+- document pagination `meta` consistently for list endpoints
+- omit private fields such as passwords, token hashes, storage keys, and internal filesystem paths
+
+Schemas must not:
+- expose Mongoose-only internals
+- expose private storage implementation details
+- document fields that current responses do not return
+
+### Authentication Rules
+
+Bearer auth must be documented for protected endpoints.
+
+Public endpoints must be visibly documented as public.
+
+Admin endpoints must document admin permission requirements without changing permission middleware.
+
+### Drift Prevention Rules
+
+When route, validation, or response contracts change, OpenAPI must be updated in the same phase.
+
+Integration tests remain the behavior source of truth.
+
+OpenAPI validation tests should be added if tooling is introduced.
+
+### Phase 25.5 Scope Rules
+
+Phase 25.5 includes:
+- OpenAPI/Swagger contract for existing REST APIs
+- auth flow and bearer token documentation
+- common success and error response envelopes
+- public/protected/admin endpoint documentation
+- pagination meta documentation
+- multipart upload documentation
+- `GET /api/docs`
+- `GET /api/openapi.json`
+
+### Runtime Documentation Endpoint Rules
+
+Documentation endpoints must:
+- return the OpenAPI JSON from `GET /api/openapi.json`
+- serve or redirect to Swagger UI from `GET /api/docs`
+- be wired without changing existing `/api/v1` route behavior
+- be tested with focused integration tests
+
+Documentation endpoints must not:
+- require business authentication unless explicitly decided later
+- alter existing response envelopes
+- call services or repositories
+- execute business workflows
+
+### Implementation Test Rules
+
+When Phase 25.5 is implemented, add integration tests for:
+- `GET /api/openapi.json` returns 200 and valid JSON
+- `GET /api/docs` returns 200 or redirects/serves Swagger UI successfully
+- OpenAPI JSON contains `/api/v1/health`
+- OpenAPI JSON contains `/api/v1/auth/login`
+- OpenAPI JSON contains `/api/v1/auth/register`
+- OpenAPI JSON contains `/api/v1/files`
+- OpenAPI JSON contains `/api/v1/files/upload`
+- OpenAPI JSON contains `/api/v1/admin/users`
+- OpenAPI JSON contains `/api/v1/admin/audit/logs`
+- OpenAPI JSON defines `bearerAuth`
+- OpenAPI JSON defines common success and error schemas
+
+Phase 25.5 excludes:
+- API redesign
+- response contract changes
+- client SDK generation
+- frontend/mobile work
+- API Gateway
+- Keycloak/OIDC
+- Docker/Kubernetes
+- auth implementation changes

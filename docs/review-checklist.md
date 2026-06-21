@@ -593,3 +593,84 @@ Testing:
 - Unit tests cover domain event publisher behavior
 - Integration tests cover each workflow that publishes a domain event
 - Existing auth/session/permission/audit/file/email/cache/admin tests remain compatible
+
+---
+
+## Phase 25.5 API Contract / OpenAPI Review
+
+### Contract Coverage
+
+- OpenAPI document exists for current `/api/v1` APIs
+- Health and system endpoints are documented
+- Auth endpoints are documented
+- User endpoints are documented
+- Email verification endpoints are documented
+- File endpoints are documented
+- Admin endpoints are documented
+- Admin audit endpoints are documented
+- `GET /api/docs` exists if Swagger UI is implemented
+- `GET /api/openapi.json` exists and serves the OpenAPI document
+- OpenAPI JSON contains `/api/v1/health`
+- OpenAPI JSON contains `/api/v1/auth/login`
+- OpenAPI JSON contains `/api/v1/auth/register`
+- OpenAPI JSON contains `/api/v1/files`
+- OpenAPI JSON contains `/api/v1/files/upload`
+- OpenAPI JSON contains `/api/v1/admin/users`
+- OpenAPI JSON contains `/api/v1/admin/audit/logs`
+
+### Response Contracts
+
+- Standard success envelope is documented
+- Standard error envelope is documented
+- Validation error behavior is documented
+- Authentication error behavior is documented
+- Forbidden error behavior is documented
+- Not found behavior is documented where applicable
+
+### Authentication and Authorization
+
+- Public endpoints are marked public
+- Protected endpoints declare bearer authentication
+- Admin endpoints document admin permission requirements
+- Auth implementation remains unchanged
+- Permission middleware remains unchanged
+
+### Schemas
+
+- User schema excludes password and private auth fields
+- File schema excludes storageKey, storedName, and internal filesystem paths
+- Audit log schema excludes sensitive metadata
+- Token response schemas match current auth responses
+- Pagination meta schema matches current list endpoint responses
+- Upload schema uses multipart form-data and the current file field name
+- OpenAPI spec defines `bearerAuth`
+- OpenAPI spec defines common success response schema
+- OpenAPI spec defines common error response schema
+
+### Drift Prevention
+
+- OpenAPI paths match route registration
+- OpenAPI request bodies match validation schemas
+- OpenAPI response schemas match controller/service DTOs
+- No undocumented response contract changes are introduced
+- Contract tests or validation are added if OpenAPI tooling is introduced
+- If OpenAPI and runtime disagree, OpenAPI is corrected to match runtime
+- Future endpoint changes update OpenAPI in the same phase/PR
+
+### Testing
+
+- `GET /api/openapi.json` integration test returns 200 and valid JSON
+- `GET /api/docs` integration test returns 200 or a successful documentation redirect
+- OpenAPI path presence is asserted for key endpoints
+- `bearerAuth` security scheme is asserted
+- Shared success and error schemas are asserted
+
+### Scope Control
+
+- No API redesign is included
+- No response contract changes are included
+- No client SDK generation is included
+- No frontend/mobile work is included
+- No API Gateway is introduced
+- No Keycloak/OIDC implementation is introduced
+- No Docker/Kubernetes implementation is introduced

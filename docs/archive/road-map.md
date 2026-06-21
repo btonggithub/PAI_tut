@@ -234,7 +234,7 @@ Out of Scope:
 
 ตรงนี้ควรกำหนด owner ของ event, payload contract, versioning, naming, compatibility
 
-Status: Ready to Start
+Status: Completed
 
 Phase 25 turns the technical in-process event foundation into explicit domain
 event contracts.
@@ -269,11 +269,62 @@ Out of Scope:
 - Notification delivery
 - Public event APIs
 
+## Phase 25.5. API Contract / OpenAPI
+
+Status: Ready to Start
+
+Phase 25.5 prepares an OpenAPI/Swagger contract for the existing REST API
+without changing runtime behavior.
+
+Scope Guardrails:
+- Add OpenAPI/Swagger contract for existing `/api/v1` APIs.
+- Add runtime documentation endpoints `GET /api/docs` and `GET /api/openapi.json`.
+- Document auth flow and bearer token usage.
+- Document common success and error response envelopes.
+- Document public, protected, and admin endpoints.
+- Document pagination metadata shape.
+- Document multipart upload behavior for file uploads.
+- Add Swagger UI or OpenAPI JSON endpoint only if it remains documentation-only.
+- Keep implementation docs-only first.
+
+Acceptance Criteria:
+- `docs/prompts/current-task.md` describes the OpenAPI implementation task.
+- Architecture docs identify where OpenAPI config/files should live.
+- Decisions docs include Decision 025.5.
+- Conventions define OpenAPI tags, path naming, and schema naming.
+- Coding rules prevent OpenAPI drift from routes, validation, and response contracts.
+- Review checklist includes OpenAPI accuracy validation.
+- No existing API response contract changes.
+
+Out of Scope:
+- API redesign
+- Response contract changes
+- Client SDK generation
+- Frontend/mobile implementation
+- API Gateway
+- Keycloak/OIDC
+- Auth implementation changes
+- Docker/Kubernetes
+
 ## Phase 26. Notification Module
+Status: Deferred
+
+Later platform phases remain deferred until API contracts are stable:
+- Phase 26.5 Production Hardening II
+- Phase 27 Docker Compose Foundation
+- Phase 27.5 Containerization Hardening
+- Phase 28 Keycloak / OIDC Integration
+- Phase 29 Kafka Adapter / Async Messaging
+- Phase 30 Frontend Admin Web
+- Phase 31 Mobile API Readiness
+- Phase 32 Microservice Extraction Preparation
+
 ใช้ domain events เพื่อ trigger notification เช่น verification follow-up, admin alerts, future in-app notification
 ดีที่อยู่หลัง Domain Events เพราะ notification ควร consume event ไม่ใช่ hardcode workflow กระจัดกระจาย
 
 ## Phase 27. Microservice Extraction Preparation
+Status: Deferred
+
 เตรียม bounded contexts, service contracts, event contracts, module ownership, dependency boundaries
 ควรอยู่หลัง domain events และ notification เพราะถึงตอนนั้นจะเห็น dependency จริงมากขึ้น
 
